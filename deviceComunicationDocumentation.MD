@@ -12,10 +12,12 @@ popisu chování jednotlivých zařízení a k popisu společného komunikační
 
 ## Obecné chování zařízení
 
+// TODO dokumentace k blikani diod
+
 Zařízení odesílají tři hlavní druhy zpráv - event, restart a measure. Event zprávy jsou odeslány
 vždy když zařízení zaznamená nějakou událost. Například když Move zařízení zaznamená pohyb 
 nebo když water detection senzor přijde do kontaktu s vodou. Restart zprávy informují server že došlo k 
-restartování zařízení stisknutím tlačítka nebo vložením baterky (TODO Tohle asi ani neni pravda, pri vlozeni baterky se posle pouze transport). Measure zprávy jsou odesílány v určitém 
+restartování zařízení stisknutím tlačítka. Measure zprávy jsou odesílány v určitém 
 časovém intervalu a odesílají naměřená data. Příkladem může být naměřená teplota z teplotního senzoru.
 Podrobný popis těchto a dalších zpráv můžete nájít zde (TODO odkaz).
 
@@ -75,21 +77,31 @@ Stavový automat také nezohledňuje přijmání zpráv ze serveru.
 // Dale je tam problem se zarizenima ktere jsou napajene ze zasuvky.
 
 //TODO je potreba alert continue
+
 // Pokud by se potvrzovali i alertEndy tak alert continue nepridava zadnou hodnotu.
+
 // Pokud by se nepridali tak je ta pridana hodnota dost minimalni
 
 
 // TODO mozna jinak u NBiot a Lora
+
 // Vyzadujici potvrzeni
+
 // Reset
+
 // Test
+
 // Alert start (dalsi se nepotvrzuji)
+
 // Alive
+
 // Kazda 6ta zprava se potvrzuje at je jakakoliv (primarne pro measure na teplomeru, u
+
 // senzoru simple ani snad nemuze nastat)
 
 
 //Nastavitelne downlinkem:
+
 //Da se vypinat alert zprava potvrzeni, jestli potreba potvrzovat Xtou a globalni vypnuti.
 
 //Da se zjistit podle flagu
@@ -178,6 +190,11 @@ Tento byte obsahuje tři informace. Následující tabulka vysvětluje složení
 | 1.bit   | Určuje zda zařízení bylo přepnuto do disconect módu |
 | 2-7.bit | Počet pokusů o odeslání zprávy                      |
 
+
+// TODO dopsat u lory se ceka na odpoved 2sec pokud nedorazi tak se posle zpraznova 
+// TODO Michal u nb iot zjistit z dokumentace
+
+
 Pokud je 0.bit nastaven na 1 tak zařízení vyžaduje potvrzení zprávy ze serveru.
 Zařízení čeká na potvrzení X minut (TODO jak dlouho??). Pokud potvrzení
 nedorazí tak zprávu odešle znovu a zvýší *Počet pokusů o odeslání zprávy* o jedna.
@@ -190,19 +207,19 @@ zprávy odesílá se stále větší prodlevou.
 
 Následující tabulka shrnuje předchozí informace a popisuje chování v disconnect módu:
 
-| Pokus o odeslání     | Hodnota 5.byte | Popis                                                                                                                          |
-|----------------------|----------------|--------------------------------------------------------------------------------------------------------------------------------|
-| 1. pokus o odeslání  | 0000000**1**   | Zařízení odeslalo zprávu a vyžaduje potvrzení (tučně označný bit).                                                             |
-| 2. pokus o odeslání  | **000001**01   | Zařízení čekalo Xmin (TODO zjistit) a nyní se snaží zprávu znovu odeslat. Počítadlo opakování (tučně) bylo zvýšeno o 1.        |
-| 3. pokus o odeslání  | 00001001       | Zařízení čekalo Xmin (TODO zjistit) a nyní se snaží zprávu znovu odeslat.                                                      |
-| 4. pokus o odeslání  | 000011**1**1   | Zařízení čekalo 15 min (TODO zjistit) a nyní se přeplo do disconnect módu (tučně) a pro další opakování bude čekat delší dobu. |
-| 5. pokus o odeslání  | 00010011       | Zařízení čekalo 15 min                                                                                                         |
-| 6. pokus o odeslání  | 00010111       | Zařízení čekalo 15 min                                                                                                         |
-| 7. pokus o odeslání  | 00011011       | Zařízení čekalo 60 min                                                                                                         |
-| 8. pokus o odeslání  | 00011111       | Zařízení čekalo 60 min                                                                                                         |
-| 29. pokus o odeslání | 01110111       | Zařízení čekalo 60 min                                                                                                         |
-| 30. pokus o odeslání | 01111011       | Zařízení čekalo do doby než mělo odeslat alive zprávu (TODO odkaz)<br/> poté namísto alive zprávy znovu odeslalo tuto zprávu   |
-| 31. pokus o odeslání | 01111111       | Zařízení opět čeká do doby než se má odeslat alive zpráva                                                                      |
+| Pokus o odeslání     | Hodnota 5.byte | Popis                                                                                                                         |
+|----------------------|----------------|-------------------------------------------------------------------------------------------------------------------------------|
+| 1. pokus o odeslání  | 0000000**1**   | Zařízení odeslalo zprávu a vyžaduje potvrzení (tučně označný bit).                                                            |
+| 2. pokus o odeslání  | **000001**01   | Zařízení čekalo Xmin (TODO zjistit) a nyní se snaží zprávu znovu odeslat. Počítadlo opakování (tučně) bylo zvýšeno o 1.       |
+| 3. pokus o odeslání  | 00001001       | Zařízení čekalo Xmin (TODO zjistit) a nyní se snaží zprávu znovu odeslat.                                                     |
+| 4. pokus o odeslání  | 000011**1**1   | Zařízení čekalo 15 min a nyní se přeplo do disconnect módu (tučně) a pro další opakování bude čekat delší dobu. |
+| 5. pokus o odeslání  | 00010011       | Zařízení čekalo 15 min                                                                                                        |
+| 6. pokus o odeslání  | 00010111       | Zařízení čekalo 15 min                                                                                                        |
+| 7. pokus o odeslání  | 00011011       | Zařízení čekalo 60 min                                                                                                        |
+| 8. pokus o odeslání  | 00011111       | Zařízení čekalo 60 min                                                                                                        |
+| 29. pokus o odeslání | 01110111       | Zařízení čekalo 60 min                                                                                                        |
+| 30. pokus o odeslání | 01111011       | Zařízení čekalo do doby než mělo odeslat alive zprávu (TODO odkaz)<br/> poté namísto alive zprávy znovu odeslalo tuto zprávu  |
+| 31. pokus o odeslání | 01111111       | Zařízení opět čeká do doby než se má odeslat alive zpráva                                                                     |
 
 //TODO co kdyz ma zarizeni nastaveny alive interval kratsi nez 12hod?
 
@@ -404,7 +421,7 @@ speciální stav zařízení ve kterém zařízení nekomunikuje a šetří bate
 přepravu nebo skladování zařízení.
 
 Zařízení se do transportního režimu dostane vložením baterie. Ukončen transportního režimu nastane
-při stisknutí restart tlačítka. // TODO mam pocit ze pavel rikal ze oziveni pujde i ze serveru
+při stisknutí restart tlačítka.
 
 ## Zařízení
 
