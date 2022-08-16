@@ -13,9 +13,9 @@ popisu chování jednotlivých zařízení a k popisu společného komunikační
 ## Obecné chování zařízení
 
 Zařízení odesílají tři hlavní druhy zpráv - event, restart a measure. Event zprávy jsou odeslány
-vždy když zařízení zaznamená nějakou událost. Například když Move zařízení zaznamená pohyb 
-nebo když water detection senzor přijde do kontaktu s vodou. Restart zprávy informují server že došlo k 
-restartování zařízení stisknutím tlačítka. Measure zprávy jsou odesílány v určitém 
+vždy když zařízení zaznamená nějakou událost. Například když Move zařízení zaznamená pohyb
+nebo když water detection zařízení přijde do kontaktu s vodou. Restart zprávy informují server že došlo k
+restartování zařízení. Measure zprávy jsou odesílány v určitém
 časovém intervalu a odesílají naměřená data. Příkladem může být naměřená teplota z teplotního senzoru.
 Podrobný popis těchto a dalších zpráv můžete nájít zde (TODO odkaz).
 
@@ -24,10 +24,12 @@ případech zařízení čeká na odpověď ze serveru a pokud ji neobdrží tak
 V době kdy se zařízení snaží opětovně odeslat zprávu nepřijmá žádné nové informace ze senzorů.
 Pokud tedy nastane událost zatím co zařízení čeká na potvrzení ze serveru tak je tato událost ignorována.
 
-//TODO je tohle pravda pro lora?
 Všechny zprávy které nejsou potvrzovány mouhou být ztraceny jelikož se je zařízení nesnaží odeslat znovu.
 Server se o těchto zprávách nikdy nedozví. Jedinou informaci kterou může server získat je že se nějaká zpráva ztratila
 jelikož neodpovídá počítadlo zpráv (TODO odkaz).
+
+Stejně tak se může statát že některé zprávy dorazí na server víckrát než jednou. Server může duplicity detekovat
+pomocí počítadla v hlavičce (TODO odkaz).
 
 Zařízení dokáží přijmat zprávy ze serveru. Tyto zprávy můžeme rozdělit na potvrzení, nastavení konfigurace a příkazy.
 Potvrzení slouží k potvrzování zpráv ze zařízení. Nastavení konfigurace umožňuje nastavit konfiguraci zařízení a
@@ -42,6 +44,7 @@ Zařízení umožňuje dva druhy restartu - stisknutí tlačítka a vložení ba
 přepne do transportního režimu který šetří baterku a slouží převážně k přepravě zařízení. Pro přepnutí do běžného
 režimu je potřeba stisknout restart tlačítko.
 
+
 Při vložení baterie zařízení také restartuje některá nastavení která mohla být přenastavena ze serveru.
 //TODO která?? Restart tlačítkem také může restartovat některá nastavení. //TODO která?? Více o
 nastavení a restartu zařízení můžete najít zde (TODO odkaz pravdepodobne na downlink).
@@ -50,9 +53,8 @@ TODO popsat i to ze po restartu se posilaji test zpravy. Melo by to byt 1 min od
 
 ## Stavový diagram zařízení
 
-Následující diagram popisuje stavy do kterých se zařízení může dostat. Stavový diagram popisuje
-všechny stavy do kterých se zařízení teoreticky může dostat. Většina zařízení ale nepodporuje všechny
-stavy a poporuje pouze podmnožinu tohoto úplného stavového automatu. Podrobnosti o jednotlivých
+Následující diagram popisuje stavy do kterých se zařízení může dostat. Většina zařízení ale nepodporuje všechny
+stavy a poporuje pouze podmnožinu tohoto téměř úplného stavového automatu. Podrobnosti o jednotlivých
 zařízeních najdete zde (TODO odkaz).
 
 Stavový automat neobsahuje restart přechod. Restart zařízení může nastat v jakémkoliv stavu.
@@ -60,8 +62,6 @@ Stavový automat neobsahuje restart přechod. Restart zařízení může nastat 
 Stavový automat také nezohledňuje přijmání zpráv ze serveru.
 
 ![State machine](/deviceComunicationDocumentation.png)
-
-// TODO Michal - informace ze zpravy mohou dorazit vickrat kvuli chybam na siti
 
 ## Dioda
 
@@ -77,24 +77,26 @@ Hlavička má 7 bytů a obsahuje obecné informace které jsou společné pro v�
 Příklad: 0209020. Následující tabulka obsahuje zkrácený popis hlavičky. Celkový popis pro
 jednotlivé byty následuje v dalších odstavcích.
 
-| Pozice | Zkrácený popis                                                                                          |
-|--------|---------------------------------------------------------------------------------------------------------|
-| 0.byte | Počítadlo odslaných zpráv                                                                               |
-| 1.byte | Počítadlo přijatých zpráv                                                                               |
-| 2.byte | Stav baterie v zazení                                                                                   |
-| 3.byte | Teplota procesoru                                                                                       |
-| 4.byte | Kvalita připojení                                                                                       |
-| 5.byte | 0 bit - Vyžádání potvrzení zprávy,<br/>1 bit - disconect<br/>Zbylé bity - počet pokusů o odeslání zprávy|
-| 6.byte | Nepoužitý                                                                                               |
-| 7.byte | Typ zprávy                                                                                              |
+| Pozice | Zkrácený popis                                                                                           |
+|--------|----------------------------------------------------------------------------------------------------------|
+| 0.byte | Identifikátor odslaných zpráv                                                                            |
+| 1.byte | Identifikátor přijatých zpráv                                                                                |
+| 2.byte | Stav baterie v zazení                                                                                    |
+| 3.byte | Teplota procesoru                                                                                        |
+| 4.byte | RSSI                                                                                     |
+| 5.byte | 0 bit - Vyžádání potvrzení zprávy,<br/>1 bit - disconect<br/>Zbylé bity - počet pokusů o odeslání zprávy |
+| 6.byte | Nepoužitý                                                                                                |
+| 7.byte | Typ zprávy                                                                                               |
 
-### 0.byte - počítadlo odeslaných zpráv
+### 0.byte - identifikátor odeslaných zpráv
 
-Počítadlo nabívající hodnot 0-255. Zařízení po každém odeslání zprávy zvýší počítadlo
-o 1. Pokud počítadlo nabyde hodnoty 255 tak se při dalším odeslání zprávy nastaví na 0.
+Zařízení po každém odeslání nové zprávy zvýší počítadlo o 1.
+Pokud počítadlo nabyde hodnoty 255 tak se při dalším odeslání zprávy nastaví na 0.
 
 Počítadlo nezvyšuje svou hodnotu pokud se zařízení snaží znovu odeslat zprávu která
 nebyla potvrzena.
+
+Primární účel tohoto počítadla je zajištění idempotence na serveru.
 
 Příklad:
 
@@ -107,11 +109,10 @@ Příklad:
 | 256          | 255------------                                                 |
 | 257          | 00------------ (došlo k přetečení a counter se restartoval)     |
 
-### 1.byte - počítadlo přijatých zpráv
+### 1.byte - identifikátor přijatých zpráv
 
-Defautlně je nastaveno na 0. Po přijetí zprávy ze serveru se nastaví na posledí hodnotu 
-přijatou ze serveru. Více o této hodnotě zde (TODO odkaz).
-
+Defautlně je nastaveno na 0. Po přijetí zprávy ze serveru se nastaví na hodnotu
+přijatou v této zprávě. Více o této hodnotě zde (TODO odkaz).
 
 ### 2.byte - napětí baterie v zařízení
 
@@ -120,8 +121,6 @@ Určuje hodnotu napětí baterie. Pokud je zařízení napájeno ze zásuvky tak
 Napětí může nabívat hodnot 1.8V–4.35V. Hodnota 0 odpovídá napětí 1.8V a hodnota 255 odpobvídá napětí 4.35V.
 
 Aktuální napětí můžeme vypočítat podle následujícího vzorce: *naměřená hodnota* / 100 + 1.8
-
-
 
 ### 3.byte - teplota procesoru
 
@@ -149,15 +148,15 @@ Tento byte obsahuje tři informace. Následující tabulka vysvětluje složení
 
 #### 0. bit u lora sítě
 
-Pokud je 0.bit nastaven na 1 tak zařízení vyžaduje potvrzení zprávy
-u lora sítě ale nemusíte žádné potvrzení posílat jelikož se o potvrzování
-stará Lora samotná.
+Pokud je 0.bit nastaven na 1 tak zařízení vyžaduje potvrzení zprávy.
+U lora sítě ale není potřeba potvrzení posílat jelikož se o potvrzování
+stará Lora.
 
 #### 0. bit u NbIot sítě
 
 Pokud je 0.bit nastaven na 1 tak zařízení vyžaduje potvrzení zprávy.
 Zařízení po odeslání čeká X minut (TODO jak dlouho) a v tomto okně musí
-ze serveru přijít potvrzení nebo jiná zpráva. Více o posílání zpráv
+ze serveru přijít potvrzení, konfigurační zpráva nebp příkaz. Více o posílání zpráv
 na zařízení najdete zde (TODO odkaz).
 
 #### 1.-7.bite společné pro obě sítě
@@ -201,7 +200,7 @@ aktuální zpráva doručena.**
 
 ### 7.byte - typ zprávy
 
-Typ zprávy určuje co budou obsahovavt další byte v payloadu. Následující tabulka ukazuje jaké hodnoty může 
+Typ zprávy určuje co budou obsahovavt další byte ve zprávě. Následující tabulka ukazuje jaké hodnoty může
 tento byte nabívat:
 
 
@@ -226,20 +225,8 @@ zařízení. (TODO odkaz)
 
 ## Data
 
-Následující odstavce popisují datovou část zprvávy. Všechny tyto zprávy začínají společnou
-hlavičkou která je popsaná výše (TODO odkaz). Obsah hlavičky (pro připomenutí):
-
-| Pozice | Zkrácený popis                                                                                          |
-|--------|---------------------------------------------------------------------------------------------------------|
-| 0.byte | Počítadlo odslaných zpráv                                                                               |
-| 1.byte | Počítadlo přijatých zpráv                                                                               |
-| 2.byte | Stav baterie v zazení                                                                                   |
-| 3.byte | Teplota procesoru                                                                                       |
-| 4.byte | Kvalita připojení                                                                                       |
-| 5.byte | 0 bit - Vyžádání potvrzení zprávy,<br/>1 bit - disconect<br/>Zbylé bity - počet pokusů o odeslání zprávy|
-| 6.byte | Nepoužitý                                                                                               |
-| 7.byte | Typ zprávy                                                                                              |
-// TODO odkazy do tabulky
+Následující odstavce popisují datovou část zprávy. Všechny tyto zprávy začínají společnou
+hlavičkou která je popsaná výše (TODO odkaz).
 
 ### Downlink acknowlage
 
@@ -278,12 +265,13 @@ Obsah:
 | 12.byte | počet restartů               |
 | 13.byte | kód restartu                 |
 
-Typ a mód zařízení identifikuje zařízení a jeho interní nastavení. Více o typu a módu se dozvíte 
-zde // TODO odkaz.
+Typ a mód zařízení identifikuje zařízení a jeho interní nastavení. Detaily o typu
+a módu jsou popsány u jednotlivých zařízení TODO odkaz .
+
+TODO k zarizenim popsat mody a typy.
 
 Major, minor a patch verze vždy udává verzi podle definice semantického verzovani (https://semver.org/).
 Tyto údaje slouží převážně k diagnostice zařízení.
-
 
 Počet restartů udává kolikrát byl senzor restartován od vložení baterky (TODO ověřit).
 
@@ -299,18 +287,18 @@ Kód restartu udává důvod proč resatart nastal. Byte může nabívat násled
 
 ### Test
 
-Zařízení po odeslání restartu odesílá test zprávu. Test zpráva slouží k přijetí zpráv ze serveru
-po restartoví zařízení a také pro kontrolu síly signálu.  Obvykle se v této zprávě odesílají nastavení zařízení 
-jelikož restart může způsobit nastavení některých nastavení na defaultní hodnotu //TODO lepsi. 
-Nastavení nemůže být přijato po odeslání restart zprávy kvůli omezení Lora protokolu. Více informací Zde. (TODO odkaz)
+Zařízení po odeslání restart zprávy odesílá test zprávu. Test zprávy jsou potvrzovány ze serveru
+a tak umožňují serveru odeslat konfigurace na zařízení ještě před tím než začne fungovat standartním způsobem.
 
-Zařízení podporují odeslat nula až X testovacích zpráv podle nastavení. 
-Defaultní nastavení pro většinu zařízení je jedna testovací zpráva po restartu.
+U NbIot je možné tyto konfigurace odeslat i v odpovědi na restart zprávu. U zařízení používající Lora
+síť to není možné kvůli fungování Lora sítě. Více o loře najdete zde.
 
-Zařízení vždy čeká určiý čas po odeslání restart zprávy a až poté odešle test zprávu.
-Doba čekání se dá nastavit zprávou ze serveru. Defaultně zařízení čeká 2 minuty.
+Zařízení podporují odeslat nula až 255 testovacích zpráv.
+Defaultní nastavení pro většinu zařízení je jedna testovací zpráva.
+Jak nastavit počet testovacích zpráv můžete najít zde (TODO odkaz).
 
-Více informací o nastavení intervalů a počtů testovacích zpráv můžete najít zde. //TODO odkaz
+Zařízení vždy čeká 2 minuty po odeslání restart zprávy a až poté odešle test zprávu.
+Mezi každými dvěma test zprávamy je také prodleva 2 minuty.
 
 Obsah:
 
@@ -371,7 +359,7 @@ hodnoty a jejich význam:
 
 Alive zpráva slouží jako notifikace že zařízení je v pořádku a stále vysílá. Alive zpráva
 se posílá pouze pokud zařízení dlouhou dobu nekomunikovalo. Defaultně je alive zpráva odeslána pokud
-zařízení nekomunikovalo se serverem 12 hodin. Interval se dá nastavit pomocí příkazu ze serveru (TODO nazev a odkaz).
+zařízení neodeslalo žádnou zprávu 12 hodin. Interval se dá nastavit pomocí příkazu ze serveru (TODO nazev a odkaz).
 
 Obsah:
 
@@ -382,7 +370,7 @@ Obsah:
 
 ### Event
 
-Zpráva událost informuje server že zařízení zaznamenalo nějakou důležitou
+Zpráva událost informuje že zařízení zaznamenalo nějakou důležitou
 událost. Na jaké události zařízení reaguje se liší podle typu zařízení.
 Například zařízení které detekuje pohyb odešle zprávu typu event při
 detekci pohybu.
@@ -459,7 +447,7 @@ TODO Co udává pocet událostí?? Je to tam vůbec?? - Pavel nevi
 
 #### Free fall
 
-Událost určuje zda zařízení padalo volným pádem.
+Událost je odslána když zařízení padá volným pádem.
 
 Formát události:
 
@@ -497,7 +485,7 @@ tak je odslána událost continue. Událost end je poté odeslána pokud
 ### Move detection
 
 Zařízení slouží k detekci pohybu. Událost start je odeslána když zařízení detekuje
-pohyb. Událost continue je odeslána pokud je zaznamenán další pohyb v 10 minutách.
+pohyb. Událost continue je odeslána pokud je zaznamenán další pohyb v příštích 10 minutách.
 Událost end je poté odeslána pokud zařízení 10 minut nezaznamená ani jeden pohyb.
 
 * Zařízení podporuje události - start, continue, end, tamper.
@@ -507,7 +495,7 @@ Událost end je poté odeslána pokud zařízení 10 minut nezaznamená ani jede
 
 Zařízení slouží ke sledování četnosti otevření/zavření dveří, krytů, průchodu pohyblivých částí.
 Zařízení podporuje dva režimy. Režim continuous a simple. Mezi těmito
-režimy lze přepínat pomocí zprávy ze serveru (TODO odkaz). //TODO jaky je defaultni odkaz
+režimy lze přepínat pomocí zprávy ze serveru (TODO odkaz). //TODO jaky je defaultni mod?
 
 * Zařízení podporuje události - start, continue, end, tamper.
 * Zařízení neodesílá zprávu typu measure (TODO odkaz)
@@ -522,8 +510,8 @@ zařízení posílá událost end.
 
 #### Režim simple
 
-Každé oddálení magnetů odešle událost start. Pokud zařízení poté 10 minut nedetekuje
-oddálení magnetů tak odešle událost end.
+Každé oddálení magnetů odešle událost start. Pokud zařízení po odeslání události start 10 minut
+nedetekuje oddálení magnetů tak odešle událost end.
 
 ### Pir
 
@@ -561,12 +549,12 @@ Measure zpráva má následující formát:
 | Byte             | Význam                         |
 |------------------|--------------------------------|
 | 0.byte           | Nepoužité - vždy obsahuje 0xFF |
-| 1.byte           | Délka dat                      |
+| 1.byte           | Nepoužité - vždy obsahuje 20   |
 | 2.byte - 21.byte | Naměřené teploty               |
 
-2.byte - 21.byte obsahuje posledních 9 posledních hodnot odeslaných na server a jednu
+2.byte - 21.byte obsahuje posledních 9 hodnot odeslaných na server a jednu
 novou hodnotu. Historické hodnoty jsou ve zprávě obsažené protože se může některá ze
-zpráv ztratít a server pak může vypadlou hodnotu dopočítat.
+zpráv ztratit a server pak může vypadlou hodnotu zjistit zpětně.
 
 Každá naměřená hodnota ve zprávě zabírá 2 byte.
 
@@ -578,7 +566,7 @@ Defaultní nastavení je 10 minu a 10 zpráv. Zařízení tedy každou minutu zm
 teplotu a po 10 minutách odešle průměr naměřených teplot společně s 9 předcházejícími
 odeslanými teplotami. Zařízení tedy pošle každých deset minut teploty za posledních
 100 minut. Jak často se mají zprávy odeslat a kolikrát se má v tomto intervalu
-teplota měřit je možné nastavit pomocí zprávy ze serveru více zde. TODO odkaz
+teplota měřit je možné nastavit pomocí zprávy ze serveru. Více zde. TODO odkaz
 
 // TODO kde je nova hodnota na zacatku nebo na konci. Jak jsou hodnoty serazene?
 // TODO v jakem formatu jsou teploty odeslinay? Je to zase nejaky offset aby byly mereny
@@ -599,7 +587,7 @@ Measure zpráva má následující formát:
 | Byte             | Význam                         |
 |------------------|--------------------------------|
 | 0.byte           | Nepoužité - vždy obsahuje 0xFF |
-| 1.byte           | Délka dat                      |
+| 1.byte           | Nepoužité - vždy obsahuje 30   |
 | 2.byte - 31.byte | Naměřené teploty a vlhkosti    |
 
 Zařízení funguje stejně jako temperature meter popsaný zde. Jediný
@@ -612,15 +600,15 @@ neposlou?
 
 Zařízení dokáží přijmat zprávy ze serveru. Tyto zprávy můžeme rozdělit na potvrzení, nastavení konfigurace a příkazy.
 Potvrzení slouží k potvrzování zpráv ze zařízení. Nastavení konfigurace umožňuje nastavit konfiguraci zařízení a
-příkazy umožňují určitým způsobem manipulovat se zařízením. Například přikázat zařízení aby se restartovalo.
+příkazy umožňují určitým způsobem manipulovat se zařízením - například vynutit restart.
 
-Všechny zprávy jsou idempotetní a server tedy může stejnou zprávu odeslat vícekrát bez vedlejších efektů.
-Idempotence je zajištěna podstatou zpráv ne pomoci Id zprávy. Zařízení tedy zprávu zpracuje víckrát
+Všechny zprávy jsou idempotetní. Server tedy může stejnou zprávu odeslat vícekrát a výsledek bude stále stejný.
+Idempotence je zajištěna podstatou zpráv a né pomoci Id zprávy. Zařízení tedy zprávu zpracuje víckrát
 ale všechny příkazy a nastavení jsou vytvořené tak aby to nebyl problém.
 
 Pokud zařízení úspěšně přijme konfigurační nebo příkazovou zprávu tak
-odešle zpět na server potvrzení o přijetí. Potvrzovací zprávy nejsou potvrzovány.
-Potvrzovací zpráva má následující formát (TODO odkaz).
+odešle zpět na server potvrzení o přijetí. Potvrzovací zprávy odeslané ze serveru
+nejsou potvrzovány zařízením. Formát potvrzovací zprávy které odesílá zařízení je popsán zde (TODO odkaz).
 
 Zařízení vždy nejdříve odešle potvrzení a až poté příkaz zpracuje. Pokud
 tedy zařízení přijme příkaz na restartování tak nejdříve odešle potvrzení
@@ -660,10 +648,19 @@ Situace kdy se ztratí potvrzující zpráva:
 ### Lora
 
 V Lora síti zařízení komunikuje s network serverem který se stará o odesílání zpráv
-na zařízení. Pokud chce server odeslat zprávu na zařízení musí ji odeslat na network server.
-Network server si zprávu uloží a poté čeká dokud zařízení nenaváže spojení. Poté
+na server a na zařízení. Funguje tedy jako prostředník mezi serverem a zařézením.
+
+Pokud chce server odeslat zprávu na zařízení musí ji odeslat na network server.
+Network server si zprávu uloží a poté čeká dokud zařízení neposílá zprávu. Poté
 přijme zprávu ze zařízení a tu odešle na server. Ve stejnou dobu kdy odesílá zprávu
 na server odešle i zprávu na zařízení.
+
+Následující diagramy ukazují odeslání příkazové nebo konfigurační
+zprávy na zařízení.
+Uplink je jakákoliv zpráva odesílaná ze zařízení na server.
+Downlink je jakákoliv zpráva posílaná ze serveru na zařízení.
+
+![LoraCommunication](Lora_communication.png)
 
 Network sever vždy musí čekat až zařízení zahájí komunikaci. Může se tedy
 stát že zpráva ze serveru je doručena až po dlouhé době.
@@ -680,12 +677,10 @@ jsou smazány a server je musí odelat na network server znovu.
 Nové navázání komunikace se děje vždy když je zařízení restartováno, když je restartován modem rádia (TODO odkaz) a
 v některých případech kdy se opakovaně nepodaří doručit zprávu.
 
-Následující diagramy ukazují odeslání příkazové nebo konfigurační
-zprávy na zařízení.
-Uplink je jakákoliv zpráva odesílaná ze zařízení na server.
-Downlink je jakákoliv zpráva posílaná ze serveru na zařízení.
-
-![LoraCommunication](Lora_communication.png)
+Na lora network server je možné odeslat více zpráv zároveň.
+Tato funkcionalita obvykle není potřeba ale je možné ji naimplementovat
+a využít identifikátor zprávy (TODO odkaz) pro identifikaci toho kterou zprávu
+zařízení potvrzuje.
 
 #### Implementace odesílání zpráv na zařízení v lora síti
 
@@ -700,14 +695,9 @@ tak je downlinková zpráva úspěšně odeslána.
 ![LoraMessageMarker](Lora_MessageMarker.png)
 
 Následující diagram ukazuje chování v případě že zařízení
-provede join a smaže zprávu který čeká na network serveru:
+provede join (nové navázání komunikace s network serverem) a smaže zprávu který čeká na network serveru:
 
 ![LoraMessageMarker](Lora_MessageMarker_join.png)
-
-Na lora network server je možné odeslat více zpráv zároveň.
-Tato funkcionalita obvykle není potřeba ale je možné ji naimplementovat
-a využít XXX counter (TODO odkaz) pro identifikaci toho kterou zprávu
-zařízení potvrzuje.
 
 Nevýhodou tohoto řešení je že při navázání nového spojení s network serverem
 může doručení zprávy trvat dlouhou dobu. Doručení zprávy se ale dá
@@ -763,7 +753,7 @@ datová část zprávy. Datová část je popsána v další části.
 | 0x04           | 0x08           | Zapnutí nebo vypnutí Lora ADR                               |
 | 0x04           | 0x09           | Nastaví Lora dataRate                                       |
 | 0x04           | 0x0A           | Nastaví módu zařízení pro magnet zařízení                   |
-| 0x04           | 0x0B           | Omezení maximálního počtu zpráv typu událost pokračuje      | TODO jaka je defaultni hodnota? - zjistit pavel nevi
+| 0x04           | 0x0B           | Omezení maximálního počtu zpráv typu událost pokračuje      |
 | 0x04           | 0x0C           | Určuje periodu vzorkování pro teplotní a vlhkostní zařízení |
 | 0x04           | 0x0E           | Nastavení citlivosti pohybového zařízení                    |
 
@@ -774,9 +764,7 @@ Následující odstavce podrobně popisují co jednotlivé zprávy znamenají.
 #### Potvrzení zprávy
 
 Zpráva slouží k potvrzení zprávy která přišla ze zařízení. Potvrzení zprávy
-je potřeba odeslat pouze pokud zařízení používá síť NbIot.
-
-Potvrzení je potřeba odeslat pouze pokud si ho zařízení vyžádá. TODO odkaz
+je potřeba odeslat pouze pokud zařízení používá síť NbIot a vyžádá si ho v hlavičce odeslané zprávy (TODO odkaz).
 
 // TODO dopsat ktere zpravy se potvrzují
 
@@ -818,8 +806,8 @@ Struktura:
 
 #### Kolikátá zpráva vyžaduje potvrzení
 
-Určí kolikátá zpráva má musí vždy být potvrzena. Defaultní hodnota je TODO ??.
-Více o potvrzováno (TODO odkaz)
+Určí kolikátá zpráva musí vždy být potvrzena. Defaultní hodnota je TODO ??.
+Více o potvrzování (TODO odkaz)
 
 Struktura:
 
@@ -830,7 +818,9 @@ Struktura:
 
 #### Vypnutí a zapnutí potvrzování zpráv
 
-Odeslání této zprávy na zařízení vypne nebo zapne potvrzování zpráv.
+Odeslání této zprávy na zařízení vypne nebo zapne vyžadování potvrzení zpráv zařízením.
+
+// TODO prestane se i zadost posilat v hlavicce?
 
 Struktura:
 
@@ -981,6 +971,94 @@ Nastaví citlivost pohybového zařízení.
 TODO doplnit nastaveni pro nizkou stredni a vysokou citlivost.
 
 ## Jen poznamky
+
+### Novy payload navrh
+
+* Neprovadet join pri kazdem restartu. Pouze pokud neni mozne odeslat zpravu 3x a nebo pri hard restartu. Toto umozni
+  nastavit pocet test zprav defaultne na 0 a prijmout konfiguraci v restart zprave.
+* Hard restart nedelat pri vyndani baterie ale pri dlouhem podrzeni tlacitka. Toto znacne zjednodusi implementaci
+  serveru. Aktualne nemuzeme rozeznat zda pouze dosla baterie nebo zda uzivatel opravdu chtel hard reset.
+* Pokud zarizeni bezi na lora siti tak by nikdy nemelo vyzadovat potvrzeni.
+* 5.byte v hlavicce - potvrzení, disconnect a počet pokusů o odeslání zprávy. By nemel obsahovat disconnect. Pouze zda
+  se pouzaduje potvrzeni a pocet pokusu. Disconect nepridava zadnou informaci. Server muze podle
+  poctu pokusu zjistit jestli je zarizeni v disconnect.
+* identifikátor přijatých zpráv - by se nemel posilat v hlavicce ale v potvrzeni downlinku
+* Zajistit aby se zarizeni samo restartovalo u downlinku ktere vyzaduji restart
+
+![NewCommunication.png](NewCommunication.png)
+
+Struktura uplink hlavicky by se mela zmenit nasledujicim zpusobem:
+
+| 0.byte                        | 1.byte                | 2.byte            | 3.byte | 4.byte    | 5.byte     |
+|-------------------------------|-----------------------|-------------------|--------|-----------|------------|
+| Identifikátor odslaných zpráv | Stav baterie v zazení | Teplota procesoru | RSSI   | Opakování | Typ zprávy |
+
+Typ zpravy pak presne urci jak budou vypadat nasledujici byte.
+Zpravy nepotrebuji delku aktualne je uplne k nicemu.
+
+DownlinkaAcknowlege - obsahoval by pouze
+
+| Byte    | Význam                       |
+|---------|------------------------------|
+| 0.byte  | Identifikator downlinku ktery je potvrzovan  |
+
+Restart
+
+| Byte    | Význam                       |
+|---------|------------------------------|
+| 0.byte  | Typ zařízení                 |
+| 1.byte  | Mód zařízení                 |
+| 2.byte  | major verze payloadu         |
+| 3.byte  | minor verze payloadu         |
+| 4.byte  | major verze firmwaru         |
+| 5.byte  | minor verze firmwaru         |
+| 6.byte  | patch verze firmwaru         |
+| 7.byte  | major verze radia            |
+| 8.byte | minor verze radia            |
+| 9.byte | patch verze radia            |
+| 10.byte | počet restartů               |
+| 11.byte | kód restartu                 |
+
+test
+
+Nice neobsahuje
+
+Error
+
+| Byte            | Význam                               |
+|-----------------|--------------------------------------|
+| 0.byte          | Typ chyby                            |
+| 1.byte          | Nepoužitý vždy obsahuje 0x04         |
+| 2.byte - 5.byte | Obsahuje hodnotu z chybového registru | 
+
+Error
+
+| Byte            | Význam                               |
+|-----------------|--------------------------------------|
+| 0.byte          | Typ chyby                            |
+| 1.byte - 4.byte | Obsahuje hodnotu z chybového registru | 
+
+Alive
+
+nic
+
+Event
+by se rozdelil na X typů
+event start
+event continue
+event end
+tamper
+free fall
+
+kazdy z nich by obsahoval pouze to co u neja dava smysl
+Napr. event start neposila pocet eventu. Neposila ani cas od posledni udalosti.
+atd.
+
+Transport
+
+nic neobsahuje
+
+### Dalsi poznamky
 
 @startuml
 [*] --> TransportMode : Vložení baterky
