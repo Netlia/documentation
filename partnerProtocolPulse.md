@@ -4,12 +4,6 @@ Dokument popisuje způsob předávání událostí ze systému NETLIA do aplikac
 
 **Způsob komunikace je mezi NETLIA a partnerem dohodnut a na straně NETLIA nastaven.**
 
-## Obsah
-
-Obsah můžete zobrazit následujícím způsobem:
-
-![Obsah](/images/table-of-contents.webp)
-
 # Způsoby předávání dat
 
 Data jsou předávána komunikačním protokolem ve formátu JSON a popisují události, které vznikají na zařízení Pulse.
