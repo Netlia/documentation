@@ -1,9 +1,9 @@
 # Specifikace předávání událostí
 
-Dokument popisuje způsob předávání událostí ze systému SENSORIC do aplikace partnera.
+Dokument popisuje způsob předávání událostí ze systému NETLIA do aplikace partnera.
 
-**Způsob komunikace je mezi SENSORIC a partnerem dohodnut a na straně SENSORIC nastaven.** V budoucnu bude umožněno
-partnerovi aby si sám nastavení měnil ve webovém rozhraní nebo přes API.
+**Způsob komunikace je mezi NETLIA a partnerem dohodnut a na straně NETLIA nastaven.** 
+V budoucnu bude umožněno partnerovi aby si sám nastavení měnil ve webovém rozhraní nebo přes API.
 
 ## Obsah
 
@@ -13,7 +13,7 @@ Obsah můžete zobrazit následujícím způsobem:
 
 # Způsoby předávání dat
 
-Data jsou předávána komunikačním protokolem ve formátu JSON a popisují události, které vznikají v systému SENSORIC.
+Data jsou předávána komunikačním protokolem ve formátu JSON a popisují události, které vznikají v systému NETLIA.
 Položky datetime jsou v UTC podle ISO 8601. Pořadí parametrů není zaručeno a může se měnit.
 
 ## Předávání událostí přes HTTP callback
