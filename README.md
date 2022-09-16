@@ -90,7 +90,7 @@ zařízení posílá `event-end`.
 | [transport](#eventtype-transport)                   | Přechod do transportního režimu - neaktivní stav s minimální spotřebou. |
 | [event-start](#eventtype-event-start)               | Detekce vzniku zaplavení.                                               |
 | [event-continue](#eventtype-event-continue)         | Zaplavení pokračuje.                                                    |
-| [event-continue-end](#eventtype-event-continue-end) | Konec zaplavení.                                                        |
+| [event-end](#eventtype-event-end) | Konec zaplavení.                                                        |
 
 ## Zařízení MovementDetection
 Detekuje pohyb předmětu, na kterém je čidlo připevněno nebo položeno. 
@@ -114,7 +114,7 @@ pohybu. Pokud je zařízení 10 minut od začátku nebo pokračování pohybu v 
 | [tamper](#eventtype-tamper)                         | Otevření nebo zavření krytu zařízení, manipulace s bezpečnostním spínačem. |
 | [event-start](#eventtype-event-start)               | Detekce začátku pohybu.                                                    |
 | [event-continue](#eventtype-event-continue)         | Bohyb pokračuje.                                                           |
-| [event-continue-end](#eventtype-event-continue-end) | Během 10 minut nedošlo k pohybu.                                           |
+| [event-end](#eventtype-event-end) | Během 10 minut nedošlo k pohybu.                                           |
 
 ## Zařízení Magnetic
 Rozpozná oddálení/přiblížení čidla od magnetu.
@@ -158,7 +158,7 @@ oddálení magnetu), zařízení posílá `event-end`.
 | [tamper](#eventtype-tamper)                         | Otevření nebo zavření krytu zařízení, manipulace s bezpečnostním spínačem. |
 | [event-start](#eventtype-event-start)               | Magnet oddálen, začátek poplachu.                                          |
 | [event-continue](#eventtype-event-continue)         | Dění na magnetu se opakuje, poplach pokračuje.                             |
-| [event-continue-end](#eventtype-event-continue-end) | Během 10 minut nedošlo k oddálení magnetu, konec poplachu.                 |
+| [event-end](#eventtype-event-end) | Během 10 minut nedošlo k oddálení magnetu, konec poplachu.                 |
 
 ## Zařízení Pir
 Detekuje pohyb nebo přítomnost člověka ve vymezeném prostoru do vzdálenosti 10m. 
@@ -181,7 +181,7 @@ poslední. Senzor pošle zprávu s událostí `event-end`, že pohyb skončil po
 | [tamper](#eventtype-tamper)                         | Otevření nebo zavření krytu zařízení, manipulace s bezpečnostním spínačem. |
 | [event-start](#eventtype-event-start)               | Detekce začátku pohybu.                                                    |
 | [event-continue](#eventtype-event-continue)         | Pohyb pokračuje.                                                           |
-| [event-continue-end](#eventtype-event-continue-end) | Během 10 minut nedošlo k pohybu.                                           |
+| [event-end](#eventtype-event-end) | Během 10 minut nedošlo k pohybu.                                           |
 
 ## Zařízení AlertButton
 Zařízení s tlačítkem pro přivolání pomoci nebo spuštění poplachu.
@@ -410,31 +410,6 @@ Ukázka zaslané události:
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
     "EventType": "event-continue",
-    "EventCount": 0,
-    "SecondsSinceLastEvent": 0
-}
-```
-
-`EventCount` udává počet opakování události od posledního odeslání `event-start` nebo `event-continue`.
-
-`SecondsSinceLastEvent` udává počet vteřin mezi podlední událostí a odesláním zprávy.
-
-## EventType event-continue-end
-Situace kdy událost nastane je popsána u každého zařízení, které tuto událost zasílá.
-
-> DeviceType u kterých může tato událost nastat: `water-detection`, `movement-detection`
-> , `magnetic-detection-continuous`, `pir`
-
-Ukázka zaslané události:
-
-```yaml
-{
-    "ProtocolVersion": 1,
-    "DeviceId": "abc123",
-    "DeviceType": "magnetic-detection-continuous",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "event-continue-end",
     "EventCount": 0,
     "SecondsSinceLastEvent": 0
 }
