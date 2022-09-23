@@ -39,9 +39,9 @@ Příklad URL (doporučené nastavení):
 
 Pro uvedenou URL budou volány např. tyto requesty:
 
-https://nejakaadresa.cz/event/v1/abc123/event-start/
+https://nejakaadresa.com/event/v1/abc123/event-start/
 
-https://nejakaadresa.cz/event/v1/abc123/measured-humidity/
+https://nejakaadresa.com/event/v1/abc123/measured-humidity/
 
 ### Hlavičky HTTP requestu
 Partner může specifikovat další konfiguraci přidáním HTTP hlavičy (klíč a hodnota). Tím lze např. vyřešit autorizaci.
@@ -81,7 +81,7 @@ zaplavení trvá a pokud trvá, tak po 10 minutách vyvolá událost `event-cont
 pošle po dalších 10 minutách událost `event-continue`, že zaplavení pokračuje, další již neposílá. Po skončení zaplavení
 zařízení posílá `event-end`.
 
-> MessageType: water-detection
+> DeviceType: water-detection
 
 | EventType                                           | Popis                                                                   |
 |:----------------------------------------------------|:------------------------------------------------------------------------|
@@ -104,7 +104,7 @@ Pokud v klidovém stavu dojde pohybu, je vyvolána událost `event-start`. Pokud
 pohybu tak počítá opakování pohybu a po 10 minutách pošle `event-continue`. `event-continue` se opakuje dokud dochází k
 pohybu. Pokud je zařízení 10 minut od začátku nebo pokračování pohybu v klidu, posílá `event-end`.
 
-> MessageType: movement-detection
+> DeviceType: movement-detection
 
 | EventType                                           | Popis                                                                      |
 |:----------------------------------------------------|:---------------------------------------------------------------------------|
@@ -128,7 +128,7 @@ jiného.
 
 Vždy při oddálení magnetu je vyvolána událost `event-start`. Při přiblížení magnetu zpět vyvolá `event-end`.
 
-> MessageType: magnetic-detection-simple
+> DeviceType: magnetic-detection-simple
 
 | EventType                                           | Popis                                                                      |
 |:----------------------------------------------------|:---------------------------------------------------------------------------|
@@ -148,7 +148,7 @@ nereaguje, ale pokud dojde do 10 minut k opětovnému oddálení magnetu tak po�
 pošle `event-continue`. `event-continue` se opakuje dokud se něco děje. Pokud se během 10 minut nic nestane (nedojde k
 oddálení magnetu), zařízení posílá `event-end`.
 
-> MessageType: magnetic-detection-continuous
+> DeviceType: magnetic-detection-continuous
 
 | EventType                                           | Popis                                                                      |
 |:----------------------------------------------------|:---------------------------------------------------------------------------|
@@ -171,7 +171,7 @@ Jakmile zařízení detekuje pohyb pošle zprávu s událostí `event-start`. Po
 minutových intervalech zprávy s událostí `event-continue`, že pohyb pokračuje, kolik pohybů zaznamenal a kdy nastal
 poslední. Senzor pošle zprávu s událostí `event-end`, že pohyb skončil pokud 10 minut nenastane žádný pohyb.
 
-> MessageType: pir
+> DeviceType: pir
 
 | EventType                                           | Popis                                                                      |
 |:----------------------------------------------------|:---------------------------------------------------------------------------|
@@ -191,7 +191,7 @@ Zařízení s tlačítkem pro přivolání pomoci nebo spuštění poplachu.
 
 Zařízení po stitknutí tlačítka pošle zprávu s událostí `event-start`.
 
-> MessageType: event-button
+> DeviceType: event-button
 
 | EventType                             | Popis                                                                   |
 |:--------------------------------------|:------------------------------------------------------------------------|
@@ -207,7 +207,7 @@ Měří teplotu okolního prostředí.
 
 Každou minutu měří teplotu. Po X měření provede výpočet průměrné hodnoty a odešle událost `measured-temperature`.
 
-> MessageType: thermometer-average
+> DeviceType: thermometer-average
 
 | EventType                                               | Popis                                                                   |
 |:--------------------------------------------------------|:------------------------------------------------------------------------|
@@ -232,7 +232,7 @@ Ukázka zaslané události:
 {
     "ProtocolVersion": 1,
     "DeviceId": "abc123",
-    "MessageType": "thermometer-average",
+    "DeviceType": "thermometer-average",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
     "EventType": "measured-temperature",
