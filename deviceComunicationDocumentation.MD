@@ -93,15 +93,16 @@ Poté co je zařízení restartováno provádí následující kroky (pokud nedo
 
 Při hard restartu se na defaultní hodnoty nastaví všechny informace které zařízení udržuje v paměti.
 
-// TODO definovat ne plne nabita baterie a vybita baterie viz kontrola baterie
+Pokud je do zařízení vložena baterie která není plně nabitá (2,5V - 2,9V) tak zařízení detekuje error a chová se podle
+popisu v sekci
+XXX (TODO odkaz) a zařízení se nedostane do transportního režimu.
 
-Pokud je do zařízení vložena baterie která není plně nabitá tak zařízení detekuje error a chová se podle popisu v sekci
-XXX (TODO odkaz) a zařízení
-se nedostane do transportního režimu.
+Pokud zařízení detekuje jakýkoliv jiný error tak zařízení také postupuje podle informací popsaných v sekci o errorech (
+TODO odkaz).
 
 ### Kontrola stavu baterie
 
-Zařízení při restartu (přesněji při inicializaci) kontroluje stav baterie. Pokud je stav baterie nízký tak
+Zařízení při restartu (přesněji při inicializaci) kontroluje stav baterie. Pokud je stav baterie nízký (<2,5) tak
 se na místo restartu přepne do transportního režimu.
 
 Stav baterie se také kontroluje pokaždé když zařízení odesílá zprávu nebo měří data. Pokud je v této situaci
@@ -369,10 +370,9 @@ Kód restartu udává důvod proč resatart nastal. Byte může nabívat násled
 
 | Hodnota | Význam                                                   |
 |---------|----------------------------------------------------------|
-| 0       | Restart způsoben errorem (TODO odkaz)                    |
-| 1       | Restart vyvolán přijmutím zprávy ze serveru (TODO odkaz) |
-| 2       | Restart způsoben stisknutím tlačítka                     |
-| 3       | Restart způsoben bugem ve firmwaru (TODO odkaz)          | 
+| 1       | Restart způsoben errorem (TODO odkaz)                    |
+| 2       | Restart vyvolán přijmutím zprávy ze serveru (TODO odkaz) |
+| 8       | Restart způsoben stisknutím tlačítka                     |
 
 ### Test
 
@@ -446,7 +446,7 @@ hodnoty a jejich význam:
 Pokud chyba s číslem 1,3 a 5 nastane 4 hodiny po restartu tak zařízení postupuje následujícím způsobem:
 
 1. Dioda v deseti cyklech Xkrát blikne (podle tabulky) pro oznámení erroru.
-2. Zařízení se restartuje a dále funguje běžným způsobem (TODO odkaz)
+2. Zařízení se restartuje a dále funguje běžným způsobem jako by bylo restartováno (TODO odkaz)
 3. Pokud error stále přetrvává tak se znovu opakuje zpracování erroru
 
 Pokud chyba s číslem 1,3,4 a 5 nastane do 4 hodin od restartu tak zařízení postupuje následujícím způsobem:
@@ -454,7 +454,7 @@ Pokud chyba s číslem 1,3,4 a 5 nastane do 4 hodin od restartu tak zařízení 
 1. Dioda v deseti cyklech Xkrát blikne (podle tabulky) pro oznámení erroru.
 2. Zařízení zkontroluje jestli uběhly 4 hodiny od restartu
 3. Pokud neuběhly tak se uspí na 2 minuty a následně opakuje bod 1. a 2,
-4. Pokud uběhly tak se zařízení restartuje a dále funguje běžným způsobem (TODO odkaz)
+4. Pokud uběhly tak se zařízení restartuje a dále funguje běžným způsobem jako by bylo restartováno (TODO odkaz)
 5. Pokud error stále přetrvává tak se znovu opakuje zpracování erroru
 
 
@@ -659,9 +659,13 @@ Measure zpráva má následující formát:
 novou hodnotu. Historické hodnoty jsou ve zprávě obsažené protože se může některá ze
 zpráv ztratit a server pak může vypadlou hodnotu zjistit zpětně.
 
-Každá naměřená hodnota ve zprávě zabírá 2 byte.
-
 Zprávy jsou seřazené od nejaktuálnějšího měření až po nejstarší.
+
+Každá naměřená hodnota ve zprávě zabírá 2 byte a je kódována pomocí dvojkového doplňku - jednička v nejvyšším bitu
+značí záporné číslo a 0 značí kladné. Pro získání teploty je tedy potřeba vypočítat dvojkový doplněk a výsledek
+vydělit 100. Např. pokud byte 2 obsahuje - 0x01 a byte 3 obsahuje 0x00 tak
+je naměřená teplota = (256/100) nebo-li 2,56°C. Pokud druhý byte obsahuje 10000001 (0x81) a třetí 0x00 tak
+je naměřená teplota = (256/100) * - 1 nebo-li -2,56°C
 
 Zařízení umožňuje nastavit jak často se má measure zpráva odeslat a také
 kolik vzorků se má za daný interval naměřit.
@@ -670,9 +674,6 @@ teplotu a po 10 minutách odešle průměr naměřených teplot společně s 9 p
 odeslanými teplotami. Zařízení tedy pošle každých deset minut teploty za posledních
 100 minut. Jak často se mají zprávy odeslat a kolikrát se má v tomto intervalu
 teplota měřit je možné nastavit pomocí zprávy ze serveru. Více zde. TODO odkaz
-
-// TODO v jakem formatu jsou teploty odeslinay? Je to zase nejaky offset aby byly mereny
-// zaporne?
 
 ### Humidity meter
 
