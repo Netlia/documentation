@@ -673,7 +673,7 @@ Defaultní nastavení je 10 minut a 10 zpráv. Zařízení tedy každou minutu z
 teplotu a po 10 minutách odešle průměr naměřených teplot společně s 9 předcházejícími
 odeslanými teplotami. Zařízení tedy pošle každých deset minut teploty za posledních
 100 minut. Jak často se mají zprávy odeslat a kolikrát se má v tomto intervalu
-teplota měřit je možné nastavit pomocí zprávy ze serveru. Více zde. TODO odkaz
+teplota měřit je možné nastavit příkazem ze serveru. Více zde. TODO odkaz
 
 ### Humidity meter
 
@@ -850,7 +850,7 @@ datová část zprávy. Datová část je popsána v další části.
 | 0x04           | 0x03           | Vypnutí potvrzování události start                          |
 | 0x04           | 0x04           | Interval alive zpráv                                        |
 | 0x04           | 0x05           | Jak často se má odeslat measure zpráva                      |
-| 0x04           | 0x06           | Nastavení ledek, buzzeru a motoru když nastane událost      |
+| 0x04           | 0x06           | Spuštění ledky a pískání při události event-start           |
 | 0x04           | 0x08           | Zapnutí nebo vypnutí Lora ADR                               |
 | 0x04           | 0x09           | Nastaví Lora dataRate                                       |
 | 0x04           | 0x0A           | Nastaví módu zařízení pro magnet                            |
@@ -858,6 +858,7 @@ datová část zprávy. Datová část je popsána v další části.
 | 0x04           | 0x0C           | Určuje periodu vzorkování pro teplotní a vlhkostní zařízení |
 | 0x04           | 0x0E           | Nastavení citlivosti pohybového zařízení                    |
 | 0xFF           | prázdný        | Restartuje všechna nastavení na defaultní                   |
+
 
 ### Data
 
@@ -955,9 +956,25 @@ Defaultní hodnota je 12 hodin od poslední odeslané zprávy.
 | 2.byte | Minuty                         |
 | 3.byte | Sekundy                        |
 
-#### Jak často se má odeslat measure zpráva
+#### Nasavení jak často se má odeslat measure zpráva
 
-Nastaví jak casto se má odesílat measure zpráva.
+Popsáno zde (TODO odkaz)
+
+#### Perioda vzorkování pro teplotní a vlhkostní zařízení a nasavení jak často se má odeslat measure zpráva
+
+Hodnoty 0x05 a 0x0C se obě vztahují pouze k teploměru a vlhkoměru a úzce spolu souvisý.
+Obě tyto hodnoty musejí být nastaveny naráz ve správném pořadí a bez restaru mezi zpracováními těchto
+zpráv.
+
+První musí být nastaveno jak často se má odesílat measure zpráva a následně jaké má být vzorkování.
+
+Defaultní nastavení je 10 minut a 1 minuta. Zařízení tedy měří každou minutu a každých 10 minut znich
+udělá průměr a poté odešle measure zprávu.
+
+Je důležité by perioda odesílání measure zprávy byla vždy dělitelná periodou vzorkování jinak
+bude zařízení odesílat v chybném intervalu.
+
+Obě tyto hodnoty mají nsledující formát:
 
 | Byte   | Význam                         |
 |--------|--------------------------------|
@@ -966,18 +983,17 @@ Nastaví jak casto se má odesílat measure zpráva.
 | 2.byte | Minuty                         |
 | 3.byte | Sekundy                        |
 
-#### Určuje periodu vzorkování pro teplotní a vlhkostní zařízení
+Pokud nastavíme periodu odesílání mesure zpráv na hodnotu která není dělitelná periodou vzorkování
+tak se zařízení bude chovat podle následujícího příkladu:
 
-Nastaví jak často se má měřit teplota a vlhkost. Více zde.
+Představme si že nastavíme perioda measure zpráv na 10 minut a periodu měření na 4 minuty.
+Zařízení vypočítá počet měření které je potřeba udělat před odesláním zprávy následujícím způsobem:
+10 / 4 = 2 (provede se celočíselné dělení).
 
-| Byte   | Význam                         |
-|--------|--------------------------------|
-| 0.byte | Nepoužité - vždy obsahuje 0x03 |
-| 1.byte | Hodiny                         |
-| 2.byte | Minuty                         |
-| 3.byte | Sekundy                        |
+Zařízení pak bude čekat mezi měřeními 4 minuty a po každých dvou měření odešle zprávu. Measure
+zprávy se tedy budou odesílat každých 8 minut.
 
-#### Nastavení ledek, buzzeru a motoru
+#### Spuštění ledky a pískání při události event-start
 
 | Byte   | Význam                         |
 |--------|--------------------------------|
@@ -988,11 +1004,13 @@ Složení 1.byte:
 
 | Bit           | Význam    |
 |---------------|-----------|
-| 0.bit         | Led 1     |
-| 1.bit         | Led 2     |
-| 2.bit         | Buzzer    |
-| 3.bit         | Motor     |
+| 0.bit         | Led       |
+| 1.bit         | Nepoužité |
+| 2.bit         | Pískání   |
+| 3.bit         | Nepoužité |
 | 4.bit - 7.bit | Nepoužité |
+
+Defaultně je byte nastaven na 10100000 - blikání i pískání je tedy při event-start spuštěno.
 
 #### Zapnutí nebo vypnutí Lora ADR
 
