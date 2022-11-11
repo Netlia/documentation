@@ -9,7 +9,7 @@ Tento dokument slouží k popisu chování jednotlivých zařízení a k popisu 
  - Zařízení umožňují odesílat (TODO odkaz) i přijmat zprávy (TODO odkaz) ze serveru.
  - Zařízení obsahuje jeden až N senzorů které sledují okolí. Na základě informací z těchto senzorů se zařízení rozhoduje jakou zprávu bude odesílat na server. 
 
-## Obecné chování zařízení
+## Obecné chování zařízení 1
 
 Zařízení odesílají tři hlavní druhy zpráv - event, restart a measure. Event zprávy jsou odeslány
 vždy když zařízení zaznamená nějakou událost. Například když Move zařízení zaznamená pohyb
