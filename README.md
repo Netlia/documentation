@@ -32,6 +32,7 @@ Do URL je možné vložit zástupné parametry, které budou nahrazeny odpovída
 | DeviceId        | identifikátor zařízení        |
 | DeviceType      | typ zařízení                  |
 | EventType       | typ události                  |
+| EventId         | id události                   |
 
 Příklad URL (doporučené nastavení):
 
