@@ -1,18 +1,17 @@
 # Event forwarding
 
-The document describes how Netlia system forwards events to the partner's application.
+This document describes how Netlia system forwards events to the partner's application.
 
 **The communication details are agreed between Netlia and the partner and set on the Netlia side.**
 
 # Data transfer methods
 
 Data is transmitted by a communication protocol in JSON format and describes events that occur in the NETLIA system.
-Datetime entries are in UTC according to ISO 8601. The order of the parameters is not guaranteed and may change.
+Datetime entries are in UTC format specified in ISO 8601. The order of the parameters is not guaranteed and may change.
 
-## Forwarding events by HTTP callback
+## Event forwarding by HTTP callback
 
-Partner can specify the URLs of endpoints to which events are sent as HTTP(S) POST requests. Requests have UTF-8 encoding and Content-Type "application/json". The system tries to pass events in at-least-once mode, so there may be a situation where an event is delivered multiple times. This situation can be handled by using the `EventId` item, which contains
-event identifier.
+Partner can specify the endpoint URLs to which events are sent as HTTP(S) POST requests. Requests have UTF-8 encoding and "application/json" Content-Type. The system tries to pass events in at-least-once mode. Therefore, an event may be delivered more than once. This situation can be handled by using the `EventId` item, which contains event identifier.
 
 ### HTTP request URL
 
@@ -40,13 +39,13 @@ Partner can specify additional configuration by adding an HTTP headers (key and 
 
 ### Response for HTTP request
 
-System expects 200-299 HTTP status in the response, which is used by partner to acknowledge receiving the event. Any other response is interpreted as a non-delivery.
+System expects 200-299 HTTP status in the response, which is used by the partner to acknowledge receiving the event. Any other response is interpreted as a nondelivery.
 
 ### Event non-delivery handling
- If the event transfer fails, the system repeats the attempt 10 times with a 5s delay. The event is then dropped.
+ If the event transfer fails, the system attempts to transfer the event 10 more times with 5s delay after each attempt. The event is then dropped.
 
 # Communication protocol
-Data is always sent as separate events. Events have a common part of parameters.
+Data are always sent as a separate event. Events have a common parameter section.
 
 Common parameters:
 
@@ -59,7 +58,7 @@ Common parameters:
 | DeviceType      | string  | type of device                 |
 | EventType       | string  | type of event                  |
 
-Other possible parameters not listed in the table depends on the type of message and event.
+Other possible parameters not listed in the table depend on event and message type.
 
 # Devices and supported event types
 
@@ -68,7 +67,7 @@ Detects the presence of water in a defined area.
 
 ![WaterDetection](images/devices/waterdetection.png)
 
-If flooding occurs in the idle state, the `event-start` event is triggered. It then checks every minute if the flooding continues and if it does, it fires the `event-continue` event after 10 minutes. If the flooding continues, it sends an `event-continue` event after another 10 minutes to indicate that the flooding continues. It does not send another. When the flooding ends the device sends `event-end`.
+If flooding occurs in the idle state, the `event-start` event is triggered. The device then checks every minute whether the flooding continues. If the flooding is detected even after 10 minutes, `event-continue` event is triggered. The device proceeds with periodical checks and triggers second `event-continue` event after another 10 minutes if the flooding is still detected. Another message is not sent unless the flooding ends, in which case `event-end` message is trasnmitted.
 
 > DeviceType: water-detection
 
@@ -77,18 +76,18 @@ If flooding occurs in the idle state, the `event-start` event is triggered. It t
 | [restart](#eventtype-restart)                       | Device restart.                                                              |
 | [alive](#eventtype-alive)                           | Occurs at periodic intervals, confirming the functionality of the device.    |
 | [transport](#eventtype-transport)                   | Switching to transport mode - inactive state with minimum power consumption. |
-| [event-start](#eventtype-event-start)               | Detection of flooding.                                                       |
-| [event-continue](#eventtype-event-continue)         | Flooding continues.                                                          |
+| [event-start](#eventtype-event-start)               | Flooding detected.                                                           |
+| [event-continue](#eventtype-event-continue)         | Flooding still detected.                                                     |
 | [event-end](#eventtype-event-end)                   | End of flooding.                                                             |
 
 ## MovementDetection device
-Detects movement of the object on which the device is attached or placed. 
+Detects movement of an object which the device is attached to or placed on.
 
 ![MovementDetection](images/devices/movementdetection.png)
 
-For cases when we want to be informed that an object has moved. For example - door, window, office drawer, bag, car, motorcycle, bicycle, stroller, backpack, suitcase...
+Useful in situations when the information whether the object has moved is required. For example - door, window, office drawer, bag, car, motorcycle, bicycle, stroller, backpack, suitcase...
 
-If motion occurs in the idle state, the `event-start` event is triggered. If motion occurs in the following 10 minutes, it counts the repetition of motion and sends `event-continue` after 10 minutes. The `event-continue` repeats until movement continues. If the device is out of movement 10 minutes from the start or continued movement, it sends `event-end`.
+The device counts the number of input events, where the input event is a motion of the sensor. If the input event occurs in the idle state, the `event-start` event is triggered and a 10 minute interval is started. During the interval the detector counts the number of input events. At the end of the interval an `event-continue` message with the reached number is transmitted, another 10 minute interval is started, and the counter is reset. If no input event is detected during the interval, `event-end` message is transmitted and the device returns into idle state.
 
 > DeviceType: movement-detection
 
@@ -97,21 +96,21 @@ If motion occurs in the idle state, the `event-start` event is triggered. If mot
 | [restart](#eventtype-restart)                       | Device restart.                                                              |
 | [alive](#eventtype-alive)                           | Occurs at periodic intervals, confirming the functionality of the device.    |
 | [transport](#eventtype-transport)                   | Switching to transport mode - inactive state with minimum power consumption. |
-| [tamper](#eventtype-tamper)                         | Device enclosure opened or closed, safety switch manipulation.               |
+| [tamper](#eventtype-tamper)                         | Opening or closing of device case, tampering switch manipulation.            |
 | [event-start](#eventtype-event-start)               | Movement detected.                                                           |
 | [event-continue](#eventtype-event-continue)         | Movement continues.                                                          |
 | [event-end](#eventtype-event-end)                   | There was no movement for 10 minutes.                                        |
 
 ## Magnetic device
-It detects that the magnet has detached from the device or approached the device.
+Detects the insertion/removal of a magnet into/from it's proximity.
 
 ![Magnetic](images/devices/magnetic.png)
 
 ### Simple mode
 
-To identify that cabinets, windows, doors have been opened/closed or to identify that an object has moved away from another.
+Can be used to monitor the state (opened/closed) of doors, windows, or cabinets, or to detect the removal of one object from another.
 
-The `event-start` event is triggered whenever the magnet is detached. When the magnet is approached back, the `event-end` event is triggered.
+The `event-start` event is triggered whenever the magnet is removed form detectors proximity. When the magnet is placed back, the `event-end` event is triggered.
 
 > DeviceType: magnetic-detection-simple
 
@@ -120,15 +119,15 @@ The `event-start` event is triggered whenever the magnet is detached. When the m
 | [restart](#eventtype-restart)                       | Device restart.                                                              |
 | [alive](#eventtype-alive)                           | Occurs at periodic intervals, confirming the functionality of the device.    |
 | [transport](#eventtype-transport)                   | Switching to transport mode - inactive state with minimum power consumption. |
-| [tamper](#eventtype-tamper)                         | Device enclosure opened or closed, safety switch manipulation.               |
-| [event-start](#eventtype-event-start)               | Magnet detached, start of alarm.                                             |
-| [event-end](#eventtype-event-end)                   | Magnet approached, end of alarm.                                             |
+| [tamper](#eventtype-tamper)                         | Opening or closing of device case, tampering switch manipulation.            |
+| [event-start](#eventtype-event-start)               | Magnet removed, start of alarm.                                              |
+| [event-end](#eventtype-event-end)                   | Magnet placed back, end of alarm.                                            |
 
 ### Continuous mode
 
-To monitor the frequency of opening/closing of doors, covers, passing of moving parts.
+Can be used to monitor the frequency of opening/closing of doors, covers, passing of moving parts.
 
-If the magnet is disconnected in the idle state, the `event-start` event is triggered. No event is triggered for a magnet approach, but if the magnet is disconnected again within 10 minutes, the number of times it has been disconnected is counted and `event-continue` is sent after 10 minutes. The `event-continue` event repeats as long as the magnet manipulation continues. If nothing happens within 10 minutes (the magnet does not detach), the device sends `event-end`.
+The device counts the number of input events, where the input event is a removal of a magnet from detector's proximity (the placing of magnet into detector's proximity triggeres no responce). If the input event occurs with the detector in the idle state, the `event-start` event is triggered and a 10 minute interval is started. During the interval the detector counts the number of input events. At the end of the interval an `event-continue` message with the reached number is transmitted, another 10 minute interval is started, and the counter is reset. If no input event is detected during the interval, `event-end` message is transmitted and the device returns into idle state.
 
 > DeviceType: magnetic-detection-continuous
 
@@ -137,20 +136,19 @@ If the magnet is disconnected in the idle state, the `event-start` event is trig
 | [restart](#eventtype-restart)                       | Device restart.                                                              |
 | [alive](#eventtype-alive)                           | Occurs at periodic intervals, confirming the functionality of the device.    |
 | [transport](#eventtype-transport)                   | Switching to transport mode - inactive state with minimum power consumption. |
-| [tamper](#eventtype-tamper)                         | Device enclosure opened or closed, safety switch manipulation.               |
-| [event-start](#eventtype-event-start)               | Magnet detached, start of alarm.                                             |
-| [event-continue](#eventtype-event-continue)         | Magnet manipulation repeats, alarm continues.                                |
-| [event-end](#eventtype-event-end)                   | Magnet hasn't been detached for 10 minutes, end of alarm.                    |
+| [tamper](#eventtype-tamper)                         | Opening or closing of device case, tampering switch manipulation.            |
+| [event-start](#eventtype-event-start)               | Input event detected, alarm starts.                                          |
+| [event-continue](#eventtype-event-continue)         | Further input events detected, alarm continues.                              |
+| [event-end](#eventtype-event-end)                   | No further input events detected, alarm ends.                                |
 
-## Pir device
-Detects person movement or presence in a specified area up to 10 meters distance. 
+## PIR device
+Detects personal presence in a specified area up to 10 meters distance. 
 
 ![Pir](images/devices/pir.png)
 
-To identify that a person is moving in a room or restricted area, when and how often.
+Can be used to detect the time and frequency of personal presence in a room or specified area.
 
-When the device detects person movemenet, it trigger `event-start` event. If movement detection continues, device sends in 10
-minute intervals `event-continue` event messages indicating that movement continues, count, and when occurred the last one. Device sends an `event-end` event message if no movement is detected for 10 minutes.
+The device counts the number of input events, where the input event is a movement in the detection area. If the input event occurs with the detector in the idle state, the `event-start` event is triggered and a 10 minute interval is started. During the interval the detector counts the number of inpupt events. At the end of the interval an `event-continue` message containing the reached number and timestamp of the last detected input event is transmitted, another 10 minute interval is started, and the counter is reset. If no input event is detected during the interval, `event-end` message is transmitted and the device returns into idle state.
 
 > DeviceType: pir
 
@@ -159,10 +157,10 @@ minute intervals `event-continue` event messages indicating that movement contin
 | [restart](#eventtype-restart)                       | Device restart.                                                              |
 | [alive](#eventtype-alive)                           | Occurs at periodic intervals, confirming the functionality of the device.    |
 | [transport](#eventtype-transport)                   | Switching to transport mode - inactive state with minimum power consumption. |
-| [tamper](#eventtype-tamper)                         | Device enclosure opened or closed, safety switch manipulation.               |
-| [event-start](#eventtype-event-start)               | Movement detected.                                                           |
-| [event-continue](#eventtype-event-continue)         | Movement continues.                                                          |
-| [event-end](#eventtype-event-end)                   | There was no movement for 10 minutes.                                        |
+| [tamper](#eventtype-tamper)                         | Opening or closing of device case, tampering switch manipulation.            |
+| [event-start](#eventtype-event-start)               | Input event detected, alarm starts.                                          |
+| [event-continue](#eventtype-event-continue)         | Further input events detected, alarm continues.                              |
+| [event-end](#eventtype-event-end)                   | No further input events detected, alarm ends.                                |
 
 ## AlertButton device
 Device with a button to call for help or raise an alarm.
@@ -170,7 +168,7 @@ Device with a button to call for help or raise an alarm.
 ![AlertButton](images/devices/panic.png)
 ![AlertButton](images/devices/sos.png)
 
-The device trigger `event-start` evebt when the button is pressed.
+The device triggers `event-start` event whenever the button is pressed.
 
 > DeviceType: event-button
 
@@ -179,14 +177,14 @@ The device trigger `event-start` evebt when the button is pressed.
 | [restart](#eventtype-restart)         | Device restart.                                                              |
 | [alive](#eventtype-alive)             | Occurs at periodic intervals, confirming the functionality of the device.    |
 | [transport](#eventtype-transport)     | Switching to transport mode - inactive state with minimum power consumption. |
-| [event-start](#eventtype-event-start) | Pressed, alarm started .                                                     |
+| [event-start](#eventtype-event-start) | Button pressed, alarm started.                                               |
 
 ## Thermometer device
 Measures the ambient temperature.
 
 ![Thermometer](images/devices/humiditymeter.png)
 
-Device measures the temperature every minute. After X measurements, it calculates the average value and sends a `measured-temperature` event.
+The device measures the temperature every minute. After X measurements, it calculates the average value and sends a `measured-temperature` message.
 
 > DeviceType: thermometer-average
 
@@ -207,7 +205,7 @@ Additional parameters:
 |:------------|:------|:----------|:---------------------|
 | Temperature | float | yes       | measured temperature |
 
-A sample of the sent event:
+A sample of the `measured-temperature` message:
 
 ```yaml
 {
@@ -227,7 +225,7 @@ Measures ambient temperature and humidity.
 ![HumidityMeter](images/devices/humiditymeter.png)
 ![HumidityMeter](images/devices/movementdetection.png)
 
-Device measures the temperature and humidity every minute. After X measurements, it calculates the average value and sends a `measured-humidity-temperature` event.
+The device measures the temperature and humidity every minute. After X measurements, it calculates the average value and sends a `measured-humidity-temperature` event.
 
 > DeviceType: humidity-meter-average
 
@@ -249,7 +247,7 @@ Additional parameters:
 | Temperature | float | yes       | measured temperature |
 | Humidity    | float | yes       | measured humidity    |
 
-A sample of the sent event:
+A sample of the `measured-humidity-temperature` message:
 
 ```yaml
 {
@@ -269,9 +267,9 @@ A sample of the sent event:
 Events referenced from specific message types.
 
 ## EventType restart
-Occurs when the device restarts. A restart can be caused by pressing a restart button located on the device's PCB, or a restart can be triggered by firmware during a hardware error or by some device configuration changes using a downlink command sent through the downlink API.
+Occurs when the device restarts. A restart can be caused by pressing the restart button located on the device's PCB, or by firmware during a hardware error or by changing the device configuration using a downlink API.
 
-A sample of the sent event:
+A sample of the event:
 ```yaml
 {
     "ProtocolVersion": 1,
@@ -286,7 +284,7 @@ A sample of the sent event:
 ## EventType alive
 Occurs at periodic intervals, confirming the functionality of the device.
 
-A sample of the sent event:
+A sample of the event:
 ```yaml
 {
     "ProtocolVersion": 1,
@@ -300,13 +298,12 @@ A sample of the sent event:
 
 ## EventType transport
 
-Occurs when the device enters transport mode, which happens when a new battery is inserted or by using the command
-sent through the downlink API.
+Occurs when the device enters transport mode, which happens when a new battery is inserted or when an appropriate command is sent through the downlink API.
 
-The device in transport mode has very low power consumption and sends no messages. To wake up the device from transport mode
+A device in the transport mode has very low power consumption and sends no messages. To wake the device up from transport mode
 the RESET button located on the PCB must be pressed.
 
-A sample of the sent event:
+A sample of the event:
 ```yaml
 {
     "ProtocolVersion": 1,
@@ -348,9 +345,9 @@ A sample of the sent event:
 
 ## EventType tamper
 
-Occurs when the device enclosure is opened or closed, or the safety switch is manipulated.
+Occurs when the device casing is opened or closed, or the safety switch is manipulated.
 
-A sample of the sent event:
+A sample of the event:
 
 ```yaml
 {
@@ -364,9 +361,9 @@ A sample of the sent event:
 ```
 
 ## EventType event-start
-It is triggered by the first occurrence of an event such as flooding of the contacts, a magnet detachment or registration of movement.
+It is triggered by the first occurrence of an input event such as flooding of the contacts, a magnet removal from detector's proximity or detection of movement.
 
-A sample of the sent event:
+A sample of the event:
 ```yaml
 {
     "ProtocolVersion": 1,
@@ -379,9 +376,9 @@ A sample of the sent event:
 ```
 
 ## EventType event-continue
-Occurs when the event continues.
+Triggered when the input event occurs after `event-start` event.
 
-A sample of the sent event:
+A sample of the event:
 
 ```yaml
 {
@@ -401,9 +398,9 @@ The `EventCount` specifies the number of event repetitions since the last `event
 `SecondsSinceLastEvent` specifies the number of seconds between the last event and the sending of the message.
 
 ## EventType event-end
-Occurs at the end of the event. The situation when event end occurs is described for each device that supports this functionality.
+Occurs at the end of the event. The situation when the `event-end` occurs is described for each device that produces this event.
 
-A sample of the sent event:
+A sample of the event:
 ```yaml
 {
     "ProtocolVersion": 1,
