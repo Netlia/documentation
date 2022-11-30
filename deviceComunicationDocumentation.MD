@@ -96,7 +96,7 @@ naměřen nízký stav baterie, tak se zařízení přepne do transportního re�
 ## Stavový diagram zařízení
 
 Následující diagram popisuje stavy, do kterých se zařízení může dostat. Většina zařízení nepodporuje všechny
-stavy, ale poporuje pouze podmnožinu tohoto téměř úplného stavového automatu. Podrobnosti o jednotlivých
+stavy, ale podporuje pouze podmnožinu tohoto téměř úplného stavového automatu. Podrobnosti o jednotlivých
 zařízeních najdete zde (TODO odkaz).
 
 Stavový automat neobsahuje restart přechod. Restart zařízení může nastat v jakémkoliv stavu.
@@ -237,7 +237,7 @@ Tento byte obsahuje tři informace. Následující tabulka vysvětluje složení
 | 2-7.bit | Počet pokusů o odeslání zprávy                      |
 
 Pokud je 0.bit nastaven na 1 tak zařízení vyžaduje potvrzení zprávy.
-Zařízení po odeslání čeká 3s a v tomto okně musí
+Zařízení po odeslání čeká 3 s a v tomto okně musí
 ze serveru přijít potvrzení, konfigurační zpráva nebo příkaz. Více o posílání zpráv
 na zařízení najdete zde (TODO odkaz).
 
@@ -542,7 +542,7 @@ Formát události
 
 V následujících odstavcích jsou popsána jednotlivá zařízení a jejich chování.
 
-### Water
+### Vodní detektor
 
 Zařízení slouží k detekci vody, se kterou přišlo zařízení do kontaktu. Event start se odešle, když je zařízení zaplaveno vodou. Pokud zařízení v dalších 10 minutách detekuje vodu,
 tak je odslána zpráva event continue. Event end zpráva je odeslána, pokud
@@ -553,14 +553,14 @@ tak je odslána zpráva event continue. Event end zpráva je odeslána, pokud
 Vodní zařízení má oproti ostatním zařízením nastavený maximální počet zpráv typu event continue.
 Zařízení vždy pošle pouze 2 zprávy continue a poté už čeká na ukončení poplachu, tj. neposílá další pokračovací zprávy.
 
-### Move
+### Pohybový detektor
 
 Zařízení slouží k detekci pohybu samotného zařízení objektu, na kterém je zařízení umístěno. Event start zpráva je odeslána, když zařízení detekuje pohyb. Event continue zpráva je odeslána, pokud je zaznamenán další pohyb v následujících 10 minutách.
 Event end zpráva je poté odeslána, pokud zařízení 10 minut nezaznamená ani jeden pohyb.
 
 * Zařízení podporuje události - Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege.
 
-### Magnet
+### Magnetický detektor
 
 Zařízení slouží ke sledování četnosti otevření/zavření dveří, krytů, průchodu pohyblivých částí pomocí sledování magnetického pole magnetu.
 Zařízení podporuje dva režimy. Režim continuous a simple. Mezi těmito
@@ -570,7 +570,7 @@ režimy lze přepínat pomocí zprávy ze serveru (TODO odkaz). Defaultní mód 
 
 #### Režim continuous
 
-Pokud v klidovém stavu dojde k oddálení magnetů, je odeslána zpráva Event start.
+Pokud v klidovém stavu dojde k oddálení magnetu, je odeslána zpráva Event start.
 Na přiblížení magnetu nijak nereaguje, ale počítá každé oddálení magnetů
 a po 10 minutách pošle Event continue zpráva.
 Pokud se během 10 minut nic nestane (nedojde k oddálení magnetu),
@@ -580,7 +580,7 @@ zařízení posílá Event end zprávu.
 
 Každé oddálení magnetů odešle zprávu Event start. Každé oddálení magnetu odešle zprávu Event end. V tomto režimu nedochází k počítání poplachů ani k odesílání zprávy typu Event continue.
 
-### PIR
+### PIR detektor
 
 Detekuje pohyb nebo přítomnost člověka ve vymezeném prostoru do vzdálenosti 10m pomocí pasivního infračerveného detektoru. Při detekci pohybu senzorem zařízení pošle zprávu Event start.
 Pokud i nadále detekuje pohyb, posílá v 10 minutových intervalech zprávy
@@ -588,7 +588,7 @@ Event continue. Senzor pošle zprávu Event end, pokud 10 minut nenastane žádn
 
 * Zařízení podporuje události - Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege.
 
-### Event button
+### SOS tlačítko
 
 Zařízení s tlačítkem pro přivolání pomoci nebo spuštění poplachu.
 Zařízení posílá zprávu Event start, pokud někdo zmáčnkne tlačítko.
@@ -596,7 +596,7 @@ Zpráva typu Event end nikdy není odeslána.
 
 * Zařízení podporuje události - Event start, Restart, Alive, Transport, Error, DownlinkAcknowlege.
 
-### Thermometer
+### Teploměr
 
 V daných okamžicích měří teplotu (defaultně po 1 min). Po X měřeních (defaultně 10) provede výpočet průměrné hodnoty a odešle zprávu Measure na server.
 
@@ -615,7 +615,7 @@ novou hodnotu. Historické hodnoty jsou ve zprávě obsažené z důvodu možnos
 
 Zprávy jsou seřazené od nejaktuálnějšího měření až po nejstarší.
 
-Každá naměřená hodnota ve zprávě zabírá 2 byte a je kódována pomocí dvojkového doplňku - jednička v nejvyšším bitu značí záporné číslo a 0 značí kladné. Pro získání teploty je tedy potřeba vypočítat dvojkový doplněk a výsledek vydělit 100. Např. pokud byte 2 obsahuje - 0x01 a byte 3 obsahuje 0x00 tak je naměřená teplota = (256/100) nebo-li 2,56°C. Pokud druhý byte obsahuje 10000001 (0x81) a třetí 0x00 tak je naměřená teplota = (256/100) * - 1 nebo-li -2,56°C
+Každá naměřená hodnota ve zprávě zabírá 2 byte a je kódována pomocí dvojkového doplňku - jednička v nejvyšším bitu značí záporné číslo a 0 značí kladné. Pro získání teploty jeSS potřeba vypočítat dvojkový doplněk a výsledek vydělit 100. Např. pokud byte 2 obsahuje - 0x01 a byte 3 obsahuje 0x00 tak je naměřená teplota = (256/100) nebo-li 2,56 °C. Pokud druhý byte obsahuje 10000001 (0x81) a třetí 0x00 tak je naměřená teplota = (256/100) * - 1 nebo-li -2,56 °C.
 
 Zařízení umožňuje nastavit, jak často se má measure zpráva odeslat a také
 kolik vzorků se má za daný interval naměřit.
@@ -624,7 +624,7 @@ teplotu a po 10 minutách odešle průměr naměřených teplot společně s 9 p
 odeslanými teplotami. Jak často se mají zprávy odeslat a kolikrát se má v tomto intervalu
 teplota měřit, je možné nastavit příkazem ze serveru. Více zde. TODO odkaz
 
-### Humidity
+### Vlhkoměr/Teploměr
 
 V daných okamžicích měří teplotu a vlhkost (defaultně po 1 min). Po X měřeních (defaultně 10) provede výpočet průměrné hodnoty a odešle zprávu Measure na server.
 
