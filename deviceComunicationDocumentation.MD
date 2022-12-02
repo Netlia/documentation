@@ -113,14 +113,14 @@ Stavový automat také nezohledňuje přijmání zpráv ze serveru.
 Všechna zařízení mají notifikační diodu, která informuje uživatele o různých událostech. Následující tabulka
 popisuje události při kterých dioda bliká:
 
-| Počet bliknutí | Událost                                                      |
-|----------------|--------------------------------------------------------------|
-| 1x             | [Restartu](#standartní-restart)                              |
-| 1x             | [Spuštění inicializace](#standartní-restart)                 |
-| 10x            | Přechod do [transportního režimu](#transportní-režim)        |
-| 1x             | Před odesláním události                                      |
-| 6x             | Při přechodu do disconnect módu                              |
-| Nkrát          | Při erroru (počet bliknutí závisí na typu [erroru](#error)   |
+| Počet bliknutí | Událost                                                    |
+|----------------|------------------------------------------------------------|
+| 1x             | [Restartu](#standartní-restart)                            |
+| 1x             | [Spuštění inicializace](#standartní-restart)               |
+| 10x            | Přechod do [transportního režimu](#transportní-režim)      |
+| 1x             | Před odesláním události                                    |
+| 6x             | Při třetím neúspěšném odeslání zprávy                      |
+| Nkrát          | Při erroru (počet bliknutí závisí na typu [erroru](#error) |
 
 ## Zprávy ze zařízení na server
 
@@ -188,41 +188,41 @@ Zařízení nikdy nepošle hodnotu 161 až 254, která by odpovídala teplotám 
 
 Obsahuje hodnotu [RSSI](https://cs.wikipedia.org/wiki/Received_Signal_Strength_Indication) naměřeného při odesílání předchozí zprávy.
 
-### 5.byte - potvrzení, disconnect a počet pokusů o odeslání zprávy
+### 5.byte - potvrzení a počet pokusů o odeslání zprávy
 
 Tento byte obsahuje více informací o odesílané zprávě. Obsah bytu se liší podle toho, jestli zařízení používá síť NB-IoT nebo LoRa.
 
 #### 5.byte - LoRa
 
-Byte obsahuje tři informace. Následující tabulka vysvětluje složení bytu:
+Byte obsahuje informaci o počtu neúspěšných odeslání. Následující tabulka vysvětluje složení bytu:
 
-| Pozice  | Zkrácený popis                                      |
-|---------|-----------------------------------------------------|
-| 0.bit   | Nepoužité                                           |
-| 1.bit   | Určuje zda zařízení bylo přepnuto do disconect módu |
-| 2-7.bit | Počet pokusů o odeslání zprávy                      |
+| Pozice  | Zkrácený popis                 |
+|---------|--------------------------------|
+| 0.bit   | Nepoužité                      |
+| 1.bit   | Nepoužité                      |
+| 2-7.bit | Počet pokusů o odeslání zprávy |
 
 V LoRa síti zařízení komunikuje s network serverem, který následně přeposílá zprávy na server.
 Pokud se zařízení nepodaří odeslat zprávu na network server, zvýší "Počet pokusů o odeslání zprávy"
 a pokusí se zprávu po určitém čase odeslat znovu.
 
-Po určitém počtu neúspěšných odeslání se zařízení přepne do disconnect módu, během kterého zařízení čeká stále delší dobu.
+Po určitém počtu neúspěšných odeslání zařízení čeká stále delší dobu než odešle další zprávu.
 
 Následující tabulka popisuje hodnotu 5.bytu ve vztahu s pokusem odeslání.
 
-| Pokus o odeslání     | Hodnota 5.byte | Popis                                                                                                                                 |
-|----------------------|----------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| 1. pokus o odeslání  | 00000001       | Zařízení poprvé odeslalo zprávu.                                                                                                      |
-| 2. pokus o odeslání  | **000001**01   | Zařízení čekalo 4s na potvrzení z network serveru a nyní se snaží zprávu znovu odeslat. Počítadlo opakování (tučně) bylo zvýšeno o 1. |
-| 3. pokus o odeslání  | 00001001       | Zařízení čekalo 4s na potvrzení z network server a nyní se snaží zprávu znovu odeslat.                                                |
-| 4. pokus o odeslání  | 000011**1**1   | Zařízení čekalo 15 min a nyní se přeplo do disconnect módu (tučně) a pro další opakování bude čekat delší dobu.                       |
-| 5. pokus o odeslání  | 00010011       | Zařízení čekalo 15 min                                                                                                                |
-| 6. pokus o odeslání  | 00010111       | Zařízení čekalo 15 min                                                                                                                |
-| 7. pokus o odeslání  | 00011011       | Zařízení čekalo 60 min                                                                                                                |
-| 8. pokus o odeslání  | 00011111       | Zařízení čekalo 60 min                                                                                                                |
-| 29. pokus o odeslání | 01110111       | Zařízení čekalo 60 min                                                                                                                |
-| 30. pokus o odeslání | 01111011       | Zařízení čekalo do doby odeslání [alive zprávy](#alive), <br/> poté namísto alive zprávy znovu odeslalo tuto zprávu.                  |
-| 31. pokus o odeslání | 01111111       | Zařízení opět čeká do doby odeslání alive zprávy                                                                                      |
+| Pokus o odeslání     | Hodnota 5.byte | Popis                                                                                                                      |
+|----------------------|----------------|----------------------------------------------------------------------------------------------------------------------------|
+| 1. pokus o odeslání  | 000000--       | Zařízení poprvé odeslalo zprávu. Pomlčka ukazuje dva bity které nemají žádnou informační hodnotu.                          |
+| 2. pokus o odeslání  | **000001**--   | Zařízení čekalo 3 s na potvrzení z network serveru. Počítadlo opakování (tučně) bylo zvýšeno o 1.                          |
+| 3. pokus o odeslání  | 000010--       | Zařízení čekalo 3 s na potvrzení z network serveru a pro další opakování bude čekat delší dobu.                            |
+| 4. pokus o odeslání  | 000011--       | Zařízení čekalo 15 min a pro další opakování bude čekat delší dobu.                                                        |
+| 5. pokus o odeslání  | 000100--       | Zařízení čekalo 15 min na potvrzení z network serveru.                                                                     |
+| 6. pokus o odeslání  | 000101--       | Zařízení čekalo 15 min na potvrzení z network serveru.                                                                     |
+| 7. pokus o odeslání  | 000110--       | Zařízení čekalo 60 min na potvrzení z network serveru.                                                                     |
+| 8. pokus o odeslání  | 000111--       | Zařízení čekalo 60 min na potvrzení z network serveru.                                                                     |
+| 29. pokus o odeslání | 011101--       | Zařízení čekalo 60 min na potvrzení z network serveru.                                                                     |
+| 30. pokus o odeslání | 011110--       | Zařízení čekalo do doby než mělo odeslat [alive zprávu](#alive)<br/> poté namísto alive zprávy znovu odeslalo tuto zprávu. |
+| 31. pokus o odeslání | 011111--       | Zařízení opět čeká do doby než se má odeslat alive zpráva                                                                  |
 
 Před každým dalším odesláním zařízení čeká, dokud není čas odeslat [alive zprávu](#alive). Zařízení se snaží stejnou zprávu odeslat stále dokola, dokud není restartováno (vybití baterie nebo ruční reset).
 
@@ -231,13 +231,13 @@ aktuální zpráva doručena.**
 
 #### 5.byte - NB-IoT
 
-Tento byte obsahuje tři informace. Následující tabulka vysvětluje složení bytu:
+Tento byte obsahuje dvě informace. Následující tabulka vysvětluje složení bytu:
 
-| Pozice  | Zkrácený popis                                      |
-|---------|-----------------------------------------------------|
-| 0.bit   | Žádost o potvrzení zprávy serverem                  |
-| 1.bit   | Určuje zda zařízení bylo přepnuto do disconect módu |
-| 2-7.bit | Počet pokusů o odeslání zprávy                      |
+| Pozice  | Zkrácený popis                     |
+|---------|------------------------------------|
+| 0.bit   | Žádost o potvrzení zprávy serverem |
+| 1.bit   | Nepoužité                          |
+| 2-7.bit | Počet pokusů o odeslání zprávy     |
 
 Pokud je 0.bit nastaven na 1 tak zařízení vyžaduje potvrzení zprávy.
 Zařízení po odeslání čeká 3s a v tomto okně musí
@@ -249,19 +249,19 @@ a pokusí se zprávu po určitém čase odeslat znovu.
 
 Následující tabulka popisuje hodnotu 5.byte ve vztahu s pokusem odeslání.
 
-| Pokus o odeslání     | Hodnota 5.byte | Popis                                                                                                                        |
-|----------------------|----------------|------------------------------------------------------------------------------------------------------------------------------|
-| 1. pokus o odeslání  | 0000000**1**   | Zařízení odeslalo zprávu a vyžaduje potvrzení (tučně označný bit).                                                           |
-| 2. pokus o odeslání  | **000001**01   | Zařízení čekalo 3s a nyní se snaží zprávu znovu odeslat. Počítadlo opakování (tučně) bylo zvýšeno o 1.                       |
-| 3. pokus o odeslání  | 00001001       | Zařízení čekalo 3s a nyní se snaží zprávu znovu odeslat.                                                                     |
-| 4. pokus o odeslání  | 000011**1**1   | Zařízení čekalo 15 min a nyní se přeplo do disconnect módu (tučně) a pro další opakování bude čekat delší dobu.              |
-| 5. pokus o odeslání  | 00010011       | Zařízení čekalo 15 min                                                                                                       |
-| 6. pokus o odeslání  | 00010111       | Zařízení čekalo 15 min                                                                                                       |
-| 7. pokus o odeslání  | 00011011       | Zařízení čekalo 60 min                                                                                                       |
-| 8. pokus o odeslání  | 00011111       | Zařízení čekalo 60 min                                                                                                       |
-| 29. pokus o odeslání | 01110111       | Zařízení čekalo 60 min                                                                                                       |
-| 30. pokus o odeslání | 01111011       | Zařízení čekalo do doby než mělo odeslat [alive zprávu](#alive)<br/> poté namísto alive zprávy znovu odeslalo tuto zprávu    |
-| 31. pokus o odeslání | 01111111       | Zařízení opět čeká do doby než se má odeslat alive zpráva                                                                    |
+| Pokus o odeslání     | Hodnota 5.byte | Popis                                                                                                                                      |
+|----------------------|----------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| 1. pokus o odeslání  | 000000-**1**   | Zařízení poprvé odeslalo zprávu a vyžaduje potvrzení (tučně označný bit). Pomlčka ukazuje dva bity které nemají žádnou informační hodnotu. |
+| 2. pokus o odeslání  | **000001**-1   | Zařízení čekalo 3 s. Počítadlo opakování (tučně) bylo zvýšeno o 1.                                                                         |
+| 3. pokus o odeslání  | 000010-1       | Zařízení čekalo 3 s a pro další opakování bude čekat delší dobu.                                                                           |
+| 4. pokus o odeslání  | 000011-1       | Zařízení čekalo 15 min.                                                                                                                    |
+| 5. pokus o odeslání  | 000100-1       | Zařízení čekalo 15 min.                                                                                                                    |
+| 6. pokus o odeslání  | 000101-1       | Zařízení čekalo 15 min.                                                                                                                    |
+| 7. pokus o odeslání  | 000110-1       | Zařízení čekalo 60 min.                                                                                                                    |
+| 8. pokus o odeslání  | 000111-1       | Zařízení čekalo 60 min.                                                                                                                    |
+| 29. pokus o odeslání | 011101-1       | Zařízení čekalo 60 min.                                                                                                                    |
+| 30. pokus o odeslání | 011110-1       | Zařízení čekalo do doby než mělo odeslat [alive zprávu](#alive) <br/> poté namísto alive zprávy znovu odeslalo tuto zprávu.                |
+| 31. pokus o odeslání | 011111-1       | Zařízení opět čeká do doby než se má odeslat alive zpráva.                                                                                 |
 
 Před každým dalším odesláním zařízení čeká, dokud není čas odeslat [alive zprávu](#alive). Zařízení se snaží stejnou zprávu odeslat stále dokola, dokud není restartováno (vybití baterie nebo ruční reset).
 
@@ -666,7 +666,7 @@ Vždy, když zařízení odesílá [zprávu vyžadující potvrzení](#potvrzen�
 zprávu na zařízení. Zařízení na zprávu ze serveru čeká 5 sekund. Server musí odpovědět
 příkazem, nastavením konfigurace nebo [potvrzením](#potvrzení-zprávy), pokud nechce na zařízení nic měnit.
 Pokud zařízení nepřijme v čase 5 sekund žádnou zprávu, tak znovu odesílá původní
-zprávu, více zde (TODO odkaz).
+zprávu, více [zde](#5byte---potvrzení-disconnect-a-počet-pokusů-o-odeslání-zprávy).
 
 Pokud server odešle více zpráv naráz, zařízení zpracuje pouze první zprávu
 a další ignoruje.
@@ -705,11 +705,13 @@ stát, že zpráva ze serveru je doručena po dlouhé době.
 Pokud zařízení úspěšně přijme zprávu, odešle na server
 potvrzení. Formát potvrzovací zprávy je popsán [zde](#potvrzení-zprávy).
 
-Pro LoRa síť nemá význam odesílat na zařízení potvrzovací zprávu, ikdyž si ji zařízení [vyžádá](#hlavička), jelikož o potvrzení se stará LoRa síť automaticky u všech zpráv.
+Pro LoRa síť nemá význam odesílat na zařízení potvrzovací zprávu, ikdyž si ji zařízení [vyžádá](#hlavička), jelikož o
+potvrzení se stará LoRa síť automaticky u všech zpráv.
 
 V některých situacích musí zařízení provést nové navázání komunikace s network serverem.
 Nové navázání spojení způsobí, že zprávy, které jsou uložené na network serveru
-jsou smazány. Nové navázání komunikace se děje vždy, když je zařízení restartováno, když je restartován modem rádia (TODO odkaz) a v některých případech, kdy se opakovaně nepodaří doručit zprávu.
+jsou smazány. Nové navázání komunikace se děje vždy, když je zařízení restartováno, když
+je [restartován modem rádia](#restart-rádia) a v některých případech, kdy se opakovaně nepodaří doručit zprávu.
 
 Na LoRa network server je možné odeslat více zpráv zároveň.
 Tato funkcionalita obvykle není potřeba, ale je možné ji naimplementovat
@@ -741,7 +743,7 @@ můžeme provést, protože víme, že restart vždy způsobí smazání zpráv 
 Zprávy se dělí na hlavičku a data. Hlavička je společná pro všechny zprávy a datová část se liší
 podle hodnoty 4. a 5. byte.
 
-### Hlavička downlinkové zprávy
+### Hlavička zprávy přijmané ze serveru
 
 #### 0.byte - identifikátor
 
@@ -764,41 +766,45 @@ Nepoužitý.
 
 Nepoužitý.
 
-#### 4.byte a 5.byte - typ dat
+#### 4.byte - kategorie zprávy
 
-Následující tabulka popisuje, jakých hodnot může nabývat 4. a 5. byte. Tyto byty určují, jak bude vypadat datová část zprávy. Datová část je popsána v další části.
+Tento byte určuje kategorii downlinku který bude odeslán. Kategorie může nabívat následujících hodnot:
 
-| Hodnota 4.Byte | Hodnota 5.byte | Význam                                                      |
-|----------------|----------------|-------------------------------------------------------------|
-| 0x01           | 0x01           | Potvrzení zprávy                                            |
-| 0x02           | 0x02           | Restart zařízení                                            |
-| 0x02           | 0x03           | Přepnutí zařízení do transportního režimu                   |
-| 0x02           | 0x04           | Restart rádia                                               |
-| 0x04           | 0x01           | Kolikátá zpráva vyžaduje potvrzení                          |
-| 0x04           | 0x02           | Vypnutí potvrzování zpráv                                   |
-| 0x04           | 0x03           | Vypnutí potvrzování události Event start                    |
-| 0x04           | 0x04           | Interval alive zpráv                                        |
-| 0x04           | 0x05           | Jak často se má odeslat measure zpráva                      |
-| 0x04           | 0x06           | Spuštění LED diody a pískání při události Event start       |
-| 0x04           | 0x08           | Zapnutí nebo vypnutí LoRa ADR                               |
-| 0x04           | 0x09           | Nastaví LoRa dataRate                                       |
-| 0x04           | 0x0A           | Nastaví módu zařízení                                       |
-| 0x04           | 0x0B           | Omezení maximálního počtu zpráv typu událost pokračuje      |
-| 0x04           | 0x0C           | Určuje periodu vzorkování pro teplotní a vlhkostní zařízení |
-| 0x04           | 0x0E           | Nastavení citlivosti pohybového zařízení                    |
+| Hodnota 4.Byte | Význam           |
+|----------------|------------------|
+| 0x01           | Potvrzení zprávy |
+| 0x02           | Příkazy          |
+| 0x04           | Nastavení        |
 
+V kapitolách níže jsou popsány jednotlivé kategorie a typy zpráv které mohou obsahovat.
+
+#### 5.byte - typ zprávy
+
+Společné s kategorii zprávy identifikuje jak bude vypadat datová část zprávy.
 
 ### Data
 
-Následující odstavce podrobně popisují, co jednotlivé zprávy znamenají.
+Datová část je rozdělena na tři kategorie - potvrzení zprávy, příkazy a nastavení. Následující kapitoly popisují tyto
+kategorie a zprávy které mohou obsahovat.
 
-#### Potvrzení zprávy
+#### Kategorie - potvrzení zprávy
+
+Kategorie je identifikována hodnotou 0x01 v 4.Byte hlavičky a obsahuje následující typy zpráv:
+
+| Hodnota 5.byte hlavičky | Význam                                                      |
+|-------------------------|-------------------------------------------------------------|
+| 0x01                    | Potvrzení zprávy                                            |
+
+##### Potvrzení zprávy
+
+Zpráva je identifikována hodnotou 0x01 v 5.byte hlavičky.
 
 Zpráva slouží k potvrzení zprávy, která přišla ze zařízení. Potvrzení zprávy
 je potřeba odeslat pouze pokud zařízení používá síť NB-IoT a vyžádá si ho v [hlavičce odeslané zprávy](#hlavička).
 
 Defaultně je nutné potvrdit následující zprávy: Event start, Alive, Reset. Dále musí být
-u teploměru a vlhkoměru potvrzena každá šestá zpráva od poslední potvrzené zprávy. U ostatních zařízení musí být potvrzena každá sedmá zpráva od poslední potvrzované zprávy.
+u teploměru a vlhkoměru potvrzena každá šestá zpráva od poslední potvrzené zprávy. U ostatních zařízení musí být
+potvrzena každá sedmá zpráva od poslední potvrzované zprávy.
 
 Struktura:
 
@@ -806,7 +812,17 @@ Struktura:
 |---------|--------------------------------|
 | 0.byte  | Nepoužité - vždy obsahuje 0x00 |
 
-#### Restart zařízení
+#### Kategorie - příkazy
+
+Kategorie je identifikována hodnotou 0x02 v 4.Byte hlavičky a obsahuje následující typy zpráv:
+
+| Hodnota 5.byte hlavičky | Význam                                    |
+|-------------------------|-------------------------------------------|
+| 0x02                    | Potvrzení zprávy                          |
+| 0x03                    | Restart zařízení                          |
+| 0x04                    | Přepnutí zařízení do transportního režimu |
+
+##### Restart zařízení
 
 Zařízení se restartuje.
 
@@ -816,7 +832,7 @@ Struktura:
 |---------|--------------------------------|
 | 0.byte  | Nepoužité - vždy obsahuje 0x00 |
 
-#### Přepnutí zařízení do transportního režimu
+##### Přepnutí zařízení do transportního režimu
 
 Zařízení se přepne do [transportního režimu](#transportní-režim).
 
@@ -826,7 +842,7 @@ Struktura:
 |---------|--------------------------------|
 | 0.byte  | Nepoužité - vždy obsahuje 0x00 |
 
-#### Restart rádia
+##### Restart rádia
 
 Restartuje rádiový modem zařízení.
 
@@ -836,9 +852,29 @@ Struktura:
 |---------|--------------------------------|
 | 0.byte  | Nepoužité - vždy obsahuje 0x00 |
 
-#### Kolikátá zpráva vyžaduje potvrzení
+#### Kategorie - nastavení
 
-Určí, kolikátá zpráva musí vždy být potvrzena (TODO odkaz). Defaultní hodnota je 6 u teploměru a vlhkoměru, u ostatních zařízení 7. Defaultní hodnota se dá nastavit odesláním hodnoty 0xFF v 1.byte.
+Kategorie je identifikována hodnotou 0x04 v 4.Byte hlavičky a obsahuje následující typy zpráv:
+
+| Hodnota 5.byte hlavičky | Význam                                                      |
+|-------------------------|-------------------------------------------------------------|
+| 0x01                    | Kolikátá zpráva vyžaduje potvrzení                          |
+| 0x02                    | Vypnutí potvrzování zpráv                                   |
+| 0x03                    | Vypnutí potvrzování události Event start                    |
+| 0x04                    | Interval alive zpráv                                        |
+| 0x05                    | Jak často se má odeslat measure zpráva                      |
+| 0x06                    | Spuštění LED diody a pískání při události Event start       |
+| 0x08                    | Zapnutí nebo vypnutí LoRa ADR                               |
+| 0x09                    | Nastaví LoRa dataRate                                       |
+| 0x0A                    | Nastaví módu zařízení                                       |
+| 0x0B                    | Omezení maximálního počtu zpráv typu událost pokračuje      |
+| 0x0C                    | Určuje periodu vzorkování pro teplotní a vlhkostní zařízení |
+| 0x0E                    | Nastavení citlivosti pohybového zařízení                    |
+
+##### Kolikátá zpráva vyžaduje potvrzení
+
+Určí, kolikátá zpráva musí vždy být potvrzena. Defaultní hodnota je 6 u teploměru a vlhkoměru,
+u ostatních zařízení 7. Defaultní hodnota se dá nastavit odesláním hodnoty 0xFF v 1.byte.
 
 Struktura:
 
@@ -847,7 +883,7 @@ Struktura:
 | 0.byte | Nepoužité - vždy obsahuje 0x01                                     |
 | 1.byte | Určuje maximální počet pokračování poplachů které se budou posílat |
 
-#### Vypnutí a zapnutí potvrzování zpráv
+##### Vypnutí a zapnutí potvrzování zpráv
 
 Odeslání této zprávy na zařízení vypne nebo zapne vyžadování potvrzení zpráv zařízením.
 
@@ -858,7 +894,7 @@ Struktura:
 | 0.byte | Nepoužité - vždy obsahuje 0x01                       |
 | 1.byte | 0 vypne potvrzování zpráv, 1 - zapne potvrzoví zpráv |
 
-#### Vypnutí potvrzování události Event start
+##### Vypnutí potvrzování události Event start
 
 Vypne nebo zapne potvrzování události Event start.
 
@@ -869,7 +905,7 @@ Struktura:
 | 0.byte | Nepoužité - vždy obsahuje 0x01                       |
 | 1.byte | 0 vypne potvrzování zpráv, 1 - zapne potvrzoví zpráv |
 
-#### Interval alive zpráv
+##### Interval alive zpráv
 
 Nastaví, za jak dlouhou dobu se má odeslat alive zpráva od poslední komunikace.
 Defaultní hodnota je 12 hodin od poslední odeslané zprávy.
@@ -881,41 +917,11 @@ Defaultní hodnota je 12 hodin od poslední odeslané zprávy.
 | 2.byte | Minuty                         |
 | 3.byte | Sekundy                        |
 
-#### Nasavení, jak často se má odeslat measure zpráva
+##### Nasavení, jak často se má odeslat measure zpráva
 
-Popsáno zde (TODO odkaz)
+Popsáno [zde](#perioda-vzorkování-pro-teplotní-a-vlhkostní-zařízení-a-nasavení-jak-často-se-má-odeslat-measure-zpráva).
 
-#### Perioda vzorkování pro teplotní a vlhkostní zařízení a nastavení, jak často se má odeslat measure zpráva
-
-Hodnoty 0x05 a 0x0C se obě vztahují k teploměru a vlhkoměru a úzce spolu souvisí.
-Obě tyto hodnoty musejí být nastaveny naráz ve správném pořadí a bez restaru mezi zpracováními těchto zpráv.
-
-První musí být nastaveno, jak často se má odesílat measure zpráva a následně jaké má být vzorkování.
-
-Defaultní nastavení je 10 minut a 1 minuta. Zařízení měří každou minutu a každých 10 minut z nich udělá průměr a poté odešle measure zprávu.
-
-Je důležité, aby perioda odesílání measure zprávy byla vždy celočíselně dělitelná periodou vzorkování, jinak bude zařízení odesílat zprávu v chybném intervalu.
-
-Obě tyto hodnoty mají následující formát:
-
-| Byte   | Význam                         |
-|--------|--------------------------------|
-| 0.byte | Nepoužité - vždy obsahuje 0x03 |
-| 1.byte | Hodiny                         |
-| 2.byte | Minuty                         |
-| 3.byte | Sekundy                        |
-
-Pokud nastavíme periodu odesílání mesure zpráv na hodnotu, která není dělitelná periodou vzorkování,
-tak se zařízení bude chovat podle následujícího příkladu:
-
-Představme si, že nastavíme periodu measure zpráv na 10 minut a periodu měření na 4 minuty.
-Zařízení vypočítá počet měření, které je potřeba udělat před odesláním zprávy následujícím způsobem:
-10 / 4 = 2 (provede se celočíselné dělení).
-
-Zařízení pak bude čekat mezi měřeními 4 minuty a po každých dvou měření odešle zprávu. Measure
-zprávy se tedy budou odesílat každých 8 minut.
-
-#### Spuštění LED diody a pískání při události Event start
+##### Spuštění LED diody a pískání při události Event start
 
 | Byte   | Význam                         |
 |--------|--------------------------------|
@@ -934,7 +940,7 @@ Složení 1.byte:
 
 Defaultně je byte nastaven na 10100000 - blikání i pískání je při Event start zapnuto.
 
-#### Zapnutí nebo vypnutí LoRa ADR
+##### Zapnutí nebo vypnutí LoRa ADR
 
 Vypne nebo zapne [Lora ADR](https://lora-developers.semtech.com/documentation/tech-papers-and-guides/understanding-adr/)
 .
@@ -945,7 +951,7 @@ Dá se použít pouze pro zařízení na síti LoRa.
 | 0.byte | Nepoužité - vždy obsahuje 0x01 |
 | 1.byte | 0 - vypnuto, 1 - zapnuto       |
 
-#### Nastaví LoRa dataRate
+##### Nastaví LoRa dataRate
 
 Nastaví [Lora dataRate](https://lora-developers.semtech.com/uploads/documents/files/Understanding_LoRa_Adaptive_Data_Rate_Downloadable.pdf)
 .
@@ -956,7 +962,7 @@ Dá se použít pouze pro zařízení na síti LoRa.
 | 0.byte | Nepoužité - vždy obsahuje 0x01 |
 | 1.byte | 0 - vypnuto, 1 - zapnuto       |
 
-#### Nastaví módu zařízení
+##### Nastaví módu zařízení
 
 Nastaví mód na zařízení.
 
@@ -967,21 +973,28 @@ Pokud je zpráva odeslána na zařízení, které nepodporuje jiné režimy, doj
 | 0.byte | Nepoužité - vždy obsahuje 0x01 |
 | 1.byte | Mód zařízení                   |
 
-Aktuálně přepnutí módu podporuje pouze zařízení Magnet (0 - simple, 1 - continuous). Při odeslání jiného čísla módu se zařízení nastaví do režimu continuous. 
+Aktuálně přepnutí módu podporuje pouze zařízení Magnet (0 - simple, 1 - continuous). Při odeslání jiného čísla módu se
+zařízení nastaví do režimu continuous.
 
-#### Omezení maximálního počtu zpráv typu Event continue
+##### Omezení maximálního počtu zpráv typu Event continue
 
 Nataví maximální počet zpráv typu [Event continue](#event). Defaultní
 hodnota pro zařízení Magnet, PIR a Move je neomezeno. Pro zařízení Water jsou to dvě zprávy.
 
-Když zařízení dosáhne maximálního počtu, přestane odesílat zprávy Event continue. Po odeslání zprávy Event end a následném novém cyklu začínajícím zprávou Event start zařízení znovu posílá zprávy Event continue do nastaveného maximálního počtu.
+Když zařízení dosáhne maximálního počtu, přestane odesílat zprávy Event continue. Po odeslání zprávy Event end a
+následném novém cyklu začínajícím zprávou Event start zařízení znovu posílá zprávy Event continue do nastaveného
+maximálního počtu.
 
 | Byte   | Význam                                                               |
 |--------|----------------------------------------------------------------------|
 | 0.byte | Nepoužité - vždy obsahuje 0x01                                       |
 | 1.byte | Maximální počet událostí continue. 0x0 nastaví na neomezené množství |
 
-#### Nastavení citlivosti pohybového zařízení
+##### Určuje periodu vzorkování pro teplotní a vlhkostní zařízení
+
+Popsáno [zde](#perioda-vzorkování-pro-teplotní-a-vlhkostní-zařízení-a-nasavení-jak-často-se-má-odeslat-measure-zpráva).
+
+##### Nastavení citlivosti pohybového zařízení
 
 Nastaví citlivost pohybového zařízení.
 
@@ -1001,209 +1014,34 @@ Pro běžné užívání by měli stačit následující nastavení:
 | Střední   | 4      | 75     | 100    | 10     | 5      |
 | Vysoká    | 4      | 50     | 50     | 10     | 5      |
 
-## Jen poznamky
+##### Perioda vzorkování pro teplotní a vlhkostní zařízení a nastavení, jak často se má odeslat measure zpráva
 
-### Dalsi poznamky
+Hodnoty 0x05 a 0x0C se obě vztahují k teploměru a vlhkoměru a úzce spolu souvisí.
+Obě tyto hodnoty musejí být nastaveny naráz ve správném pořadí a bez restaru mezi zpracováními těchto zpráv.
 
-@startuml
-[*] --> TransportMode : Vložení baterky
-TransportMode --> SendRestartMessage : Restart tlačítko zmáčknuto
+První musí být nastaveno, jak často se má odesílat measure zpráva a následně jaké má být vzorkování.
 
-SendRestartMessage --> WaitForRestartConfirmation : Čekání na potvrzení restartu
-WaitForRestartConfirmation --> SendRestartMessage : Potvrzení nedorazilo
-WaitForRestartConfirmation --> SendTestMessage : Potvrzení dorazilo
+Defaultní nastavení je 10 minut a 1 minuta. Zařízení měří každou minutu a každých 10 minut z nich udělá průměr a poté
+odešle measure zprávu.
 
-SendTestMessage --> WaitForTestConfirmation : Čekání na potvrzení
-WaitForTestConfirmation --> SendTestMessage : Potvrzení nedorazilo
-note right of SendTestMessage
-Test zpráva slouží primárně k
-přijetí aktuálního nastavení
-ze serveru. Nastavení je
-vždy nastaveno na default po restartu
-end note
+Je důležité, aby perioda odesílání measure zprávy byla vždy celočíselně dělitelná periodou vzorkování, jinak bude
+zařízení odesílat zprávu v chybném intervalu.
 
-WaitForTestConfirmation --> ErrorCheckMode : Potvrzení dorazilo
-WaitForTestConfirmation --> SendTestMessage : Potvrzení dorazilo a je potřeba odeslat další test
-Note on link
-Počet test zpráv se liší podle typu zařízení
-endNote
+Obě tyto hodnoty mají následující formát:
 
-ErrorCheckMode --> ActiveMode : Errory odeslány nebo neni potřeba odeslat
-ErrorCheckMode --> ErrorCheckMode : Error zpráva odeslána
-note left of ErrorCheckMode
-Pokud bylo zařízení restartováno
-kvůli fatálnímu erroru tak je potřeba
-odeslat error zprávu s podrobnostmi o chybě
-end note
+| Byte   | Význam                         |
+|--------|--------------------------------|
+| 0.byte | Nepoužité - vždy obsahuje 0x03 |
+| 1.byte | Hodiny                         |
+| 2.byte | Minuty                         |
+| 3.byte | Sekundy                        |
 
-ActiveMode --> EventStartSent : Pošli event start
+Pokud nastavíme periodu odesílání mesure zpráv na hodnotu, která není dělitelná periodou vzorkování,
+tak se zařízení bude chovat podle následujícího příkladu:
 
-WaitForConfirmation --> ActiveMode : Potvrzení přijato
-WaitForConfirmation --> WaitForConfirmation : Timeout, pošli zprávu znovu
+Představme si, že nastavíme periodu measure zpráv na 10 minut a periodu měření na 4 minuty.
+Zařízení vypočítá počet měření, které je potřeba udělat před odesláním zprávy následujícím způsobem:
+10 / 4 = 2 (provede se celočíselné dělení).
 
-ActiveMode --> WaitForConfirmation : Pošli alive zprávu
-note left of ActiveMode
-Zařízení posílá - error, measure, event, alive
-error - HW chyba na zařízení
-measure - hodnota naměřena (např. teplota, vlhkost)
-event - nastala událost (např. překročení limitu, zaznamenání pohybu)
-alive - kontrolní zpráva
-end note
-
-ActiveMode --> ActiveMode : Pošli measure/error/alive zprávu
-ActiveMode --> WaitForConfirmation : Pošli measure/error zprávu s potvrzením
-ActiveMode --> EventContinueMode : Pošli event start bez potvrzení
-
-EventStartSent --> WaitForEventConfirmation : Čekej na potvrzení
-WaitForEventConfirmation --> EventStartSent : Potvrzení nedorazilo
-WaitForEventConfirmation --> EventContinueMode : Potvrzení přijato
-
-EventContinueMode --> WaitForConfirmationForContinue : Pošli alive zprávu
-note left of EventContinueMode
-EventContinueMode je identicky s ActiveModem
-Jediny rozdil je že když nastane event tak
-se odesílá event continue namísto event start
-end note
-
-EventContinueMode --> EventContinueMode : Pošli measure/error/eventContinue/alive zprávu
-EventContinueMode --> WaitForConfirmationForContinue : Pošli measure/error/eventContinue zprávu s potvrzením
-EventContinueMode --> ActiveMode : Událost skončila
-note on link
-Konec události nastane pokud zařízení
-nějakou dobu nezaznamená událost
-end note
-
-WaitForConfirmationForContinue --> EventContinueMode : Potvrzení přijato
-WaitForConfirmationForContinue --> WaitForConfirmationForContinue : Timeout, pošli zprávu znovu
-@enduml
-
-title Nb Iot communication
-
-Device->Server: Send message with confirmation request
-Device<-Server: Downlink
-Device->Server: Confirmation
-Server->Server: Mark downlink as sent
-
-title NBIot retry
-
-Device->Server: Send message with confirmation request
-Device<-Server: Downlink
-Device-->Server: Confirmation (delivery failed)
-Device->Server: Send message with confirmation request
-Device<-Server: Downlink
-Device->Server: Confirmation
-Server->Server: Mark downlink as sent
-
-title Lora communication
-
-Server->LoraServer: Send downlink message
-Device->LoraServer: Send uplink message
-LoraServer->Device: Send downlink
-LoraServer->Server: Send uplink
-Device->LoraServer: Send downlink confirmation
-LoraServer->Server: Send downlink confirmation
-
-title Lora "retry"
-
-Server->LoraServer: Send downlink message
-Device->LoraServer: Send uplink message
-LoraServer->Device: Send downlink
-LoraServer->Server: Send uplink
-Server->LoraServer: Send Downlink again because it was not confirmed
-Device->LoraServer: Send downlink confirmation
-LoraServer->Device: Send second downlink
-LoraServer->Server: Send downlink confirmation
-Server->Server:Mark downlink ass sucessfuly sent
-Device->LoraServer:Send second downlink confirmation
-LoraServer->Server:Send second downlink confirmation
-Server->Server: Ignore confirmation because downlink was already confirmed
-
-title Lora "retry" join
-
-Server->LoraServer: Send downlink message
-Device->LoraServer: Send Join which deletes all messages
-LoraServer->LoraServer: All waiting downlinks deleted
-Device->LoraServer: Send uplink
-LoraServer->Server: Send uplink
-
-Server->LoraServer: Send downlink again because it was not confirmed
-Device->LoraServer: Send uplink
-LoraServer->Device: Send second downlink
-LoraServer->Server: Send uplink
-Server->LoraServer: Send downlink again because it was not confirmed
-Device->LoraServer:Send second downlink confirmation
-LoraServer->Device:Send third downlink
-LoraServer->Server:Send second downlink confirmation
-Server->Server:Mark downlink ass sucessfuly sent
-
-Device->LoraServer:Send third downlink confirmation
-LoraServer->Server:Send third downlink confirmation
-Server->Server: Ignore confirmation because downlink was already confirmed
-
-title Lora "Message Marker"
-
-Server->LoraServer: Send downlink message
-Server->Server: Mark downlink as sent
-Device->LoraServer: Send uplink message
-LoraServer->Device: Send downlink
-LoraServer->Server: Send uplink
-Server->Server:Mark downlink as toBeConfirmedInNextMessage
-Device->LoraServer: Send downlink confirmation
-LoraServer->Server: Send downlink confirmation
-Server->Server:Mark downlink as sucessfuly sent
-
-title Lora "Message Marker" join
-
-Server->LoraServer: Send downlink message
-Server->Server: Mark downlink as sent
-Device->LoraServer: Send Join which deletes all messages
-LoraServer->LoraServer: All waiting downlinks deleted
-Device->LoraServer: Send uplink
-LoraServer->Server: Send uplink
-Server->Server:Mark downlink as toBeConfirmedInNextMessage
-Device->LoraServer: Send uplink
-LoraServer->Server: Send uplink
-Server->Server:Set downlink to initial state
-
-Server->LoraServer: Send downlink message again
-Server->Server: Mark downlink as sent
-Device->LoraServer: Send uplink message
-LoraServer->Device: Send downlink
-LoraServer->Server: Send uplink
-Server->Server:Mark downlink as toBeConfirmedInNextMessage
-Device->LoraServer: Send downlink confirmation
-LoraServer->Server: Send downlink confirmation
-Server->Server:Mark downlink as sucessfuly sent
-
-title Lora "Timeout" (current implementation)
-
-Server->LoraServer: Send downlink message
-Device->LoraServer: Send uplink message
-LoraServer->Device: Send downlink
-LoraServer->Server: Send uplink
-Server->Server: Start timer which resends downlink on timeout
-
-Device->LoraServer: Send downlink confirmation
-LoraServer->Server: Send downlink confirmation
-Server->Server:Stop timer
-
-title Lora "Timeout" join
-
-Server->LoraServer: Send downlink message
-Device->LoraServer: Send Join which deletes all messages
-LoraServer->LoraServer: All waiting downlinks deleted
-Device->LoraServer: Send uplink
-LoraServer->Server: Send uplink
-Server->Server: Start timer which resends downlink on timeout
-Server->Server: Timer timeout
-Server->LoraServer: Send downlink message
-Device->LoraServer: Send uplink message
-LoraServer->Device: Send downlink
-LoraServer->Server: Send uplink
-Server->Server: Start timer which resends downlink on timeout
-
-Device->LoraServer: Send downlink confirmation
-LoraServer->Server: Send downlink confirmation
-Server->Server:Stop timer
-
-
+Zařízení pak bude čekat mezi měřeními 4 minuty a po každých dvou měření odešle zprávu. Measure
+zprávy se tedy budou odesílat každých 8 minut.
