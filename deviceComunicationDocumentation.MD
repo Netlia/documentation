@@ -81,7 +81,7 @@ Poté co je zařízení restartováno provádí následující kroky (pokud nedo
 Při hard restartu se na defaultní hodnoty nastaví všechny informace, které zařízení udržuje v paměti.
 
 Pokud je do zařízení vložena baterie, která není plně nabitá (2,5 V - 2,9 V), zařízení detekuje error a chová se podle
-popisu v sekci [Fatální chyba](#fatální-chyba). Zařízení nepřechází do [transportního režimu](#transportní-režim).
+popisu v sekci [Fatální chyba](#fatální-chyba) - pro chybu s číslem 2. Zařízení nepřechází do [transportního režimu](#transportní-režim).
 
 Pokud zařízení detekuje jakýkoliv jiný error, tak zařízení postupuje podle informací popsaných v sekci o [chybových zprávách].
 
@@ -95,10 +95,6 @@ naměřen nízký stav baterie, tak se zařízení přepne do transportního re�
 ### Transportní režim
 
 Transportní režim je speciální stav zařízení, ve kterém zařízení nekomunikuje a šetří baterii. Obvykle se používá pro přepravu nebo skladování zařízení.
-
-### Disconnect režim
-
-TODO
 
 ## Stavový diagram zařízení
 
@@ -123,7 +119,7 @@ popisuje události při kterých dioda bliká:
 | 1x             | [Spuštění inicializace](#standartní-restart)                 |
 | 10x            | Přechod do [transportního režimu](#transportní-režim)        |
 | 1x             | Před odesláním události                                      |
-| 6x             | Při přechodu do [disconnect módu](#disconnect-režim)         |
+| 6x             | Při přechodu do disconnect módu                              |
 | Nkrát          | Při erroru (počet bliknutí závisí na typu [erroru](#error)   |
 
 ## Zprávy ze zařízení na server
@@ -140,9 +136,9 @@ jednotlivé byty následuje v dalších odstavcích.
 
 | Pozice | Zkrácený popis                                                                                           |
 |--------|----------------------------------------------------------------------------------------------------------|
-| 0.byte | Počítadlo odeslaných zpráv                                                                            |
-| 1.byte | Počítadlo přijatých zpráv                                                                            |
-| 2.byte | Stav baterie v zařízení                                                                                    |
+| 0.byte | Počítadlo odeslaných zpráv                                                                               |
+| 1.byte | Počítadlo přijatých zpráv                                                                                |
+| 2.byte | Stav baterie v zařízení                                                                                  |
 | 3.byte | Teplota procesoru                                                                                        |
 | 4.byte | RSSI                                                                                                     |
 | 5.byte | 0 bit - Vyžádání potvrzení zprávy,<br/>1 bit - disconect<br/>Zbylé bity - počet pokusů o odeslání zprávy |
@@ -210,7 +206,7 @@ V LoRa síti zařízení komunikuje s network serverem, který následně přepo
 Pokud se zařízení nepodaří odeslat zprávu na network server, zvýší "Počet pokusů o odeslání zprávy"
 a pokusí se zprávu po určitém čase odeslat znovu.
 
-Po určitém počtu neúspěšných odeslání se zařízení přepne do [disconnect módu](#disconnect-režim), během kterého zařízení čeká stále delší dobu.
+Po určitém počtu neúspěšných odeslání se zařízení přepne do disconnect módu, během kterého zařízení čeká stále delší dobu.
 
 Následující tabulka popisuje hodnotu 5.bytu ve vztahu s pokusem odeslání.
 
@@ -219,14 +215,14 @@ Následující tabulka popisuje hodnotu 5.bytu ve vztahu s pokusem odeslání.
 | 1. pokus o odeslání  | 00000001       | Zařízení poprvé odeslalo zprávu.                                                                                                      |
 | 2. pokus o odeslání  | **000001**01   | Zařízení čekalo 4s na potvrzení z network serveru a nyní se snaží zprávu znovu odeslat. Počítadlo opakování (tučně) bylo zvýšeno o 1. |
 | 3. pokus o odeslání  | 00001001       | Zařízení čekalo 4s na potvrzení z network server a nyní se snaží zprávu znovu odeslat.                                                |
-| 4. pokus o odeslání  | 000011**1**1   | Zařízení čekalo 15 min a nyní se přeplo do [disconnect módu](#disconnect-režim) (tučně) a pro další opakování bude čekat delší dobu.                       |
+| 4. pokus o odeslání  | 000011**1**1   | Zařízení čekalo 15 min a nyní se přeplo do disconnect módu (tučně) a pro další opakování bude čekat delší dobu.                       |
 | 5. pokus o odeslání  | 00010011       | Zařízení čekalo 15 min                                                                                                                |
 | 6. pokus o odeslání  | 00010111       | Zařízení čekalo 15 min                                                                                                                |
 | 7. pokus o odeslání  | 00011011       | Zařízení čekalo 60 min                                                                                                                |
 | 8. pokus o odeslání  | 00011111       | Zařízení čekalo 60 min                                                                                                                |
 | 29. pokus o odeslání | 01110111       | Zařízení čekalo 60 min                                                                                                                |
-| 30. pokus o odeslání | 01111011       | Zařízení čekalo do doby odeslání [alive zprávy](#alive), <br/> poté namísto alive zprávy znovu odeslalo tuto zprávu.         |
-| 31. pokus o odeslání | 01111111       | Zařízení opět čeká do doby odeslání alive zprávy                                                                             |
+| 30. pokus o odeslání | 01111011       | Zařízení čekalo do doby odeslání [alive zprávy](#alive), <br/> poté namísto alive zprávy znovu odeslalo tuto zprávu.                  |
+| 31. pokus o odeslání | 01111111       | Zařízení opět čeká do doby odeslání alive zprávy                                                                                      |
 
 Před každým dalším odesláním zařízení čeká, dokud není čas odeslat [alive zprávu](#alive). Zařízení se snaží stejnou zprávu odeslat stále dokola, dokud není restartováno (vybití baterie nebo ruční reset).
 
@@ -258,13 +254,13 @@ Následující tabulka popisuje hodnotu 5.byte ve vztahu s pokusem odeslání.
 | 1. pokus o odeslání  | 0000000**1**   | Zařízení odeslalo zprávu a vyžaduje potvrzení (tučně označný bit).                                                           |
 | 2. pokus o odeslání  | **000001**01   | Zařízení čekalo 3s a nyní se snaží zprávu znovu odeslat. Počítadlo opakování (tučně) bylo zvýšeno o 1.                       |
 | 3. pokus o odeslání  | 00001001       | Zařízení čekalo 3s a nyní se snaží zprávu znovu odeslat.                                                                     |
-| 4. pokus o odeslání  | 000011**1**1   | Zařízení čekalo 15 min a nyní se přeplo do [disconnect módu](#disconnect-režim) (tučně) a pro další opakování bude čekat delší dobu. |
+| 4. pokus o odeslání  | 000011**1**1   | Zařízení čekalo 15 min a nyní se přeplo do disconnect módu (tučně) a pro další opakování bude čekat delší dobu.              |
 | 5. pokus o odeslání  | 00010011       | Zařízení čekalo 15 min                                                                                                       |
 | 6. pokus o odeslání  | 00010111       | Zařízení čekalo 15 min                                                                                                       |
 | 7. pokus o odeslání  | 00011011       | Zařízení čekalo 60 min                                                                                                       |
 | 8. pokus o odeslání  | 00011111       | Zařízení čekalo 60 min                                                                                                       |
 | 29. pokus o odeslání | 01110111       | Zařízení čekalo 60 min                                                                                                       |
-| 30. pokus o odeslání | 01111011       | Zařízení čekalo do doby než mělo odeslat [alive zprávu](#alive)<br/> poté namísto alive zprávy znovu odeslalo tuto zprávu |
+| 30. pokus o odeslání | 01111011       | Zařízení čekalo do doby než mělo odeslat [alive zprávu](#alive)<br/> poté namísto alive zprávy znovu odeslalo tuto zprávu    |
 | 31. pokus o odeslání | 01111111       | Zařízení opět čeká do doby než se má odeslat alive zpráva                                                                    |
 
 Před každým dalším odesláním zařízení čeká, dokud není čas odeslat [alive zprávu](#alive). Zařízení se snaží stejnou zprávu odeslat stále dokola, dokud není restartováno (vybití baterie nebo ruční reset).
@@ -348,11 +344,11 @@ Počet restartů udává, kolikrát bylo zařízní restartováno od [hard resta
 
 Kód restartu udává důvod proč restart nastal. Byte může nabívat následujících hodnot:
 
-| Hodnota | Význam                                                   |
-|---------|----------------------------------------------------------|
-| 1       | Restart způsoben chybou                                  |
+| Hodnota | Význam                                                                    |
+|---------|---------------------------------------------------------------------------|
+| 1       | Restart způsoben chybou                                                   |
 | 2       | Restart vyvolán [přijmutím zprávy ze serveru](#přijmání-zpráv-ze-serveru) |
-| 8       | Restart způsoben stisknutím tlačítka                     |
+| 8       | Restart způsoben stisknutím tlačítka                                      |
 
 ### Test
 
@@ -377,10 +373,10 @@ Error zpráva je ze zařízení odeslána, pokud nastane hardwarová chyba.
 
 Obsah:
 
-| Byte            | Význam                               |
-|-----------------|--------------------------------------|
-| 0.byte          | Typ chyby                            |
-| 1.byte          | Nepoužitý vždy obsahuje 0x04         |
+| Byte            | Význam                                |
+|-----------------|---------------------------------------|
+| 0.byte          | Typ chyby                             |
+| 1.byte          | Nepoužitý vždy obsahuje 0x04          |
 | 2.byte - 5.byte | Obsahuje hodnotu z chybového registru | 
 
 Errory se dělí na dva druhy chyb - fatální a standartní. Normální chyby mají hodnotu 0.bytu
@@ -410,13 +406,13 @@ Následně pokračuje běžným fungovaním - odešle test zprávy a poté odes�
 Chybový registr obsahuje informaci o tom, jaká chyba nastala. Následující tabulka popisuje
 hodnoty a jejich význam:
 
-| Chybový registr                     | Význam                                                                           | Počet bliknutí diody |
-|-------------------------------------|----------------------------------------------------------------------------------|----------------------|
-| 00000000 00000000 00000001 00000000 | 1 - Rádio nefunguje správným způsobem                                            | 3x                   |
+| Chybový registr                     | Význam                                                                            | Počet bliknutí diody |
+|-------------------------------------|-----------------------------------------------------------------------------------|----------------------|
+| 00000000 00000000 00000001 00000000 | 1 - Rádio nefunguje správným způsobem                                             | 3x                   |
 | 00000000 00000000 00000010 00000000 | 2 - Vložení baterie, která není plně nabitá. Kontroluje se pouze po hard restartu | 4x                   |
-| 00000000 00000000 00000100 00000000 | 3 - Stavový automat se dostal do neznámého stavu                                 | 3x                   | 
-| 00000000 00000000 00001000 00000000 | 4 - Zařízení se nedokáže pripojit k siti po standartním restartu                 | 6x                   |
-| 00000000 00000000 00010000 00000000 | 5 - Standartní chyba nastala 5*                                                  | 3x                   |
+| 00000000 00000000 00000100 00000000 | 3 - Stavový automat se dostal do neznámého stavu                                  | 3x                   | 
+| 00000000 00000000 00001000 00000000 | 4 - Zařízení se nedokáže pripojit k siti po standartním restartu                  | 6x                   |
+| 00000000 00000000 00010000 00000000 | 5 - Standartní chyba nastala 5*                                                   | 3x                   |
 
 Pokud chyba s číslem 1,3 a 5 nastane 4 hodiny po restartu, tak zařízení postupuje následujícím způsobem:
 
