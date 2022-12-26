@@ -1,281 +1,283 @@
-# Netlia dokumentace zařízení
+# Netlia device documentation
 
-Tento dokument slouží k popisu chování jednotlivých zařízení a k popisu společného komunikačního protokolu.
+This document is used to describe the behaviour of each device and to describe a common communication protocol.
 
-## Základní vlastnosti zařízení
+## Basic device features
 
- - Zařízení komunikují se serverem pomocí [LoRa](https://cs.wikipedia.org/wiki/LoRa) nebo [NB-IoT](https://cs.wikipedia.org/wiki/Narrowband_IoT) sítě. Výběr sítě záleží na typu zakoupeného zařízení.
- - Zařízení komunikují pomocí hexadecimálního payloadu. Příklad 020902050098434F0000020000.
- - Zařízení umožňují [odesílat](#zprávy-ze-zařízení-na-server) i [přijmat zprávy](#přijmání-zpráv-ze-serveru) ze serveru.
- - Zařízení obsahuje jeden až N senzorů které sledují okolí. Na základě informací z těchto senzorů se zařízení rozhoduje jakou zprávu bude odesílat na server. 
+ - The devices communicate with the server using a [LoRa](https://en.wikipedia.org/wiki/LoRa) or [NB-IoT](https://en.wikipedia.org/wiki/Narrowband_IoT) network. The choice of network depends on the type of equipment you purchase.
+ - The devices communicate using a hexadecimal payload. Example: 020902050098434F0000020000.
+ - Devices allow to [send](#messages-from-device-to-server) and [receive-messages](#receiving-messages-from-the-server) from the server.
+ - The device contains 1 to N-sensors that monitor the environment. Based on the information from these sensors, the device decides what message to send to the server. 
 
-## Obecné chování zařízení
+## General device behaviour
 
-Zařízení odesílají tři hlavní druhy zpráv - event, restart a measure. Event zprávy jsou odeslány
-vždy, když zařízení zaznamená nějakou událost (např. move zařízení zaznamená pohyb, water detection zařízení přijde do kontaktu s vodou). Restart zprávy informují server, že došlo k
-restartování zařízení. Measure zprávy jsou odesílány v určitém
-časovém intervalu a odesílají naměřená data. Příkladem může být naměřená teplota z teplotního zařízení.
-Podrobný popis těchto a dalších zpráv můžete nájít [zde](#zprávy-ze-zařízení-na-server).
+Devices send three main types of messages - event, restart and measure. Event messages are sent
+whenever the device detects an event (e.g., move device detects motion, water detection device comes into contact with water). Restart messages inform the server that
+the device has been restarted. Measure messages are sent at a specific
+time interval and send the measured data. An example would be the measured temperature from a temperature device.
+A detailed description of these and other messages can be found [here](#messages-from-device-to-server).
 
-Některé zprávy v závisloti na nastavení a typu zařízení vyžadují potvrzení ze serveru. V těchto
-případech zařízení čeká na odpověď ze serveru a pokud ji neobdrží, zprávu odešle znovu. Zprávy, které nejsou potvrzovány mohou být ztraceny, jelikož se je zařízení nesnaží odeslat znovu. Server se nedozví o obsahu ztracených zpráv, ale podle nesrovnalostí mezi počítadlem zpráv na serveru a [počítadlem v hlavičce](#0byte---počítadlo-odeslaných-zpráv) následujících zpráv může zjistit, že došlo ke ztrátě zpráv.
+Depending on the settings and device type, some messages require acknowledgment from the server. In these
+cases, the device waits for a response from the server and resends the message if it does not receive one. Messages that are not confirmed may be lost because the device does not try to resend them. The server does not learn about the contents of the lost messages, but it can determine that messages have been lost based on discrepancies between the message counter on the server and the [header counter](#0byte---sent-message-counter) of subsequent messages.
 
-Může se stát, že některé zprávy dorazí na server víckrát než jednou. Server může duplicity detekovat pomocí [počítadla v hlavičce](#0byte---počítadlo-odeslaných-zpráv).
+Some messages may arrive on the server more than once. The server can detect duplicates using [header counter](#0byte---counter-sent-messages).
 
-Kromě potvrzení dokáže zařízení přijmat nastavení a příkazy ze serveru.
-Více o těchto zprávách najdete [zde](#přijmání-zpráv-ze-serveru).
+In addition to acknowledgment, the device can receive settings and commands from the server.
+For more on this news, see [here](#receiving-messages-from-the-server).
 
-## Restart a spuštění zařízení
+## Restart and start of the device
 
-Nově vyrobéná zařízení jsou vždy přepnuta do transportního režimu. Tento režim je uzpůsoben tak, aby zařízení minimálně zatěžovalo baterii
-a slouží primárně k přepravě. Zařízení v transportním režimu neodesílá žádné zprávy a všechny jeho senzory jsou vypnuté.
+Newly manufactured devices are always switched to transport mode. This mode is designed to put minimal load on the battery
+and is primarily used for transportation. The device does not send any messages in transport mode and all its sensors are disabled.
 
-Pro probuzení zařízení z transportního režimu je potřeba stisknout restarovací tlačítko. Po stisku resetovacího tlačítka zařízení provede následující kroky:
+To wake up the device from the transport mode, the restart button must be pressed. After pressing the reset button, the device performs the following steps:
 
-1. Dioda blikne 1x pro oznámení restartu
-2. Dioda blikne 1x pro oznámení ukončení inicializace
-3. [Kontrola stavu baterie](#kontrola-stavu-baterie)
-4. Odeslání [restart zprávy](#restart)
-5. Odeslání 0-N [testovacích zpráv](#test) (podle typu zařízení)
-6. Běžné fungování zařízení - odesílání událostí, measure zpráv a dalších
+1. LED flashes 1x to indicate restart
+2. The LED flashes 1x to indicate the end of initialization
+3. [Check battery status](#check-battery-status)
+4. Sending [restart message](#restart)
+5. Send 0-N [test messages](#test) (depending on device type)
+6. Normal operation of the device - sending events, measure messages and more
 
-Po spuštění zařízení je možné ho kdykoliv restartovat dvěma způsoby - standartním restartem nebo hard
-restartem.
+Once the device is restarted, it can be restarted at any time in two ways - a standard restart or a hard
+restart.
 
-### Standartní restart
+### Standard restart
 
-Standartní restart je vyvolán stisknutím tlačítka,
-[příkazem ze serveru](#struktura-zpráv-přijmaných-ze-serveru) nebo chybou v zařízení.
+The standard restart is triggered by pressing the button,
+[server command](#structure-of-messages-received-from-server) or a device error.
 
-Poté co je zařízení restartováno provádí následující kroky (pokud nedojde k chybě):
+After the device is restarted, it performs the following steps (if no error occurs):
 
-1. Dioda blikne 1x pro oznámení restartu
-2. Dioda blikne 1x pro oznámení ukončení inicializace
-3. [Kontrola stavu baterie](#kontrola-stavu-baterie)
-4. Odeslání [restart zprávy](#restart)
-5. Odeslání [error zprávy](#error) (pokud byl restart vyvolán chybou)
-6. Odeslání 0-N [testovacích zpráv](#test) (podle typu zařízení)
-7. Běžné fungování zařízení - odesílání událostí, measure zpráv a dalších
+1. LED flashes 1x to indicate restart
+2. The LED flashes 1x to indicate the end of initialization
+3. [Check battery status](#check-battery-status)
+4. Sending [restart message](#restart)
+5. Sending [error message](#error) (if the restart was triggered by an error)
+6. Send 0-N [test messages](#test) (depending on device type)
+7. Normal operation of the device - sending events, measure messages and more
 
-Standartní restart nastaví všechny informace, které zařízení udržuje v paměti, na defaultní hodnotu.
-Vyjímkou jsou dvě informace - mód zařízení a počítadla restartů v [restart zprávě](#restart).
+A standard restart sets all information that the device keeps in memory to the default value.
+The exceptions are two pieces of information - the device mode and the restart counters in the [restart message](#restart).
 
-Jakékoliv konfigurace, které byly nastaveny zprávami ze serveru jsou  smazány. Stejně tak všechna počítadla ve zprávách.
+Any configurations that were set by messages from the server are deleted. So are all the counters in the messages.
 
 ### Hard restart
 
-Hard restart nastává vyjmutím baterie nebo úplným vybitím baterie a následným vybitím kapacitorů zařízení.
-Kapacitory v zařízeních se liší podle používané sítě zařízení. Pro hard restart je potřeba postupovat následujícím způsobem:
+A hard restart occurs by removing the battery or by completely discharging the battery and then draining the device's capacitors.
+Capacitors in devices vary according to the device network used. For a hard restart, you need to proceed as follows:
 
-* Pro LoRa zařízení stačí vyjmout baterii a vložit ji zpět
-* Pro NB-IoT zařízení je potřeba vyjmout baterii stisknout restart tlačítko a poté znovu vložit baterii
+* For LoRa devices, simply remove the battery and insert it back in
+* For NB-IoT devices, you need to remove the battery by pressing the restart button and then reinsert the battery
 
-Poté co je zařízení restartováno provádí následující kroky (pokud nedojde k chybě):
+After the device is restarted, it performs the following steps (if no error occurs):
 
-1. Dioda blikne 1x pro oznámení restartu
-2. Dioda blikne 1x pro oznámení ukončení inicializace
-3. Dioda blikne 10x pro oznámení přechodu do transportního režimu
-4. Odeslání [transport zprávy](#transport)
-5. Přechod do [transportního režimu](#transportní-režim)
+1. LED flashes 1x to indicate restart
+2. The LED flashes 1x to indicate the end of initialization
+3. LED flashes 10 times to indicate the transition to transport mode
+4. Sending [transport message](#transport)
+5. Go to [transport mode](#transport-mode)
 
-Při hard restartu se na defaultní hodnoty nastaví všechny informace, které zařízení udržuje v paměti.
+A hard restart sets all information that the device keeps in memory to the default values.
 
-Pokud je do zařízení vložena baterie, která není plně nabitá (2,5 V - 2,9 V), zařízení detekuje error a chová se podle
-popisu v sekci [Fatální chyba](#fatální-chyba) - pro chybu s číslem 2. Zařízení nepřechází do [transportního režimu](#transportní-režim).
+If a battery is inserted into the device that is not fully charged (2.5 V - 2.9 V), the device detects an error and behaves according to
+the description in section [Fatal error](#fatal-error) - for error number 2. The device does not switch into [transport mode](#transport-mode).
 
-Pokud zařízení detekuje jakýkoliv jiný error, tak zařízení postupuje podle informací popsaných v sekci o [chybových zprávách].
+If the device detects any other error, the device follows the information described in the section on [error messages].
 
-### Kontrola stavu baterie
+### Check battery status
 
-Zařízení při restartu, resp. při inicializaci kontroluje stav baterie. Pokud je napětí baterie nižší než 2,5 V, zařízení se přepne do transportního režimu.
+The device checks the battery status during restart or initialization. If the battery voltage is below 2.5 V, the device will switch to transport mode.
 
-Stav baterie se také kontroluje pokaždé když zařízení odesílá zprávu nebo měří data. Pokud je v této situaci
-naměřen nízký stav baterie, tak se zařízení přepne do transportního režimu.
+The battery status is also checked every time the device sends a message or measures data. In this situation,
+if a low battery is detected, the device switches to transport mode.
 
-### Transportní režim
+### Transport mode
 
-Transportní režim je speciální stav zařízení, ve kterém zařízení nekomunikuje a šetří baterii. Obvykle se používá pro přepravu nebo skladování zařízení.
+Transport mode is a special state of the device in which the device does not communicate and saves the battery. Usually used for transporting or storing devices.
 
-## Stavový diagram zařízení
+## Device state diagram
 
-Následující diagram popisuje stavy, do kterých se zařízení může dostat. Většina zařízení nepodporuje všechny
-stavy, ale podporuje pouze podmnožinu tohoto téměř úplného stavového automatu. Podrobnosti o jednotlivých
-zařízeních najdete [zde](#zařízení).
+The following diagram describes the states that the device can get into. Most devices do not support all
+states, but only support a subset of this almost complete status automaton. Details of the individual
+devices can be found [here](#devices).
 
-Stavový automat neobsahuje restart přechod. Restart zařízení může nastat v jakémkoliv stavu.
+The state machine does not contain a restart transition. The device can restart in any state.
 
-Stavový automat také nezohledňuje přijmání zpráv ze serveru.
+The state machine also does not take into account the receipt of messages from the server.
 
 ![State machine](/deviceComunicationDocumentation.png)
 
-## Dioda
+## Diode
 
-Všechna zařízení mají notifikační diodu, která informuje uživatele o různých událostech. Následující tabulka
-popisuje události při kterých dioda bliká:
+All devices have a notification LED that informs the user of various events. The following table
+describes the events when the diode flashes:
 
-| Počet bliknutí | Událost                                                    |
-|----------------|------------------------------------------------------------|
-| 1x             | [Restartu](#standartní-restart)                            |
-| 1x             | [Spuštění inicializace](#standartní-restart)               |
-| 10x            | Přechod do [transportního režimu](#transportní-režim)      |
-| 1x             | Před odesláním události                                    |
-| 6x             | Při třetím neúspěšném odeslání zprávy                      |
-| Nkrát          | Při erroru (počet bliknutí závisí na typu [erroru](#error) |
+| Number of flashes | Event                                                                            |
+|-------------------|----------------------------------------------------------------------------------|
+| 1x                | [Restart](#standard-restart)                                                     |
+| 1x                | [Start of inicialization](#standard-restart)                                     |
+| 10x               | Transition into [transport mode](#transport-mode)                                |
+| 1x                | Before transmitting an event                                                     |
+| 6x                | When a message fails to transmit for the 3rd time                                |
+| Ntimes            | When an error occurs (number of flashes depends on type of [error](#error)   |
 
-## Zprávy ze zařízení na server
+## Messages from device to server
 
-Zprávy se odesílají v hexadecimálním tvaru a skládají se ze dvou částí - hlavičky a dat.
-Hlavička obsahuje obecné informace a typ zprávy. Typ zprávy pak určuje
-jak bude vypadat datová část zprávy.
+Messages are sent in hexadecimal format and consist of two parts - the header and the data.
+The header contains general information and the message type. The message type then determines
+how the data part of the message will look like.
 
-## Hlavička
+## Header
 
-Hlavička má 7 bytů a obsahuje obecné informace, které jsou společné pro všechny typy zpráv.
-Příklad: 0209020. Následující tabulka obsahuje zkrácený popis hlavičky. Celkový popis pro
-jednotlivé byty následuje v dalších odstavcích.
+The header has 7 bytes and contains general information that is common to all message types.
+Example: 0209020. The following table contains an abbreviated description of the header. General description for
+individual bytes follows in the following paragraphs.
 
-| Pozice | Zkrácený popis                                                                                           |
-|--------|----------------------------------------------------------------------------------------------------------|
-| 0.byte | Počítadlo odeslaných zpráv                                                                               |
-| 1.byte | Počítadlo přijatých zpráv                                                                                |
-| 2.byte | Stav baterie v zařízení                                                                                  |
-| 3.byte | Teplota procesoru                                                                                        |
-| 4.byte | RSSI                                                                                                     |
-| 5.byte | 0 bit - Vyžádání potvrzení zprávy,<br/>1 bit - disconect<br/>Zbylé bity - počet pokusů o odeslání zprávy |
-| 6.byte | Nepoužitý                                                                                                |
-| 7.byte | Typ zprávy                                                                                               |
+| Position  | Abbreviated description                                                                                   |
+|-----------|-----------------------------------------------------------------------------------------------------------|
+| 0th byte    | Counter of sent messages                                                                                  |
+| 1st byte    | Counter of received messages                                                                              |
+| 2nd byte    | Battery voltage in the device                                                                             |
+| 3rd byte    | Processor temperature                                                                                     |
+| 4th byte    | RSSI                                                                                                      |
+| 5th byte    | 0th bit - Request for message acknowledgement,<br/>1st bit - disconect<br/>Remaining bits - number of attempts to send a message |
+| 6th byte    | Not used                                                                                                  |
+| 7th byte    | Message type                               
 
-### 0.byte - počítadlo odeslaných zpráv
+### 0th byte - counter of sent messages
 
-Zařízení po každém odeslání nové zprávy zvýší počítadlo o 1.
-Pokud počítadlo nabude hodnoty 255, tak se při dalším odeslání zprávy nastaví na 0.
+The device will increment the counter by 1 each time a new message is sent.
+If the counter takes the value 255, it is set to 0 the next time the message is sent.
 
-Počítadlo nezvyšuje svou hodnotu, pokud se zařízení snaží znovu odeslat zprávu, která nebyla potvrzena.
+The counter does not increment if the device tries to resend a message that has not been confirmed.
 
-Primární účel počítadla je zajištění [idempotence](https://cs.wikipedia.org/wiki/Idempotence) na serveru.
+The primary purpose of the counter is to provide [idempotence](https://en.wikipedia.org/wiki/Idempotence) on the server.
 
-Příklad:
+Example:
 
-| Číslo zprávy | Hodnota 0.byte                                       |
-|--------------|------------------------------------------------------|
-| 1            | 00  (zbytek hlavičky je nahrazen - pro jednoduchost) |
-| 2            | 01                                                   |
-| 3            | 02                                                   |
-| 255          | 254                                                  |
-| 256          | 255                                                  |
-| 257          | 00  (došlo k přetečení a counter se restartoval)     |
+| Message number| Value of 0th byte                                    |
+|---------------|------------------------------------------------------|
+| 1             | 00  (remainder of header is ommitted for simplicity) |
+| 2             | 01                                                   |
+| 3             | 02                                                   |
+| 255           | 254                                                  |
+| 256           | 255                                                  |
+| 257           | 00  (overflow occured and the counter is reset)      |
 
-### 1.byte - počítadlo přijatých zpráv
 
-Defautlně je nastaveno na 0. Po přijetí zprávy ze serveru se nastaví na hodnotu přijatou ve zprávě ze serveru. Více o této hodnotě [zde](#0byte---identifikátor).
+### 1st byte - counter of received messages
 
-### 2.byte - napětí baterie v zařízení
+Set to 0 as default. After receiving a message from the server, it is set to the value received in the message from the server. More about this value [here](#0byte---identifier).
 
-Určuje hodnotu napětí baterie. Pokud je zařízení napájeno ze zásuvky tak obsahuje hodnotu napětí zdroje.
+### 2nd byte - battery voltage in the device
 
-Napětí může nabívat hodnot 1.8 V–4.35 V. Hodnota 0 odpovídá napětí 1.8 V a hodnota 255 odpovídá napětí 4.35 V.
+Specifies the battery voltage value. If the device is powered from a socket it contains the voltage value of the power supply.
 
-Aktuální napětí můžeme vypočítat podle následujícího vzorce: *přijatá hodnota ve zprávě* / 100 + 1.8
+The voltage can range from 1.8 V to 4.35 V. A value of 0 corresponds to a voltage of 1.8 V and a value of 255 corresponds to a voltage of 4.35 V.
 
-### 3.byte - teplota procesoru
+The current voltage can be calculated by the following formula: *received value in the message* / 100 + 1.8
 
-Určuje teplotu procesoru. Tento byte může nabývat hodnotu 0-160 a 255. Aktuální teplotu vypočítáme podle následujícího vzorce: *aktuální teplota* = *přijatá hodnota ve zprávě* - 40.
-Pokud je teplota vyšší než 120°C tak senzor pošle hodnotu 0xFF (255). Celkový rozsah měřené teploty je -40 °C až 120 °C.
+### 3rd byte - processor temperature
 
-Zařízení nikdy nepošle hodnotu 161 až 254, která by odpovídala teplotám vyšším než 120 °C.
+Determines the processor temperature. This byte can take the value 0-160 and 255. The current temperature is calculated using the following formula: *current temperature* = *received value in the message* - 40.
+If the temperature is higher than 120°C the sensor sends the value 0xFF (255). The total temperature range measured is -40 °C to 120 °C.
 
-### 4.byte - RSSI
+The device will never send a value of 161 to 254 that corresponds to temperatures higher than 120 °C.
 
-Obsahuje hodnotu [RSSI](https://cs.wikipedia.org/wiki/Received_Signal_Strength_Indication) naměřeného při odesílání předchozí zprávy.
+### 4th byte - RSSI
 
-### 5.byte - potvrzení a počet pokusů o odeslání zprávy
+Contains the [RSSI](https://en.wikipedia.org/wiki/Received_Signal_Strength_Indication) value measured when the previous message was sent.
 
-Tento byte obsahuje více informací o odesílané zprávě. Obsah bytu se liší podle toho, jestli zařízení používá síť NB-IoT nebo LoRa.
+### 5th byte - acknowledgement and number of attempts to send a message
 
-#### 5.byte - LoRa
+This byte contains more information about the message being sent. The contents of the byte vary depending on whether the device is using an NB-IoT or LoRa network.
 
-Byte obsahuje informaci o počtu neúspěšných odeslání. Následující tabulka vysvětluje složení bytu:
+#### 5th byte - LoRa
 
-| Pozice  | Zkrácený popis                 |
-|---------|--------------------------------|
-| 0.bit   | Nepoužité                      |
-| 1.bit   | Nepoužité                      |
-| 2-7.bit | Počet pokusů o odeslání zprávy |
+The byte contains information about the number of failed sends. The following table explains byte composition:
 
-V LoRa síti zařízení komunikuje s network serverem, který následně přeposílá zprávy na server.
-Pokud se zařízení nepodaří odeslat zprávu na network server, zvýší "Počet pokusů o odeslání zprávy"
-a pokusí se zprávu po určitém čase odeslat znovu.
+| Positions | Short description |
+|---------|-----------------------------------------|
+| 0th bit   | Not used                                |
+| 1st bit   | Not used                                |
+| 2nd-7th bit | Number of attempts to send a message |
 
-Po určitém počtu neúspěšných odeslání zařízení čeká stále delší dobu než odešle další zprávu.
+In the LoRa network, the device communicates with the network server, which then forwards messages to the server.
+If the device fails to send a message to the network server, it will increase the "Number of attempts to send a message"
+and try to send the message again after a certain time.
 
-Následující tabulka popisuje hodnotu 5.bytu ve vztahu s pokusem odeslání.
+After a certain number of unsuccessful sends, the device waits an increasingly long time before sending another message.
 
-| Pokus o odeslání     | Hodnota 5.byte | Popis                                                                                                                      |
+The following table describes the value of the 5th byte in relation to the send attempt.
+
+| Transmission attempt    | Value of 5th byte | Description                                                                                                                      |
 |----------------------|----------------|----------------------------------------------------------------------------------------------------------------------------|
-| 1. pokus o odeslání  | 000000--       | Zařízení poprvé odeslalo zprávu. Pomlčka ukazuje dva bity které nemají žádnou informační hodnotu.                          |
-| 2. pokus o odeslání  | **000001**--   | Zařízení čekalo 3 s na potvrzení z network serveru. Počítadlo opakování (tučně) bylo zvýšeno o 1.                          |
-| 3. pokus o odeslání  | 000010--       | Zařízení čekalo 3 s na potvrzení z network serveru a pro další opakování bude čekat delší dobu.                            |
-| 4. pokus o odeslání  | 000011--       | Zařízení čekalo 15 min a pro další opakování bude čekat delší dobu.                                                        |
-| 5. pokus o odeslání  | 000100--       | Zařízení čekalo 15 min na potvrzení z network serveru.                                                                     |
-| 6. pokus o odeslání  | 000101--       | Zařízení čekalo 15 min na potvrzení z network serveru.                                                                     |
-| 7. pokus o odeslání  | 000110--       | Zařízení čekalo 60 min na potvrzení z network serveru.                                                                     |
-| 8. pokus o odeslání  | 000111--       | Zařízení čekalo 60 min na potvrzení z network serveru.                                                                     |
-| 29. pokus o odeslání | 011101--       | Zařízení čekalo 60 min na potvrzení z network serveru.                                                                     |
-| 30. pokus o odeslání | 011110--       | Zařízení čekalo do doby než mělo odeslat [alive zprávu](#alive)<br/> poté namísto alive zprávy znovu odeslalo tuto zprávu. |
-| 31. pokus o odeslání | 011111--       | Zařízení opět čeká do doby než se má odeslat alive zpráva                                                                  |
+| 1st transmission attempt  | 000000--       | Device transmited 1st message. A dash represents two bits with no informational value. |
+| 2nd  transmission attempt  | **000001**--   | Device waited for 3 s for acknowlegement from the network server. Repetition counter (bold) was incremented by 1.|
+| 3rd  transmission attempt  | 000010--       | Device waited for 3 s for acknowlegement from the network server and the waiting period is going to increase for the following attempts.                            |
+| 4th  transmission attempt  | 000011--       | Device waited for 15 min and the waiting period is going to increase for the following attempts.                                                        |
+| 5th  transmission attempt  | 000100--       | Device waited for 15 min for acknowlegement from the network server.                                                                     |
+| 6th  transmission attempt  | 000101--       | Device waited for 15 min for acknowlegement from the network server.                                                                     |
+| 7th  transmission attempt  | 000110--       | Device waited for 60 min for acknowlegement from the network server.                                                                     |
+| 8th  transmission attempt  | 000111--       | Device waited for 60 min for acknowlegement from the network server.                                                                     |
+| 29th  transmission attempt | 011101--       | Device waited for 60 min for acknowlegement from the network server.                                                                     |
+| 30th  transmission attempt | 011110--       | Device had waited waited until the next [alive message](#alive) was to be transmitted. <br/>It then transmitted this message instead of the alive message. |
+| 31st  transmission attempt | 011111--       | Device waits until the next alive message is to be sent.                                                                  |
 
-Před každým dalším odesláním zařízení čeká, dokud není čas odeslat [alive zprávu](#alive). Zařízení se snaží stejnou zprávu odeslat stále dokola, dokud není restartováno (vybití baterie nebo ruční reset).
+The device waits until it is time to send the [alive message](#alive) before any other attempt to perform sending. The device tries to send the same message over and over again until it is restarted (battery drain or manual reset).
 
-**Zařízení ignoruje požadavek na odeslání jakékoliv jiné zprávy, dokud není
-aktuální zpráva doručena.**
+**The device ignores the request to send any other message until
+the current message is delivered.**
 
-#### 5.byte - NB-IoT
+#### 5th byte - NB-IoT
 
-Tento byte obsahuje dvě informace. Následující tabulka vysvětluje složení bytu:
+This byte contains two pieces of information. The following table explains byte composition:
 
-| Pozice  | Zkrácený popis                     |
-|---------|------------------------------------|
-| 0.bit   | Žádost o potvrzení zprávy serverem |
-| 1.bit   | Nepoužité                          |
-| 2-7.bit | Počet pokusů o odeslání zprávy     |
+| Position  | Abbreviated description                       |
+|-----------|-----------------------------------------------|
+| 0th bit   | Request for message acknowlegement by server  |
+| 1st bit   | Not used                                      |
+| 2-7th bit | Number of message transmittion attempts       |
 
-Pokud je 0.bit nastaven na 1 tak zařízení vyžaduje potvrzení zprávy.
-Zařízení po odeslání čeká 3s a v tomto okně musí
-ze serveru přijít potvrzení, konfigurační zpráva nebo příkaz. Více o posílání zpráv
-na zařízení najdete [zde](#přijmání-zpráv-ze-serveru).
+If the 0th bit is set to 1 the device requires an acknowledgement message.
+The device waits 3s after sending and in this window
+an acknowledgment, configuration message, or command must come from the server. For more on sending messages
+to the device, see [here](#receiving-messages-from-the-server).
 
-Pokud do 3 s nedojde zpráva o potvrzení tak zařízení zvýší "Počet pokusů o odeslání zprávy"
-a pokusí se zprávu po určitém čase odeslat znovu.
+If the confirmation message does not arrive within 3 seconds, the device will increase the "Number of attempts to send a message"
+and try to send the message again after a certain time.
 
-Následující tabulka popisuje hodnotu 5.byte ve vztahu s pokusem odeslání.
+The following table describes the 5th byte value in relation to the send attempt.
 
-| Pokus o odeslání     | Hodnota 5.byte | Popis                                                                                                                                      |
+| Transmission attempt     | Value of 5th byte | Description                                                                                                                                      |
 |----------------------|----------------|--------------------------------------------------------------------------------------------------------------------------------------------|
-| 1. pokus o odeslání  | 000000-**1**   | Zařízení poprvé odeslalo zprávu a vyžaduje potvrzení (tučně označný bit). Pomlčka ukazuje dva bity které nemají žádnou informační hodnotu. |
-| 2. pokus o odeslání  | **000001**-1   | Zařízení čekalo 3 s. Počítadlo opakování (tučně) bylo zvýšeno o 1.                                                                         |
-| 3. pokus o odeslání  | 000010-1       | Zařízení čekalo 3 s a pro další opakování bude čekat delší dobu.                                                                           |
-| 4. pokus o odeslání  | 000011-1       | Zařízení čekalo 15 min.                                                                                                                    |
-| 5. pokus o odeslání  | 000100-1       | Zařízení čekalo 15 min.                                                                                                                    |
-| 6. pokus o odeslání  | 000101-1       | Zařízení čekalo 15 min.                                                                                                                    |
-| 7. pokus o odeslání  | 000110-1       | Zařízení čekalo 60 min.                                                                                                                    |
-| 8. pokus o odeslání  | 000111-1       | Zařízení čekalo 60 min.                                                                                                                    |
-| 29. pokus o odeslání | 011101-1       | Zařízení čekalo 60 min.                                                                                                                    |
-| 30. pokus o odeslání | 011110-1       | Zařízení čekalo do doby než mělo odeslat [alive zprávu](#alive) <br/> poté namísto alive zprávy znovu odeslalo tuto zprávu.                |
-| 31. pokus o odeslání | 011111-1       | Zařízení opět čeká do doby než se má odeslat alive zpráva.                                                                                 |
+| 1st  transmission attempt  | 000000-**1**   | Device transmitted a message and requires an acknowledgment (bold bit). A dash represents two bits with no informational value. |
+| 2nd  transmission attempt  | **000001**-1   | Device waited for 3 s. Repetition counter (bold) was incremented by 1.  |
+| 3rd  transmission attempt  | 000010-1       | Device waited for 3 s and the waiting period is going to increase for the following attempt. |
+| 4th  transmission attempt  | 000011-1       | Device waited for 15 min.                                               |
+| 5th  transmission attempt  | 000100-1       | Device waited for 15 min.                                               |
+| 6th  transmission attempt  | 000101-1       | Device waited for 15 min.                                               |
+| 7th  transmission attempt  | 000110-1       | Device waited for 60 min.                                               |
+| 8th  transmission attempt  | 000111-1       | Device waited for 60 min.                                               |
+| 29th  transmission attempt | 011101-1       | Device waited for 60 min.                                               |
+| 30th  transmission attempt | 011110-1       | Device had waited waited until the next [alive message](#alive)<br/> was
+to be transmitted. It then transmitted this message instead of the alive message.               |
+| 31st  transmission attempt | 011111-1       | Device waits until the next alive message is to be sent.                |
 
-Před každým dalším odesláním zařízení čeká, dokud není čas odeslat [alive zprávu](#alive). Zařízení se snaží stejnou zprávu odeslat stále dokola, dokud není restartováno (vybití baterie nebo ruční reset).
+The device waits until it is time to send the [alive message](#alive) before any other attempt to perform sending. The device tries to send the same message over and over again until it is restarted (battery drain or manual reset).
 
-**Zařízení ignoruje požadavek na odeslání jakékoliv jiné zprávy dokud není
-aktuální zpráva doručena.**
+**The device ignores the request to send any other message until
+the current message is delivered.**
 
-### 6.byte - nepoužitý
+### 6th byte - unused
 
-### 7.byte - typ zprávy
+### 7th byte - message type
 
-Typ zprávy určuje obsah další bytů ve zprávě. Následující tabulka obsahuje seznam hodnot, jakých
-tento byte může nabývat:
+The message type determines the content of the other bytes in the message. The following table lists the values
+this byte can take on:
 
-| Hodnota | Název               |
+| Value   | Message type        |
 |---------|---------------------|
 | 1       | DownlinkAcknowlege  |
 | 2       | Restart             |
@@ -286,762 +288,782 @@ tento byte může nabývat:
 | 8       | Transport           |
 | 9       | Measure             |
 
-DownlinkaAcknowlege, Restart, Test, Error, Alive, Transport a Event mají stejný obsah pro všechna zařízení.
-Tyto zprávy jsou popsány v dalších odstavcích o datech.
 
-Measure zpráva informuje o naměřené hodnotě (např. teplota u teploměru).
-Measure se liší podle typu zařízení a je popsána dále v tomto dokumentu u popisu jednotlivých
-[zařízení](#zařízení).
+Downlink and Acknowledge, Restart, Test, Error, Alive, Transport and Event have the same content for all devices.
+These messages are described in the following paragraphs on data.
+
+The Measure message informs about the measured value (e.g. temperature at the thermometer).
+Measure varies by device type and is described later in this document under the description of each
+[device](#device).
 
 ## Data
 
-Následující odstavce popisují datovou část zprávy. Všechny tyto zprávy začínají společnou
-hlavičkou která je [popsaná výše](#hlavička).
+The following paragraphs describe the data part of the message. All of these messages begin with a common
+header which is [described above](#header).
 
-### Potvrzení zprávy ze serveru
+### Acknowledging a message from the server
 
-Potvrzení zprávy ze serveru zařízení odešle vždy po přijetí konfigurace nebo příkazu ze serveru.
-Tato zpráva slouží jako potvrzení. Více o odesílání zprávy ze serveru najdete [zde](#přijmání-zpráv-ze-serveru).
+The device sends an acknowledgement message from the server whenever it receives a configuration or command from the server.
+This message serves as an acknowledgement. For more information about sending a message from the server, see [here](#receiving-messages-from-the-server).
 
-V hlavičce je označen hodnotou 0x01 v 7.bytu (Typ zprávy).
+In the header it is marked with the value 0x01 in the 7th byte (Message type).
 
-Obsah:
+Content:
 
-| Byte   | Význam                       |
+| Byte   | Description                       |
 |--------|------------------------------|
-| 0.byte | Nepoužitý vždy obsahuje 0xFF |
-| 1.byte | Nepoužitý vždy obsahuje 0x00 |
+| 0th byte | Not used, always 0xFF |
+| 1st byte | Not used, always 0x00 |
 
 ### Restart
 
-Posílá se vždy po [restartu zařízení](#restart-a-spuštění-zařízení).
+It is always sent after [device restart](#restart-and-startup-of-the-device).
  
-V hlavičce je označen hodnotou 0x02 v 7.bytu (Typ zprávy).
+In the header it is marked with the value 0x02 in the 7th byte (Message type).
 
-Obsah:
+Content:
 
-| Byte    | Význam                       |
-|---------|------------------------------|
-| 0.byte  | Nepoužitý vždy obsahuje 0xFF |
-| 1.byte  | Nepoužitý vždy obsahuje 0x12 |
-| 2.byte  | Typ zařízení                 |
-| 3.byte  | Mód zařízení                 |
-| 4.byte  | Nepoužité                    |
-| 5.byte  | Nepoužité                    |
-| 6.byte  | Nepoužité                    |
-| 7.byte  | Nepoužité                    |
-| 8.byte  | Nepoužité                    |
-| 9.byte  | Nepoužité                    |
-| 10.byte | Nepoužité                    |
-| 11.byte | Nepoužité                    |
-| 12.byte | počet restartů               |
-| 13.byte | kód restartu                 |
+| Byte    | Description                   |
+|---------|-------------------------------|
+| 0th byte  | Not used, always 0xFF       |
+| 1st byte  | Not used, always 0x12       |
+| 2nd byte  | Device type                 |
+| 3rd byte  | Device mode                 |
+| 4th byte  | Not used                    |
+| 5th byte  | Not used                    |
+| 6th byte  | Not used                    |
+| 7th byte  | Not used                    |
+| 8th byte  | Not used                    |
+| 9th byte  | Not used                    |
+| 10th byte | Not used                    |
+| 11st byte | Not used                    |
+| 12th byte | number of restarts          |
+| 13th byte | restart code                |
 
-Typ a mód zařízení identifikuje zařízení a jeho interní nastavení. Detaily o typu
-a módu jsou popsány u jednotlivých [zařízení](#zařízení).
+The device type and mode identifies the device and its internal settings. Details about the type
+and mode are described for each [device](#device).
 
-Počet restartů udává, kolikrát bylo zařízní restartováno od [hard restartu](#hard-restart).
+The number of restarts indicates how many times the device has been restarted since [hard-restart](#hard-restart).
 
-Kód restartu udává důvod proč restart nastal. Byte může nabívat následujících hodnot:
+The restart code indicates the reason why the restart occurred. Byte can take the following values:
 
-| Hodnota | Význam                                                                    |
+| Value | Description                                                                 |
 |---------|---------------------------------------------------------------------------|
-| 1       | Restart způsoben chybou                                                   |
-| 2       | Restart vyvolán [přijmutím zprávy ze serveru](#přijmání-zpráv-ze-serveru) |
-| 8       | Restart způsoben stisknutím tlačítka                                      |
+| 1       | Restart triggered by error                                                |
+| 2       | Restart triggered by [receiving of a message from the server](#receiving-messages-from-the-server) |
+| 8       | Restart triggered reset button                                            |
 
 ### Test
 
-Test zpráva je odeslána poté, co zařízení odešle restart zprávu. Primárním cílem test zpráv je přijmout nastavení ze serveru u LoRa sítě ještě před tím, než začne zařízení fungovat normálním způsobem. Více o této problematice na LoRa síti najdete [zde](#lora). Další způsob využití může být kontrola signálu.
+The test message is sent after the device sends a restart message. The primary goal of the test messages is to receive the settings from the server at the LoRa network before the device starts to function normally. You can find more about this issue on the LoRa network [here](#lora). Another use can be signal control.
 
-Defaultní nastavení pro většinu zařízení je odeslání jedné testovací zprávy.
-Kolik testovacích zpráv zařízení odesílá je popsáno u jednotlivých [zařízení](#zařízení).
+The default setting for most devices is to send one test message.
+How many test messages the device sends is described for each [device](#device).
 
-Zařízení vždy čeká 1 minutu po odeslání restart zprávy a následně odešle test zprávu.
-Mezi každými dvěma test zprávami je prodleva 1 minuta.
+The device always waits 1 minute after sending a restart message and then sends a test message.
+There is a delay of 1 minute between every two test messages.
 
-Obsah:
+Content:
 
-| Byte   | Význam                       |
-|--------|------------------------------|
-| 0.byte | Nepoužitý vždy obsahuje 0xFF |
-| 1.byte | Nepoužitý vždy obsahuje 0x00 |
+| Byte   | Description             |
+|--------|-------------------------|
+| 0th byte | Not used, always 0xFF |
+| 1st byte | Not used, always 0x00 |
 
 ### Error
 
-Error zpráva je ze zařízení odeslána, pokud nastane hardwarová chyba.
+An error message is sent from the device if a hardware error occurs.
 
-Obsah:
+Content:
 
-| Byte            | Význam                                |
-|-----------------|---------------------------------------|
-| 0.byte          | Typ chyby                             |
-| 1.byte          | Nepoužitý vždy obsahuje 0x04          |
-| 2.byte - 5.byte | Obsahuje hodnotu z chybového registru | 
+| Byte                  | Description                           |
+|-----------------------|---------------------------------------|
+| 0th byte              | Error type                            |
+| 1st byte              | Not used, always 0x04                 |
+| 2nd byte - 5th byte   | Contains error register value         | 
 
-Errory se dělí na dva druhy chyb - fatální a standartní. Normální chyby mají hodnotu 0.bytu
-nastavenou na 0 a fatální mají hodnotu 1.
 
-Chybový registr obsahuje informaci, které konkrétní chyby nastaly.
+Errors are divided into two types - fatal and standard. Standart errors have a value of 0th byte
+set to 0 and fatal ones are set to 1.
 
-#### Standartní chyby
+The error register contains information about which specific errors occurred.
 
-Pokud nastane standartní chyba, tak zařízení pošle errorovou zprávu a nerestartuje se. Pokud je normální errorová zpráva detekována a odeslána 5x, tak se vyvolá fatální chyba.
+#### Standard errors
 
-Při detekci standartní chyby dioda vždy blikne 3x.
+If a standard error occurs, the device sends an error message and does not restart. If a normal error message is detected and sent 5 times, a fatal error is triggered.
 
-| Chybový registr                     | Význam           |
+When a standard error is detected, the LED always flashes 3 times.
+
+| Error register                      | Description      |
 |-------------------------------------|------------------|
-| 00000000 00000000 00000000 00000000 | Chyba I2C        |
-| 00000000 00000000 00000000 00000001 | Chyba UART       |
-| 00000000 00000000 00000000 00000010 | Chyba EEPROM     |
-| 00000000 00000000 00000000 00000100 | Chyba senzor     |
-| 00000000 00000000 00000000 00001000 | Chyba akční člen |
+| 00000000 00000000 00000000 00000000 | I2C Error        |
+| 00000000 00000000 00000000 00000001 | UART Error       |
+| 00000000 00000000 00000000 00000010 | EEPROM Error     |
+| 00000000 00000000 00000000 00000100 | sensor Error     |
+| 00000000 00000000 00000000 00001000 | actuator Error   |
 
-#### Fatální chyba
 
-Pokud v zařízení nastane fatální chyba, zařízení se restartuje a pošle error zprávu.
-Následně pokračuje běžným fungovaním - odešle test zprávy a poté odesílá další zprávy podle typu zařízení.
+#### Fatal error
 
-Chybový registr obsahuje informaci o tom, jaká chyba nastala. Následující tabulka popisuje
-hodnoty a jejich význam:
+If a fatal error occurs on the device, the device will reset and send an error message.
+It then proceeds as normal - it sends a test message and then sends other messages depending on the type of device.
 
-| Chybový registr                     | Význam                                                                            | Počet bliknutí diody |
+The error register contains information about what error occurred. The following table describes
+the values and their meanings:
+
+| Error register                      | Description                                                                       | Number of LED flashes|
 |-------------------------------------|-----------------------------------------------------------------------------------|----------------------|
-| 00000000 00000000 00000001 00000000 | 1 - Rádio nefunguje správným způsobem                                             | 3x                   |
-| 00000000 00000000 00000010 00000000 | 2 - Vložení baterie, která není plně nabitá. Kontroluje se pouze po hard restartu | 4x                   |
-| 00000000 00000000 00000100 00000000 | 3 - Stavový automat se dostal do neznámého stavu                                  | 3x                   | 
-| 00000000 00000000 00001000 00000000 | 4 - Zařízení se nedokáže pripojit k siti po standartním restartu                  | 6x                   |
-| 00000000 00000000 00010000 00000000 | 5 - Standartní chyba nastala 5*                                                   | 3x                   |
-
-Pokud chyba s číslem 1,3 a 5 nastane 4 hodiny po restartu, tak zařízení postupuje následujícím způsobem:
-
-1. Dioda v deseti cyklech Xkrát blikne (podle tabulky) pro oznámení erroru.
-2. Zařízení se restartuje a dále funguje běžným způsobem jako by bylo [restartováno](#standartní-restart)
-3. Pokud error stále přetrvává tak se znovu opakuje zpracování erroru
-
-Pokud chyba s číslem 1,3,4 a 5 nastane do 4 hodin od restartu tak zařízení postupuje následujícím způsobem:
-
-1. Dioda v deseti cyklech Xkrát blikne (podle tabulky) pro oznámení erroru.
-2. Zařízení zkontroluje jestli uběhly 4 hodiny od restartu.
-3. Pokud neuběhly tak se uspí na 2 minuty a následně opakuje bod 1. a 2.
-4. Pokud uběhly tak se zařízení restartuje a dále funguje běžným způsobem jako by bylo [restartováno](#standartní-restart).
-5. Pokud error stále přetrvává tak se znovu opakuje zpracování erroru.
+| 00000000 00000000 00000001 00000000 | 1 - Radio isn't working correctly                                                 | 3x                   |
+| 00000000 00000000 00000010 00000000 | 2 - Inserted battery isn't fully charged. Checked only after hard restart.        | 4x                   |
+| 00000000 00000000 00000100 00000000 | 3 - Main state machine is in an undefined state.                                  | 3x                   | 
+| 00000000 00000000 00001000 00000000 | 4 - Device cannot connect to the network after standart restart.                  | 6x                   |
+| 00000000 00000000 00010000 00000000 | 5 - Standard error occured 5*                                                     | 3x                   |
 
 
-Pro chybu s číslem 2 se zařízení chová podle následujícího seznamu:
+If error numbers 1,3 and 5 occur 4 hours after restart, the device proceeds as follows:
 
-1. Uživatel vyvolá [hard restart](#hard-restart).
-2. Dioda 1x blikne, aby oznámila restart.
-3. Dioda 1x blikne, aby oznámila inicializaci.
-4. Zařízení v inicializaci zjistí, že baterie neni plně nabitá.
-5. Dioda v deseti cyklech 4x blikne (podle tabulky) pro oznámení erroru.
-6. Zařízení v dvouminutových intervalech provádí bod 5. následující 4 hodiny.
-7. Zařízení se restartuje.
-8. Dioda 1x blikne, aby oznámila restart.
-9. Dioda 1x blikne, aby oznámila inicializaci.
-10. Inicializace se dokončí. Detekce erroru 2 (Vložení baterie, která není plně nabitá) už neprobíhá.
-11. Zařízení odešle restartovací zprávu.
-12. Zařízení odešle errorovou zprávu.
-13. Zařízení odešle testovací zprávu.
-14. Zařízení funguje běžným způsobem.
+1. The LED flashes X times in 10 cycles (according to the table) to indicate an error.
+2. The device restarts and continues to operate as if it were [restarted](#standard-restart)
+3. If the error still persists, the error processing is repeated
+
+If the error number 1,3,4 and 5 occurs within 4 hours of restart, the device proceeds as follows:
+
+1. The LED flashes X times in 10 cycles (according to the table) to indicate an error.
+2. The device will check if 4 hours have passed since the restart.
+3. If the time has not passed, it is put to sleep for 2 minutes and then repeats points 1 and 2.
+4. If the time has passed, the device restarts and continues to function as if it were [restarted](#standard-restart).
+5. If the error still persists, the error processing is repeated again.
+
+
+For error number 2, the device behaves according to the following list:
+
+1. The user invokes [hard restart](#hard-restart).
+2. The LED will flash 1x to indicate a restart.
+3. The LED will flash 1x to indicate initialization.
+4. The device detects in initialization that the battery is not fully charged.
+5. The LED flashes 4 times in 10 cycles (according to the table) to indicate an error.
+6. The device performs point 5 at two-minute intervals for the following 4 hours.
+7. The device restarts.
+8. The LED will flash 1x to indicate a restart.
+9. The LED will flash 1x to indicate initialization.
+10. The initialization is completed. Error 2 detection (Inserting a battery that is not fully charged) no longer occurs.
+11. The device sends a restart message.
+12. The device sends an error message.
+13. The device sends a test message.
+14. The device operates in the normal way.
 
 ### Alive
 
-Alive zpráva slouží jako oznámení, že zařízení je v pořádku a stále vysílá. Alive zpráva
-se posílá pouze pokud zařízení dlouhou dobu nekomunikovalo. Defaultně je alive zpráva odeslána pokud zařízení neodeslalo žádnou zprávu 12 hodin. Interval se dá nastavit pomocí [příkazu ze serveru](#interval-alive-zpráv).
+The Alive message serves as a notification that the device is OK and still transmitting. The Alive message
+is sent only if the device has not communicated for a long time. By default, an alive message is sent if the device has not sent any message for 12 hours. The interval can be set using [server command](#interval-alive-messages).
 
-Obsah:
+Content:
 
-| Byte   | Význam                       |
-|--------|------------------------------|
-| 0.byte | Nepoužitý vždy obsahuje 0xFF |
-| 1.byte | Nepoužitý vždy obsahuje 0x00 |
+| Byte     | Description                  |
+|----------|------------------------------|
+| 0th byte | Not used, always 0xFF        |
+| 1st byte | Not used, always 0x00        |
+
 
 ### Transport
 
-Transport zpráva je odeslána při přepnutí zařízení do [transportního režimu](#transportní-režim). Transportní režim je
-speciální stav zařízení, ve kterém zařízení nekomunikuje a šetří baterii. Obvykle se používá pro
-přepravu nebo skladování zařízení.
+The transport message is sent when the device is switched to [transport mode](#transport-mode). The Transport mode is
+a special state of the device in which the device does not communicate and saves the battery. It is usually used for
+device transport or storage.
 
-| Byte   | Význam                       |
-|--------|------------------------------|
-| 0.byte | Nepoužitý vždy obsahuje 0xFF |
-| 1.byte | Nepoužitý vždy obsahuje 0x00 |
+| Byte   | Description             |
+|--------|-------------------------|
+| 0th byte | Not used, always 0xFF |
+| 1st byte | Not used, always 0x00 |
+
 
 ### Event
 
-Zpráva event informuje, že zařízení zaznamenalo nějakou formu
-události. Na jaké události zařízení reaguje se liší podle typu zařízení.
-Například zařízení, které detekuje pohyb, odešle zprávu typu event při
-detekci pohybu.
+The Event message indicates that the device has experienced some form of
+an event. What events the device responds to varies by device type.
+For example, a device that detects motion sends an event message when
+detecting a motion.
 
-Některá zařízení dokáží také detekovat otevření krytu a nebo volný pád
-zařízení. Následující odstavce popisují zprávu události obecným způsobem.
-V [následující části dokumentace](#zařízení) jsou pak popsány jednotlivé
-zařízení a jejich chování.
+Some devices can also detect device cover opening or free fall.
+  The following paragraphs describe the event message in general terms.
+In [the following section of the documentation](#device) the individual
+devices and their behaviour are described.
 
-Nultý byte ve zprávě určuje typ události, která nastala.
+The null byte in the message specifies the type of event that occurred.
 
-| Byte   | Význam                                      |
+| Byte   | Description                                 |
 |--------|---------------------------------------------|
-| 0.byte | Typ eventu - start, continue, end, tamper   |
+| 0th byte | Event type - start, continue, end, tamper |
 
-Hodnoty nultého byte mohou být následující:
 
-| Hodnota | Event    |
+The values of the null byte can be as follows:
+
+| Value | Event    |
 |---------|----------|
 | 0       | start    |
 | 1       | continue |
 | 2       | end      |
 | 3       | tamper   |
 
-#### Event start, continue a end
 
-Pokud hlavní senzor na zařízení zaznamená událost, odešle zprávu event start.
-Následně čeká 10 minut, ve kterých zaznamenává údaje o další případné události. Pokud v tomto časovém úseku nedojde k žádné další události, zařízení odešle zprávu event end. V opačném případě odešle zprávu event continue, čeká dalších 10 minut a postup se opakuje.
+#### Event start, continue and end
 
-Co přesně poplach je se liší podle zařízení. Může to být zaznamenání pohybu zařízení (Move),
-detekce vody (Water) nebo třeba zaznamenání pohybu v místnosti (PIR). Detailnější popis fungování je popsán v sekci [Zařízení](#zařízení).
+If the main sensor on the device detects an event, it sends an event start message.
+It then waits 10 minutes to record data about the next possible event. If no further events occur during this time period, the device sends an event end message. Otherwise, it sends an event continue message, waits another 10 minutes and repeats the procedure.
 
-Některá zařízení neodesílají všechny druhy událostí nebo se chovají
-odlišně. Více o těchto odlišnostech v sekci [Zařízení](#zařízení).
+Exactly what the alarm is varies by device. This can be to record the movement of the device (Move),
+water detection (Water) or for example motion detection in the room (PIR). A more detailed description of the operation is described in the [Devices](#devices) section.
 
-Event start, end a continue mají následující formát:
+Some devices do not send all types of events or behave
+differently. More about these differences in the [Devices](#devices) section.
 
-| Byte   | Význam                               |
-|--------|--------------------------------------|
-| 1.byte | Nepoužitý vždy obsahuje 0x03         |
-| 2.byte | Počet událostí                       |
-| 3.byte | Čas od poslední události v sekundách |
+Event start, end and continue have the following format:
 
-Počet událostí určuje, kolik událostí nastalo od odeslání předchozí zprávy.
-Pro event end je tato hodnota vždy 0 a pro event start je tato hodnota
-vždy 1.
+| Byte   | Description                              |
+|--------|------------------------------------------|
+| 1st byte | Not used, always 0x03                  |
+| 2nd byte | Number of events                       |
+| 3rd byte | Time since last event in seconds       |
 
-Čas od poslední události určuje dobu, kdy zařízení naposledy
-zaznamenalo událost. Pro event start je tato hodnota vždy 0, jelikož se odesílá
-hned po zaznamenání události zařízením. Pro událost continue je tato
-hodnota vždy 0-10 minut, jelikož zařízení odesílá event continue
-každých 10 minut a senzor mohl událost zaznamenan kdykoliv v této době.  
-Pro event end je tato hodnota vždy větší než 10 minut.
+The number of events indicates how many events have occurred since the previous message was sent.
+For event end this value is always 0 and for event start this value is
+always 1.
+
+Time since last event indicates the time when the device last
+recorded an event. For event start this value is always 0, as it is sent
+immediately after the event is recorded by the device. For the continue event, the value is
+always 0-10 minutes, since the device sends a continue event
+every 10 minutes and the sensor could have recorded the event at any time during this period.  
+For event end, this value is always greater than 10 minutes.
 
 #### Event tamper
 
-Tento typ poplachu oznamuje, že došlo k otevření nebo k zavření krytu zařízení.
-Formát události
+This type of alarm indicates that the device cover has been opened or closed.
+Event format
 
-| Byte   | Význam                       |
+| Byte   | Description                       |
 |--------|------------------------------|
-| 1.byte | Nepoužitý vždy obsahuje 0x03 |
-| 2.byte | 0 - nepoužité                |
-| 3.byte | 0 - nepoužité                |
+| 1st byte | Not used, always 0x03 |
+| 2nd byte | 0 - Not used                |
+| 3rd byte | 0 - Not used                |
 
 
-## Zařízení
+## Device
 
-V následujících odstavcích jsou popsána jednotlivá zařízení a jejich chování.
+The following paragraphs describe the individual devices and their behaviour.
 
-### Vodní detektor
+### Water detector
 
-Zařízení slouží k detekci vody, se kterou přišlo zařízení do kontaktu. Event start se odešle, když je zařízení zaplaveno vodou. Pokud zařízení v dalších 10 minutách detekuje vodu,
-tak je odslána zpráva event continue. Event end zpráva je odeslána, pokud
-10 minut není detekována voda.
+The device is used to detect water that the device has come into contact with. Event start is sent when the device is flooded with water. If the device detects water in the next 10 minutes,
+the event continue message is sent. Event end message is sent if
+no water is detected for 10 minutes.
 
-* Zařízení podporuje události - Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+* The device supports events - Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege.
 
-Vodní zařízení má oproti ostatním zařízením nastavený maximální počet zpráv typu event continue.
-Zařízení vždy pošle pouze 2 zprávy continue a poté už čeká na ukončení poplachu, tj. neposílá další pokračovací zprávy.
+The water device has a maximum number of event continue messages set compared to other devices.
+The device always sends only 2 continue messages and then waits for the alarm to end, i.e. it does not send any more continue messages.
 
-### Pohybový detektor
+### Motion detector
 
-Zařízení slouží k detekci pohybu samotného zařízení objektu, na kterém je zařízení umístěno. Event start zpráva je odeslána, když zařízení detekuje pohyb. Event continue zpráva je odeslána, pokud je zaznamenán další pohyb v následujících 10 minutách.
-Event end zpráva je poté odeslána, pokud zařízení 10 minut nezaznamená ani jeden pohyb.
+The device is used to detect the movement of the device itself of the object on which the device is placed. Event start message is sent when the device detects motion. Event continue message is sent if another movement is detected in the next 10 minutes.
+An event end message is then sent if the device does not detect any movement for 10 minutes.
 
-* Zařízení podporuje události - Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+* The device supports events - Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege.
 
-### Magnetický detektor
+### Magnetic detector
 
-Zařízení slouží ke sledování četnosti otevření/zavření dveří, krytů, průchodu pohyblivých částí pomocí sledování magnetického pole magnetu.
-Zařízení podporuje dva režimy. Režim continuous a simple. Mezi těmito
-režimy lze přepínat pomocí [zprávy ze serveru pro nastavení modu zařízení](#nastaví-módu-zařízení). Defaultní mód je simple.
+The device is used to monitor the frequency of opening/closing of doors, covers, passage of moving parts by monitoring the magnetic field of the magnet.
+The device supports two modes. Continuous and simple mode. You can switch between these modes
+using the [device mode setting server message](#set-device-mode). Default mode is simple.
 
-* Zařízení podporuje události - Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+* The device supports events - Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege.
 
-#### Režim continuous
+#### Continuous mode
 
-Pokud v klidovém stavu dojde k oddálení magnetu, je odeslána zpráva Event start.
-Na přiblížení magnetu nijak nereaguje, ale počítá každé oddálení magnetů
-a po 10 minutách pošle Event continue zpráva.
-Pokud se během 10 minut nic nestane (nedojde k oddálení magnetu),
-zařízení posílá Event end zprávu.
+If the magnet is delayed in the idle state, an Event start message is sent.
+It does not react to the magnet's approach, but it counts each magnet approaching
+and sends an Event continue message after 10 minutes.
+If nothing happens within 10 minutes (the magnet is not moved away),
+the device sends an Event end message.
 
-#### Režim simple
+#### Simple mode
 
-Každé oddálení magnetů odešle zprávu Event start. Každé oddálení magnetu odešle zprávu Event end. V tomto režimu nedochází k počítání poplachů ani k odesílání zprávy typu Event continue.
+Each magnet delay sends an Event start message. Each magnet delay sends an Event end message. In this mode, no alarms are counted or Event continue messages are sent.
 
-### PIR detektor
+### PIR detector
 
-Detekuje pohyb nebo přítomnost člověka ve vymezeném prostoru do vzdálenosti 10m pomocí pasivního infračerveného detektoru. Při detekci pohybu senzorem zařízení pošle zprávu Event start.
-Pokud i nadále detekuje pohyb, posílá v 10 minutových intervalech zprávy
-Event continue. Senzor pošle zprávu Event end, pokud 10 minut nenastane žádný pohyb.
+Detects human movement or presence in a defined area up to 10m away using a passive infrared detector. When motion is detected by the sensor, the device sends an Event start message.
+If it continues to detect motion, it sends Event continue messages at 10-minute intervals.
+   The sensor sends an Event end message if no movement occurs for 10 minutes.
 
-* Zařízení podporuje události - Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+* The device supports events - Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege.
 
-### SOS tlačítko
+### SOS button
 
-Zařízení s tlačítkem pro přivolání pomoci nebo spuštění poplachu.
-Zařízení posílá zprávu Event start, pokud někdo zmáčnkne tlačítko.
-Zpráva typu Event end nikdy není odeslána.
+A device with a button to call for help or raise an alarm.
+The device sends an Event start message if someone presses the button.
+The event end message is never sent.
 
-* Zařízení podporuje události - Event start, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+* The device supports events - Event start, Restart, Alive, Transport, Error, DownlinkAcknowlege.
 
-### Teploměr
+### Thermometer
 
-V daných okamžicích měří teplotu (defaultně po 1 min). Po X měřeních (defaultně 10) provede výpočet průměrné hodnoty a odešle zprávu Measure na server.
+It measures the temperature at given moments (default after 1 min). After X measurements (default 10), it calculates the average value and sends a Measure message to the server.
 
-* Zařízení podporuje události - Measure, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+* The device supports events - Measure, Restart, Alive, Transport, Error, DownlinkAcknowlege.
 
-Measure zpráva zařízení Thermometer má následující formát:
+Measure message of the Thermometer device has the following format:
 
-| Byte             | Význam                         |
+| Byte                  | Description            |
+|-----------------------|------------------------|
+| 0th byte              | Not used - always 0xFF |
+| 1st byte              | Not used - always 20   |
+| 2nd byte - 21st byte  | Measured temperatures  |
+
+
+2nd byte - 21st byte contains the last 9 values sent to the server and one
+new value. Historical values are included in the message due to the possibility of losing the message. The server can then use these values during an outage.
+
+The messages are sorted from the most recent measurement to the oldest.
+
+Each measured value in the message occupies 2 bytes and is coded using a two's complement - 1 in the highest bit indicates a negative number and 0 indicates a positive number. To obtain the temperature, the SS needs to calculate the two's complement and divide the result by 100. For example, if byte 2 contains - 0x01 and byte 3 contains 0x00, the measured temperature = (256/100) or 2.56 °C. If the second byte contains 10000001 (0x81) and the third 0x00 then the measured temperature = (256/100) * - 1 or -2.56 °C.
+
+The device allows you to set how often the measure message should be sent and also
+how many samples should be measured in a given interval.
+The default setting is 10 minutes and 10 samples. The device measures the temperature every minute
+and after 10 minutes sends the average of the measured temperatures together with the 9 previous
+sent temperatures. How often the messages should be sent and how many times the temperature should be measured in this interval
+can be set by a command from the server. Read more [here](#period-sampling-for-temperature-and-humidity-devices-and-setting-how-frequently-should-measure-message).
+
+### Hygrometer/Thermometer
+
+It measures temperature and humidity at given moments (default after 1 min). After X measurements (default 10), it calculates the average value and sends a Measure message to the server.
+
+* The device supports events - Measure, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+
+The Measure message has the following format:
+
+| Byte             | Description                         |
 |------------------|--------------------------------|
-| 0.byte           | Nepoužité - vždy obsahuje 0xFF |
-| 1.byte           | Nepoužité - vždy obsahuje 20   |
-| 2.byte - 21.byte | Naměřené teploty               |
+| 0th byte         | Not used - always 0xFF |
+| 1st byte         | Not used - always 30   |
+| 2nd byte - 31st byte | Measured values of temperature and humidity    |
 
-2.byte - 21.byte obsahuje posledních 9 hodnot odeslaných na server a jednu
-novou hodnotu. Historické hodnoty jsou ve zprávě obsažené z důvodu možnosti ztráty zprávy. Server může následně při výpadku tyto hodnoty využít.
+The device works similarly to the Thermometer described [here](#thermometer). The only
+difference is that it sends temperature and humidity. Each measured value has a length of
+3 bytes, where the first two bytes determine the temperature and the third byte determines the humidity.
 
-Zprávy jsou seřazené od nejaktuálnějšího měření až po nejstarší.
+The humidity is determined in % and can range from 0-100.
 
-Každá naměřená hodnota ve zprávě zabírá 2 byte a je kódována pomocí dvojkového doplňku - jednička v nejvyšším bitu značí záporné číslo a 0 značí kladné. Pro získání teploty jeSS potřeba vypočítat dvojkový doplněk a výsledek vydělit 100. Např. pokud byte 2 obsahuje - 0x01 a byte 3 obsahuje 0x00 tak je naměřená teplota = (256/100) nebo-li 2,56 °C. Pokud druhý byte obsahuje 10000001 (0x81) a třetí 0x00 tak je naměřená teplota = (256/100) * - 1 nebo-li -2,56 °C.
+## Receiving messages from the server
 
-Zařízení umožňuje nastavit, jak často se má measure zpráva odeslat a také
-kolik vzorků se má za daný interval naměřit.
-Defaultní nastavení je 10 minut a 10 vzorků. Zařízení každou minutu změří
-teplotu a po 10 minutách odešle průměr naměřených teplot společně s 9 předcházejícími
-odeslanými teplotami. Jak často se mají zprávy odeslat a kolikrát se má v tomto intervalu
-teplota měřit, je možné nastavit příkazem ze serveru. Více [zde](#perioda-vzorkování-pro-teplotní-a-vlhkostní-zařízení-a-nastavení-jak-často-se-má-odeslat-measure-zpráva).
+The device can receive messages from the server. These messages can be divided into confirmation, configuration settings and commands. Confirmation is used to confirm messages from the device. Configuration settings allow you to set the device configuration and commands allow you to control the device in certain ways, such as forcing a restart.
 
-### Vlhkoměr/Teploměr
+All messages are [idempotent](https://en.wikipedia.org/wiki/Idempotence). The server can send the same message several times and the result will be the same. Idempotency is ensured by the nature of the messages, i.e. the device processes the message several times,
+but all the commands and settings are created to avoid errors.
 
-V daných okamžicích měří teplotu a vlhkost (defaultně po 1 min). Po X měřeních (defaultně 10) provede výpočet průměrné hodnoty a odešle zprávu Measure na server.
+If the device successfully receives a configuration or command message, it sends back an acknowledgement to the server. The format of the confirmation message sent by the device is described [here](#confirmation-messages-from-server).
 
-* Zařízení podporuje události - Measure, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+The device always sends the acknowledgement and receipt first and then processes the command, e.g. if
+the device receives a restart command, it sends the acknowledgement first and then restarts.
 
-Measure zpráva má následující formát:
+## LoRa and NB-IoT
 
-| Byte             | Význam                         |
-|------------------|--------------------------------|
-| 0.byte           | Nepoužité - vždy obsahuje 0xFF |
-| 1.byte           | Nepoužité - vždy obsahuje 30   |
-| 2.byte - 31.byte | Naměřené teploty a vlhkosti    |
-
-Zařízení funguje podobně jako Teploměr popsaný [zde](#teploměr). Jediný
-rozdíl je, že posílá teplotu a vlhkost. Každá naměřená hodnota má délku
-3 byte, kde první dva byte určují teplotu a třetí byte určuje vlhkost.
-
-Vlhkost je určována v % a může nabývat hodnoty 0-100.
-
-## Přijmání zpráv ze serveru
-
-Zařízení dokáže přijímat zprávy ze serveru. Tyto zprávy můžeme rozdělit na potvrzení, nastavení konfigurace a příkazy. Potvrzení slouží k potvrzování zpráv ze zařízení. Nastavení konfigurace umožňuje nastavit konfiguraci zařízení a příkazy umožňují určitým způsobem ovládat zařízením, např. vynutit restart.
-
-Všechny zprávy jsou [idempotetní](https://cs.wikipedia.org/wiki/Idempotence). Server může stejnou zprávu odeslat několikrát a výsledek bude stejný. Idempotence je zajištěna podstatou zpráv, tj. zařízení zprávu zpracuje několikrát,
-ale všechny příkazy a nastavení jsou vytvořené tak, aby nedošlo k chybě.
-
-Pokud zařízení úspěšně přijme konfigurační nebo příkazovou zprávu, odešle zpět na server potvrzení o přijetí. Formát potvrzovací zprávy které odesílá zařízení je popsán [zde](#potvrzení-zprávy-ze-serveru).
-
-Zařízení vždy nejdříve odešle potvrzení a přijetí a poté příkaz zpracuje, např. pokud
-zařízení přijme příkaz na restartování, nejdříve odešle potvrzení a poté se restartuje.
-
-## LoRa a NB-IoT
-
-Zařízení komunikují pomocí LoRa nebo NB-IoT sítě. Odesílání zpráv na zařízení se liší podle toho, kterou síť zařízení využívá. Síť je vybrána už při výrobě zařízení a není možné ji změnit.
+The devices communicate over a LoRa or NB-IoT network. Sending messages to the device varies depending on which network the device uses. The network is selected when the device is manufactured and cannot be changed.
 
 ### NB-IoT
 
-Vždy, když zařízení odesílá [zprávu vyžadující potvrzení](#potvrzení-zprávy-ze-serveru), má server možnost odeslat
-zprávu na zařízení. Zařízení na zprávu ze serveru čeká 5 sekund. Server musí odpovědět
-příkazem, nastavením konfigurace nebo [potvrzením](#potvrzení-zprávy), pokud nechce na zařízení nic měnit.
-Pokud zařízení nepřijme v čase 5 sekund žádnou zprávu, tak znovu odesílá původní
-zprávu, více [zde](#5byte---potvrzení-disconnect-a-počet-pokusů-o-odeslání-zprávy).
+Whenever a device sends a [message requiring confirmation](#confirmation-messages-from-server), the server has the option to send
+a message to the device. The device waits 5 seconds for a message from the server. The server must respond
+with a command, configuration setting, or [confirmation](#confirmation-messages) if it does not want to change anything on the device.
+If the device does not receive any message within 5 seconds, it resends the original
+message, more [here](#5byte---confirm-disconnect-and-number-of-attempts-to-send-message).
 
-Pokud server odešle více zpráv naráz, zařízení zpracuje pouze první zprávu
-a další ignoruje.
+If the server sends multiple messages at once, the device will only process the first message
+and ignores others.
 
-Pro jednoduchost implementace na serveru je možné potvrzovat všechny přijaté
-zprávy. Pokud zařízení nevyžaduje potvrzení, ale server ho pošle, tak je
-potvrzení ignorováno.
+For simplicity of implementation on the server, it is possible to acknowledge all received
+messages. If the device does not require an acknowledgement, but the server sends one, the
+acknowledgment is ignored.
 
-Následující diagramy ukazují odeslání příkazové nebo konfigurační
-zprávy na zařízení. Uplink je jakákoliv zpráva odesílaná ze zařízení na server. Downlink je jakákoliv zpráva posílaná ze serveru na zařízení.
+The following diagrams show sending a command or configuration
+messages to the device. An uplink is any message sent from a device to a server. A downlink is any message sent from a server to a device.
 
 ![NbIotCommunication](NbIot_communication.png)
 
-Situace kdy se ztratí potvrzující zpráva:
+A situation where an acknowledgment message is lost:
 
 ![NbIotCommunicationRetry](NBIot_retry.png)
 
 ### LoRa
 
-V LoRa síti zařízení komunikuje s network serverem, který se stará o odesílání zpráv
-na server a na zařízení. Funguje tedy jako prostředník mezi serverem a zařézením.
+In a LoRa network, the device communicates with a network server that takes care of sending messages
+to the server and to the device. It acts as an intermediary between the server and the device.
 
-Pokud chce server odeslat zprávu na zařízení, musí ji odeslat na network server.
-Network server si zprávu uloží a poté čeká, dokud zařízení neposílá zprávu. Poté
-přijme zprávu ze zařízení a tu odešle na server. Ve stejnou dobu, kdy odesílá zprávu
-na server odešle i zprávu na zařízení.
+If the server wants to send a message to the device, it must send it to the network server.
+The network server saves the message and then waits until the device sends the message. Then,
+it receives a message from the device and sends it to the server. At the same time it sends a message to the server,
+it sends a message to the device.
 
-Následující diagramy ukazují odeslání příkazové nebo konfigurační
-zprávy na zařízení. Uplink je jakákoliv zpráva odesílaná ze zařízení na server. Downlink je jakákoliv zpráva posílaná ze serveru na zařízení.
+The following diagrams show sending a command or configuration
+messages to the device. An uplink is any message sent from a device to a server. A downlink is any message sent from a server to a device.
 
 ![LoraCommunication](Lora_communication.png)
 
-Network sever vždy musí čekat na zahájení komunikace ze zařízení. Může se tudíž
-stát, že zpráva ze serveru je doručena po dlouhé době.
+Network north must always wait for the device to start communication. Therefore, it may happen
+that a message from the server is delivered after a long time.
 
-Pokud zařízení úspěšně přijme zprávu, odešle na server
-potvrzení. Formát potvrzovací zprávy je popsán [zde](#potvrzení-zprávy).
+If the device successfully receives the message, it sends an acknowledgement to the server.
+  The format of the confirmation message is described [here](#confirmation-messages).
 
-Pro LoRa síť nemá význam odesílat na zařízení potvrzovací zprávu, ikdyž si ji zařízení [vyžádá](#hlavička), jelikož o
-potvrzení se stará LoRa síť automaticky u všech zpráv.
+There is no point for the LoRa network to send an acknowledgement message to the device, even if the device [requests it](#header),
+since the LoRa network takes care of the acknowledgement automatically for all messages.
 
-V některých situacích musí zařízení provést nové navázání komunikace s network serverem.
-Nové navázání spojení způsobí, že zprávy, které jsou uložené na network serveru
-jsou smazány. Nové navázání komunikace se děje vždy, když je zařízení restartováno, když
-je [restartován modem rádia](#restart-rádia) a v některých případech, kdy se opakovaně nepodaří doručit zprávu.
+In some situations, the device must re-establish communication with the network server.
+Re-establishing the connection causes the messages that are stored on the network server
+to be deleted. Re-establishing communication happens whenever the device is restarted, when
+the radio modem is [restarted](#restart-radio) and in some cases when a message repeatedly fails to be delivered.
 
-Na LoRa network server je možné odeslat více zpráv zároveň.
-Tato funkcionalita obvykle není potřeba, ale je možné ji naimplementovat
-a využít [počitadlo přijaté zprávy](#1byte---počítadlo-přijatých-zpráv) pro identifikaci toho, kterou zprávu
-zařízení potvrzuje.
+Multiple messages can be sent to the LoRa network server at the same time.
+This functionality is usually not needed, but it is possible to implement it
+and use [message-received-counter](#1byte---message-received-counter) to identify which message
+the device is acknowledging.
 
-#### Implementace odesílání zpráv na zařízení v LoRa síti
+#### Implementation of sending messages to devices in LoRa network
 
-Implementaci odesílání zpráv na zařízení v LoRa síti můžeme provést
-několika způsoby. Nejjednoduším způsobem je "označování zpráv". V této
-implementaci server odešle downlink a označí ho jako
-"odeslaný". Poté, co přijme první uplink od odeslání downlinku, stav odeslaného downlinku změní na "bude potvrzen v příští zprávě". V další zprávě by měl přijít uplink s potvrzením. Pokud dorazí downlinková zpráva je úspěšně odeslána.
+We can implement sending messages to devices in the LoRa network
+in several ways. The simplest way is "marking messages". In this
+implementation, the server sends the downlink and marks it as
+"sent". After it receives the first uplink since the downlink was sent, it changes the status of the sent downlink to "will be acknowledged in the next message". There should be an uplink with acknowledgment in the next message. If a downlink message arrives, it is successfully sent.
 
 ![LoraMessageMarker](Lora_MessageMarker.png)
 
-Následující diagram ukazuje chování v případě, že zařízení
-provede join (nové navázání komunikace s network serverem) a smaže zprávu, která čeká na network serveru:
+The following diagram shows the behaviour when a device
+performs a join (re-establishing communication with the network server) and deletes a message that is waiting on the network server:
 
 ![LoraMessageMarker](Lora_MessageMarker_join.png)
 
-Nevýhodou tohoto řešení je. že při navázání nového spojení s network serverem
-může doručení zprávy trvat dlouhou dobu. Doručení zprávy se dá
-urychlit tak, že když na server přijde reset zpráva, tak okamžitě znovu odešleme
-aktuální zprávu čekající na potvrzení, bez čekání na další zprávu. Toto urychlení
-můžeme provést, protože víme, že restart vždy způsobí smazání zpráv na network serveru.
+The disadvantage of this solution is that it may take a long time to deliver the message when a new
+connection to the network server is established. We can speed up the delivery of the message
+by immediately resending the current message waiting for acknowledgment when a reset message arrives on the server,
+without waiting for another message. We can do this acceleration
+because we know that a reset will always cause messages on the network server to be deleted.
 
-## Struktura zpráv přijmaných ze serveru
+## Structure of messages received from the server
 
-Zprávy se dělí na hlavičku a data. Hlavička je společná pro všechny zprávy a datová část se liší
-podle hodnoty 4. a 5. byte.
+Messages are divided into header and data. The header is common for all messages and the data part differs
+according to the value of the 4th and 5th byte.
 
-### Hlavička zprávy přijmané ze serveru
+### Header of the message received from the server
 
-#### 0.byte - identifikátor
+#### 0th byte - identifier
 
-Identifikátor zprávy. Hodnota, kterou server odešle v tomto byte je zkopírována
-a vrácena v hodnotě [1.byte - počítadlo přijatých zpráv](#1byte---počítadlo-přijatých-zpráv). Tato hodnota může sloužit jako identifikátor zpráv
-které byly přijaty zařízením.
+Message identifier. The value that the server sends in this byte is copied
+and returned in the value [1stbyte - counter of received messages](#1byte---counter-of-received-messages). This value can serve as a message identifier
+that have been received by the device.
 
-Pokud server nikdy neodesílá více než jednu zprávu naráz tak tento identifikátor
-není potřeba.
+If the server never sends more than one message at a time, this identifier
+is not needed.
 
-#### 1.byte
+#### 1st byte
 
-Nepoužitý.
+Unused.
 
-#### 2.byte
+#### 2nd byte
 
-Nepoužitý.
+Unused.
 
-#### 3.byte
+#### 3rd byte
 
-Nepoužitý.
+Unused.
 
-#### 4.byte - kategorie zprávy
+#### 4th byte - message category
 
-Tento byte určuje kategorii downlinku který bude odeslán. Kategorie může nabívat následujících hodnot:
+This byte specifies the category of the downlink to be sent. The category can take on the following values:
 
-| Hodnota 4.Byte | Význam           |
-|----------------|------------------|
-| 0x01           | Potvrzení zprávy |
-| 0x02           | Příkazy          |
-| 0x04           | Nastavení        |
+| Value of header's 4th Byte | Description             |
+|----------------------------|-------------------------|
+| 0x01                       | Message acknowledgement |
+| 0x02                       | Commands                |
+| 0x04                       | Settings                |
 
-V kapitolách níže jsou popsány jednotlivé kategorie a typy zpráv které mohou obsahovat.
 
-#### 5.byte - typ zprávy
+The chapters below describe the different categories and types of messages they can contain.
 
-Společné s kategorii zprávy identifikuje jak bude vypadat datová část zprávy.
+#### 5th byte - message type
+
+Common with the message category identifies what the data part of the message will look like.
 
 ### Data
 
-Datová část je rozdělena na tři kategorie - potvrzení zprávy, příkazy a nastavení. Následující kapitoly popisují tyto
-kategorie a zprávy které mohou obsahovat.
+The data part is divided into three categories - message acknowledgment, commands and settings. The following chapters describe these
+categories and messages they may contain.
 
-#### Kategorie - potvrzení zprávy
+#### Categories - message acknowledgment
 
-Kategorie je identifikována hodnotou 0x01 v 4.Byte hlavičky a obsahuje následující typy zpráv:
+The category is identified by the value 0x01 in the 4th Byte of the header and contains the following message types:
 
-| Hodnota 5.byte hlavičky | Význam                                                      |
+| Value of header's 5th byte | Description                                                 |
+|----------------------------|-------------------------------------------------------------|
+| 0x01                       | Message acknowledgement                                     |
+
+#### Message acknowledgment
+
+The message is identified by the value 0x01 in the 5th byte of the header.
+
+The message is used to acknowledge the message that came from the device. Message acknowledgment
+only needs to be sent if the device uses the NB-IoT network and requests it in the [header of the sent message](#header).
+
+By default, the following messages must be acknowledged: Event start, Alive, Reset. In addition,
+the thermometer and hygrometer must have acknowledged every sixth message since the last confirmed message. For other devices,
+every seventh message since the last message being acknowledged must be acknowledged.
+
+Structure:
+
+| Byte    | Description                    |
+|---------|--------------------------------|
+| 0th byte| Not used - always 0x00         |
+
+#### Categories - commands
+
+The category is identified by the value 0x02 in the 4th byte of the header and contains the following message types:
+
+| Value of header's 5th byte    | Description                             |
+|-------------------------------|-----------------------------------------|
+| 0x02                          | Device restart                          |
+| 0x03                          | Device switched into the transport mode |
+| 0x04                          | Modem restart                           |
+
+##### Device restart
+
+The device restarts.
+
+Structure:
+
+| Byte    | Description                    |
+|---------|--------------------------------|
+| 0th byte| Not used - always 0x00         |
+
+
+##### Switching the device into transport mode
+
+The device switches to [transport mode](#transport-mode).
+
+Structure:
+
+| Byte    | Description                    |
+|---------|--------------------------------|
+| 0th byte| Not used - always 0x00         |
+
+##### Radio restart
+
+Restarts the device's radio modem.
+
+Structure:
+
+| Byte    | Description                    |
+|---------|--------------------------------|
+| 0th byte| Not used - always 0x00         |
+
+#### Categories - settings
+
+The category is identified by the value 0x04 in the 4th byte of the header and contains the following message types:
+
+| Value of header's 5th byte | Description                                              |
 |-------------------------|-------------------------------------------------------------|
-| 0x01                    | Potvrzení zprávy                                            |
+| 0x01                    | Number of consecutive messages not requiring acknowledgement|
+| 0x02                    | Turning message acknowledgement on/off                      |
+| 0x03                    | Turning Event start acknowledgement on/off                  |
+| 0x04                    | Alive message period                                        |
+| 0x05                    | Measure message period                                      |
+| 0x06                    | Turning LED flashing and buzzer indication during Event start on/off |
+| 0x08                    | Turning LoRa ADR on/off                                     |
+| 0x09                    | Setting LoRa dataRate                                       |
+| 0x0A                    | Setting device mode                                         |
+| 0x0B                    | Limiting the maximum number of Event continue messages      |
+| 0x0C                    | Specifies the sampling period for temperature and humidity devices |
+| 0x0E                    | Motion detection device sensitivity setting                 |
 
-##### Potvrzení zprávy
 
-Zpráva je identifikována hodnotou 0x01 v 5.byte hlavičky.
+##### Number of consecutive messages not requiring acknowledgement
 
-Zpráva slouží k potvrzení zprávy, která přišla ze zařízení. Potvrzení zprávy
-je potřeba odeslat pouze pokud zařízení používá síť NB-IoT a vyžádá si ho v [hlavičce odeslané zprávy](#hlavička).
+Determines message numbers which must always be acknowledged. The default value is 6 for thermometer and hygrometer,
+7 for other devices. The default value can be set by sending the value 0xFF in the 1st byte.
 
-Defaultně je nutné potvrdit následující zprávy: Event start, Alive, Reset. Dále musí být
-u teploměru a vlhkoměru potvrzena každá šestá zpráva od poslední potvrzené zprávy. U ostatních zařízení musí být
-potvrzena každá sedmá zpráva od poslední potvrzované zprávy.
+Structure:
 
-Struktura:
-
-| Byte    | Význam                         |
-|---------|--------------------------------|
-| 0.byte  | Nepoužité - vždy obsahuje 0x00 |
-
-#### Kategorie - příkazy
-
-Kategorie je identifikována hodnotou 0x02 v 4.Byte hlavičky a obsahuje následující typy zpráv:
-
-| Hodnota 5.byte hlavičky | Význam                                    |
-|-------------------------|-------------------------------------------|
-| 0x02                    | Potvrzení zprávy                          |
-| 0x03                    | Restart zařízení                          |
-| 0x04                    | Přepnutí zařízení do transportního režimu |
-
-##### Restart zařízení
-
-Zařízení se restartuje.
-
-Struktura:
-
-| Byte    | Význam                         |
-|---------|--------------------------------|
-| 0.byte  | Nepoužité - vždy obsahuje 0x00 |
-
-##### Přepnutí zařízení do transportního režimu
-
-Zařízení se přepne do [transportního režimu](#transportní-režim).
-
-Struktura:
-
-| Byte    | Význam                         |
-|---------|--------------------------------|
-| 0.byte  | Nepoužité - vždy obsahuje 0x00 |
-
-##### Restart rádia
-
-Restartuje rádiový modem zařízení.
-
-Struktura:
-
-| Byte    | Význam                         |
-|---------|--------------------------------|
-| 0.byte  | Nepoužité - vždy obsahuje 0x00 |
-
-#### Kategorie - nastavení
-
-Kategorie je identifikována hodnotou 0x04 v 4.Byte hlavičky a obsahuje následující typy zpráv:
-
-| Hodnota 5.byte hlavičky | Význam                                                      |
-|-------------------------|-------------------------------------------------------------|
-| 0x01                    | Kolikátá zpráva vyžaduje potvrzení                          |
-| 0x02                    | Vypnutí potvrzování zpráv                                   |
-| 0x03                    | Vypnutí potvrzování události Event start                    |
-| 0x04                    | Interval alive zpráv                                        |
-| 0x05                    | Jak často se má odeslat measure zpráva                      |
-| 0x06                    | Spuštění LED diody a pískání při události Event start       |
-| 0x08                    | Zapnutí nebo vypnutí LoRa ADR                               |
-| 0x09                    | Nastaví LoRa dataRate                                       |
-| 0x0A                    | Nastaví módu zařízení                                       |
-| 0x0B                    | Omezení maximálního počtu zpráv typu událost pokračuje      |
-| 0x0C                    | Určuje periodu vzorkování pro teplotní a vlhkostní zařízení |
-| 0x0E                    | Nastavení citlivosti pohybového zařízení                    |
-
-##### Kolikátá zpráva vyžaduje potvrzení
-
-Určí, kolikátá zpráva musí vždy být potvrzena. Defaultní hodnota je 6 u teploměru a vlhkoměru,
-u ostatních zařízení 7. Defaultní hodnota se dá nastavit odesláním hodnoty 0xFF v 1.byte.
-
-Struktura:
-
-| Byte   | Význam                                                             |
-|--------|--------------------------------------------------------------------|
-| 0.byte | Nepoužité - vždy obsahuje 0x01                                     |
-| 1.byte | Určuje maximální počet pokračování poplachů které se budou posílat |
-
-##### Vypnutí a zapnutí potvrzování zpráv
-
-Odeslání této zprávy na zařízení vypne nebo zapne vyžadování potvrzení zpráv zařízením.
-
-Struktura:
-
-| Byte   | Význam                                               |
-|--------|------------------------------------------------------|
-| 0.byte | Nepoužité - vždy obsahuje 0x01                       |
-| 1.byte | 0 vypne potvrzování zpráv, 1 - zapne potvrzoví zpráv |
-
-##### Vypnutí potvrzování události Event start
-
-Vypne nebo zapne potvrzování události Event start.
-
-Struktura:
-
-| Byte   | Význam                                               |
-|--------|------------------------------------------------------|
-| 0.byte | Nepoužité - vždy obsahuje 0x01                       |
-| 1.byte | 0 vypne potvrzování zpráv, 1 - zapne potvrzoví zpráv |
-
-##### Interval alive zpráv
-
-Nastaví, za jak dlouhou dobu se má odeslat alive zpráva od poslední komunikace.
-Defaultní hodnota je 12 hodin od poslední odeslané zprávy.
-
-| Byte   | Význam                         |
-|--------|--------------------------------|
-| 0.byte | Nepoužité - vždy obsahuje 0x03 |
-| 1.byte | Hodiny                         |
-| 2.byte | Minuty                         |
-| 3.byte | Sekundy                        |
-
-##### Nasavení, jak často se má odeslat measure zpráva
-
-Popsáno [zde](#perioda-vzorkování-pro-teplotní-a-vlhkostní-zařízení-a-nasavení-jak-často-se-má-odeslat-measure-zpráva).
-
-##### Spuštění LED diody a pískání při události Event start
-
-| Byte   | Význam                         |
-|--------|--------------------------------|
-| 0.byte | Nepoužité - vždy obsahuje 0x01 |
-| 1.byte | Obsahuje nastavení             |
-
-Složení 1.byte:
-
-| Bit           | Význam    |
-|---------------|-----------|
-| 0.bit         | Led       |
-| 1.bit         | Nepoužité |
-| 2.bit         | Pískání   |
-| 3.bit         | Nepoužité |
-| 4.bit - 7.bit | Nepoužité |
-
-Defaultně je byte nastaven na 10100000 - blikání i pískání je při Event start zapnuto.
-
-##### Zapnutí nebo vypnutí LoRa ADR
-
-Vypne nebo zapne [Lora ADR](https://lora-developers.semtech.com/documentation/tech-papers-and-guides/understanding-adr/)
-.
-Dá se použít pouze pro zařízení na síti LoRa.
-
-| Byte   | Význam                         |
-|--------|--------------------------------|
-| 0.byte | Nepoužité - vždy obsahuje 0x01 |
-| 1.byte | 0 - vypnuto, 1 - zapnuto       |
-
-##### Nastaví LoRa dataRate
-
-Nastaví [Lora dataRate](https://lora-developers.semtech.com/uploads/documents/files/Understanding_LoRa_Adaptive_Data_Rate_Downloadable.pdf)
-.
-Dá se použít pouze pro zařízení na síti LoRa.
-
-| Byte   | Význam                         |
-|--------|--------------------------------|
-| 0.byte | Nepoužité - vždy obsahuje 0x01 |
-| 1.byte | 0 - vypnuto, 1 - zapnuto       |
-
-##### Nastaví módu zařízení
-
-Nastaví mód na zařízení.
-
-Pokud je zpráva odeslána na zařízení, které nepodporuje jiné režimy, dojde pouze k restartu zařízení.
-
-| Byte   | Význam                         |
-|--------|--------------------------------|
-| 0.byte | Nepoužité - vždy obsahuje 0x01 |
-| 1.byte | Mód zařízení                   |
-
-Aktuálně přepnutí módu podporuje pouze zařízení Magnet (0 - simple, 1 - continuous). Při odeslání jiného čísla módu se
-zařízení nastaví do režimu continuous.
-
-##### Omezení maximálního počtu zpráv typu Event continue
-
-Nataví maximální počet zpráv typu [Event continue](#event). Defaultní
-hodnota pro zařízení Magnet, PIR a Move je neomezeno. Pro zařízení Water jsou to dvě zprávy.
-
-Když zařízení dosáhne maximálního počtu, přestane odesílat zprávy Event continue. Po odeslání zprávy Event end a
-následném novém cyklu začínajícím zprávou Event start zařízení znovu posílá zprávy Event continue do nastaveného
-maximálního počtu.
-
-| Byte   | Význam                                                               |
+| Byte   | Description                                                          |
 |--------|----------------------------------------------------------------------|
-| 0.byte | Nepoužité - vždy obsahuje 0x01                                       |
-| 1.byte | Maximální počet událostí continue. 0x0 nastaví na neomezené množství |
+| 0th byte | Not used - always 0x01                                             |
+| 1st byte | Number of consecutive messages not requiring acknowledgement, 0 - all messages require acknowledgement |
 
-##### Určuje periodu vzorkování pro teplotní a vlhkostní zařízení
 
-Popsáno [zde](#perioda-vzorkování-pro-teplotní-a-vlhkostní-zařízení-a-nasavení-jak-často-se-má-odeslat-measure-zpráva).
+##### Turning message acknowledgement on/off
 
-##### Nastavení citlivosti pohybového zařízení
+Sending this message to the device turns off or on the device's request for message acknowledgement.
 
-Nastaví citlivost pohybového zařízení.
+Structure:
 
-| Byte   | Význam                         |
+| Byte   | Description                                          |
+|--------|------------------------------------------------------|
+| 0th byte | Not used - always 0x01                             |
+| 1st byte | 0 turns on message acknowledgement, 1 - turns off message acknowledgement |
+
+
+##### Turning Event start acknowledgement on/off 
+
+Turns the Event start event acknowledgement off or on.
+
+Structure:
+
+| Byte   | Description                                          |
+|--------|------------------------------------------------------|
+| 0th byte | Not used - always 0x01                             |
+| 1st byte | 0 turns off event acknowledgement, 1 - turns on event acknowledgement |
+
+
+##### Alive messages period
+
+Sets how long it takes to send an alive message since the last communication.
+The default value is 12 hours since the last message was sent.
+
+| Byte     | Description                  |
+|----------|------------------------------|
+| 0th byte | Not used - always 0x03       |
+| 1st byte | Hours                        |
+| 2nd byte | Minutes                      |
+| 3rd byte | Seconds                      |
+
+
+##### Measure message period    
+
+Described [here](#period-sampling-for-temperature-and-humidity-devices-and-setting-how-frequently-should-measure-message-be-sent).
+
+##### Turning LED flashing and buzzer indication during Event start on/off
+
+| Byte   | Description                    |
 |--------|--------------------------------|
-| 0.byte | Nepoužité - vždy obsahuje 0x04 |
-| 1.byte | Nastavení ACC ZERO             |
-| 2.byte | Nastavení MAG ZERO             |
-| 3.byte | Nastavení ACC Count            |
-| 4.byte | Nastavení MAG Count            |
+| 0th byte | Not used - always 0x01       |
+| 1st byte | Contains settings            |
 
-Pro běžné užívání by měli stačit následující nastavení:
 
-| Citlivost | 0.byte | 1.byte | 2.byte | 3.byte | 4.byte |                      
-|-----------|--------|--------|--------|--------|--------|
-| Nízká     | 4      | 100    | 200    | 10     | 5      |
-| Střední   | 4      | 75     | 100    | 10     | 5      |
-| Vysoká    | 4      | 50     | 50     | 10     | 5      |
+Composition of 1st byte:
 
-##### Perioda vzorkování pro teplotní a vlhkostní zařízení a nastavení, jak často se má odeslat measure zpráva
+| Bit               | Description |
+|-------------------|-------------|
+| 0th bit           | LED         |
+| 1st bit           | Not used    |
+| 2nd bit           | Buzzer      |
+| 3rd bit           | Not used    |
+| 4th bit - 7th bit | Not used    |
 
-Hodnoty 0x05 a 0x0C se obě vztahují k teploměru a vlhkoměru a úzce spolu souvisí.
-Obě tyto hodnoty musejí být nastaveny naráz ve správném pořadí a bez restaru mezi zpracováními těchto zpráv.
+By default, the byte is set to 10100000 - both flashing and beeping are enabled during Event start.
 
-První musí být nastaveno, jak často se má odesílat measure zpráva a následně jaké má být vzorkování.
+##### Turning LoRa ADR on/off
 
-Defaultní nastavení je 10 minut a 1 minuta. Zařízení měří každou minutu a každých 10 minut z nich udělá průměr a poté
-odešle measure zprávu.
+Turns off or on [Lora ADR](https://lora-developers.semtech.com/documentation/tech-papers-and-guides/understanding-adr/)
+.
+It can only be used for devices on the LoRa network.
 
-Je důležité, aby perioda odesílání measure zprávy byla vždy celočíselně dělitelná periodou vzorkování, jinak bude
-zařízení odesílat zprávu v chybném intervalu.
+| Byte     | Description                  |
+|----------|------------------------------|
+| 0th byte | Not used - always 0x01       |
+| 1st byte | 0 - off, 1 - on              |
 
-Obě tyto hodnoty mají následující formát:
 
-| Byte   | Význam                         |
-|--------|--------------------------------|
-| 0.byte | Nepoužité - vždy obsahuje 0x03 |
-| 1.byte | Hodiny                         |
-| 2.byte | Minuty                         |
-| 3.byte | Sekundy                        |
+##### Setting LoRa dataRate
 
-Pokud nastavíme periodu odesílání mesure zpráv na hodnotu, která není dělitelná periodou vzorkování,
-tak se zařízení bude chovat podle následujícího příkladu:
+Sets [Lora dataRate](https://lora-developers.semtech.com/uploads/documents/files/Understanding_LoRa_Adaptive_Data_Rate_Downloadable.pdf)
+.
+It can only be used for devices on the LoRa network.
 
-Představme si, že nastavíme periodu measure zpráv na 10 minut a periodu měření na 4 minuty.
-Zařízení vypočítá počet měření, které je potřeba udělat před odesláním zprávy následujícím způsobem:
-10 / 4 = 2 (provede se celočíselné dělení).
+| Byte     | Description                  |
+|----------|------------------------------|
+| 0th byte | Not used - always 0x01       |
+| 1st byte | 0 - off, 1 - on              |
 
-Zařízení pak bude čekat mezi měřeními 4 minuty a po každých dvou měření odešle zprávu. Measure
-zprávy se tedy budou odesílat každých 8 minut.
+##### Setting device mode
+
+Sets the mode on the device.
+
+If the message is sent to a device that does not support other modes, it will only restart the device.
+
+| Byte     | Description                  |
+|----------|------------------------------|
+| 0th byte | Not used - always 0x01       |
+| 1st byte | Device operation mode        |
+
+Currently only Magnet devices support mode switching (0 - simple, 1 - continuous). When another mode number is sent,
+the device is set to continuous mode.
+
+##### Limiting the maximum number of Event continue messages
+
+Sets the maximum number of messages of type [Event continue](#event). The default
+value for Magnet, PIR and Move device is unlimited. There are two messages for Water device.
+
+When the device reaches the maximum number, it stops sending Event continue messages. After sending the Event end message and
+then a new cycle starting with an Event start message, the device sends Event continue messages again up to
+the maximum number.
+
+| Byte     | Description                                                            |
+|----------|------------------------------------------------------------------------|
+| 0th byte | Not used - always 0x01                                                 |
+| 1st byte | Maximal number of Event continue messages. 0x0 sets unlimited number of messages |
+
+
+##### Specifies the sampling period for temperature and humidity devices
+
+Described [here](#period-sampling-for-temperature-and-humidity-devices-and-setting-how-frequently-should-measure-message-be-sent).
+
+##### Motion detection device sensitivity setting
+
+Sets the sensitivity of the motion detection device.
+
+| Byte     | Description                    |
+|----------|--------------------------------|
+| 0th byte | Not used - always 0x04         |
+| 1st byte | ACC ZERO Setting               |
+| 2nd byte | MAG ZERO Setting               |
+| 3rd byte | ACC Count Setting              |
+| 4th byte | MAG Count Setting              |
+
+
+The following settings should be sufficient for normal use:
+
+| Sesitivity| 0th byte | 1st byte | 2nd byte | 3rd byte | 4th byte |                      
+|-----------|----------|----------|----------|----------|----------|
+| Low       | 4        | 100      | 200      | 10       | 5        |
+| Medium    | 4        | 75       | 100      | 10       | 5        |
+| High      | 4        | 50       | 50       | 10       | 5        |
+
+##### Sampling period for temperature and humidity devices and how often to send a measure message
+
+The values 0x05 and 0x0C both refer to the thermometer and hygrometer and are closely related.
+Both of these values must be set at once in the correct order and without restarting between processing of these messages.
+
+First, it must be set how often the measure message should be sent and then what the sampling should be.
+
+The default setting is 10 minutes and 1 minute. The device measures every minute and averages them every 10 minutes and then
+sends a measure message.
+
+It is important that the period of sending the measure message is always an integer divisible by the sampling period, otherwise
+the device will send the message at the wrong interval.
+
+Both of these values have the following format:
+
+| Byte     | Description                    |
+|----------|--------------------------------|
+| 0th byte | Not used - always 0x03         |
+| 1st byte | Hours                          |
+| 2nd byte | Minutes                        |
+| 3rd byte | Seconds                        |
+
+If we set the period of sending measure messages to a value that is not divisible by the sampling period,
+the device will behave according to the following example:
+
+Let's imagine that we set the measure message period to 10 minutes and the measurement period to 4 minutes.
+The device calculates the number of measurements that need to be taken before sending the message as follows:
+10 / 4 = 2 (integer division is performed).
+
+The device will then wait 4 minutes between measurements and send a message after every two measurements. Measure
+messages will therefore be sent every 8 minutes.
