@@ -106,7 +106,7 @@ Stavový automat neobsahuje restart přechod. Restart zařízení může nastat 
 
 Stavový automat také nezohledňuje přijmání zpráv ze serveru.
 
-![State machine](/deviceComunicationDocumentation.png)
+![State machine](deviceComunicationDocumentation.png)
 
 ## Dioda
 
