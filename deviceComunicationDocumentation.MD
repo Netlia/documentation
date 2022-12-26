@@ -1013,7 +1013,7 @@ the maximum number.
 
 ##### Specifies the sampling period for temperature and humidity devices
 
-Described [here](#period-sampling-for-temperature-and-humidity-devices-and-setting-how-frequently-should-measure-message-be-sent).
+Described [here](#sampling-period-for-temperature-and-humidity-devices-and-how-often-to-send-a-measure-message).
 
 ##### Motion detection device sensitivity setting
 

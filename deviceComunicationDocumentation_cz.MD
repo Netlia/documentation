@@ -992,7 +992,7 @@ maximálního počtu.
 
 ##### Určuje periodu vzorkování pro teplotní a vlhkostní zařízení
 
-Popsáno [zde](#perioda-vzorkování-pro-teplotní-a-vlhkostní-zařízení-a-nasavení-jak-často-se-má-odeslat-measure-zpráva).
+Popsáno [níže](#perioda-vzorkování-pro-teplotní-a-vlhkostní-zařízení-a-nasavení,-jak-často-se-má-odeslat-measure-zpráva).
 
 ##### Nastavení citlivosti pohybového zařízení
 
