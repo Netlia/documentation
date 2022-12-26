@@ -1,4 +1,4 @@
-# Netlia dokumentace zařízení
+# Komunikace zařízení
 
 Tento dokument slouží k popisu chování jednotlivých zařízení a k popisu společného komunikačního protokolu.
 
@@ -919,7 +919,7 @@ Defaultní hodnota je 12 hodin od poslední odeslané zprávy.
 
 ##### Nasavení, jak často se má odeslat measure zpráva
 
-Popsáno [zde](#perioda-vzorkování-pro-teplotní-a-vlhkostní-zařízení-a-nasavení-jak-často-se-má-odeslat-measure-zpráva).
+Popsáno [zde](#perioda-vzorkování-pro-teplotní-a-vlhkostní-zařízení-a-nastavení-jak-často-se-má-odeslat-measure-zpráva).
 
 ##### Spuštění LED diody a pískání při události Event start
 

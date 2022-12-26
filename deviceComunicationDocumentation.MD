@@ -1,4 +1,4 @@
-# Netlia device documentation
+# Device communication
 
 This document is used to describe the behaviour of each device and to describe a common communication protocol.
 
@@ -18,9 +18,9 @@ time interval and send the measured data. An example would be the measured tempe
 A detailed description of these and other messages can be found [here](#messages-from-device-to-server).
 
 Depending on the settings and device type, some messages require acknowledgment from the server. In these
-cases, the device waits for a response from the server and resends the message if it does not receive one. Messages that are not confirmed may be lost because the device does not try to resend them. The server does not learn about the contents of the lost messages, but it can determine that messages have been lost based on discrepancies between the message counter on the server and the [header counter](#0byte---sent-message-counter) of subsequent messages.
+cases, the device waits for a response from the server and resends the message if it does not receive one. Messages that are not confirmed may be lost because the device does not try to resend them. The server does not learn about the contents of the lost messages, but it can determine that messages have been lost based on discrepancies between the message counter on the server and the [header counter](#0th-byte---counter-of-sent-messages) of subsequent messages.
 
-Some messages may arrive on the server more than once. The server can detect duplicates using [header counter](#0byte---counter-sent-messages).
+Some messages may arrive on the server more than once. The server can detect duplicates using [header counter](#0th-byte---counter-of-sent-messages).
 
 In addition to acknowledgment, the device can receive settings and commands from the server.
 For more on this news, see [here](#receiving-messages-from-the-server).
@@ -45,7 +45,7 @@ restart.
 ### Standard restart
 
 The standard restart is triggered by pressing the button,
-[server command](#structure-of-messages-received-from-server) or a device error.
+[server command](#structure-of-messages-received-from-the-server) or a device error.
 
 After the device is restarted, it performs the following steps (if no error occurs):
 
@@ -100,7 +100,7 @@ Transport mode is a special state of the device in which the device does not com
 
 The following diagram describes the states that the device can get into. Most devices do not support all
 states, but only support a subset of this almost complete status automaton. Details of the individual
-devices can be found [here](#devices).
+devices can be found [here](#device).
 
 The state machine does not contain a restart transition. The device can restart in any state.
 
@@ -168,7 +168,7 @@ Example:
 
 ### 1st byte - counter of received messages
 
-Set to 0 as default. After receiving a message from the server, it is set to the value received in the message from the server. More about this value [here](#0byte---identifier).
+Set to 0 as default. After receiving a message from the server, it is set to the value received in the message from the server. More about this value [here](#0th-byte---identifier).
 
 ### 2nd byte - battery voltage in the device
 
@@ -317,7 +317,7 @@ Content:
 
 ### Restart
 
-It is always sent after [device restart](#restart-and-startup-of-the-device).
+It is always sent after [device restart](#restart-and-start-of-the-device).
  
 In the header it is marked with the value 0x02 in the 7th byte (Message type).
 
@@ -455,7 +455,7 @@ For error number 2, the device behaves according to the following list:
 ### Alive
 
 The Alive message serves as a notification that the device is OK and still transmitting. The Alive message
-is sent only if the device has not communicated for a long time. By default, an alive message is sent if the device has not sent any message for 12 hours. The interval can be set using [server command](#interval-alive-messages).
+is sent only if the device has not communicated for a long time. By default, an alive message is sent if the device has not sent any message for 12 hours. The interval can be set using [server command](#alive-messages-period).
 
 Content:
 
@@ -512,10 +512,10 @@ If the main sensor on the device detects an event, it sends an event start messa
 It then waits 10 minutes to record data about the next possible event. If no further events occur during this time period, the device sends an event end message. Otherwise, it sends an event continue message, waits another 10 minutes and repeats the procedure.
 
 Exactly what the alarm is varies by device. This can be to record the movement of the device (Move),
-water detection (Water) or for example motion detection in the room (PIR). A more detailed description of the operation is described in the [Devices](#devices) section.
+water detection (Water) or for example motion detection in the room (PIR). A more detailed description of the operation is described in the [Devices](#device) section.
 
 Some devices do not send all types of events or behave
-differently. More about these differences in the [Devices](#devices) section.
+differently. More about these differences in the [Devices](#device) section.
 
 Event start, end and continue have the following format:
 
@@ -574,7 +574,7 @@ An event end message is then sent if the device does not detect any movement for
 
 The device is used to monitor the frequency of opening/closing of doors, covers, passage of moving parts by monitoring the magnetic field of the magnet.
 The device supports two modes. Continuous and simple mode. You can switch between these modes
-using the [device mode setting server message](#set-device-mode). Default mode is simple.
+using the [device mode setting server message](#setting-device-mode). Default mode is simple.
 
 * The device supports events - Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege.
 
@@ -633,7 +633,7 @@ how many samples should be measured in a given interval.
 The default setting is 10 minutes and 10 samples. The device measures the temperature every minute
 and after 10 minutes sends the average of the measured temperatures together with the 9 previous
 sent temperatures. How often the messages should be sent and how many times the temperature should be measured in this interval
-can be set by a command from the server. Read more [here](#period-sampling-for-temperature-and-humidity-devices-and-setting-how-frequently-should-measure-message).
+can be set by a command from the server. Read more [here](#sampling-period-for-temperature-and-humidity-devices-and-how-often-to-send-a-measure-message).
 
 ### Hygrometer/Thermometer
 
@@ -662,7 +662,7 @@ The device can receive messages from the server. These messages can be divided i
 All messages are [idempotent](https://en.wikipedia.org/wiki/Idempotence). The server can send the same message several times and the result will be the same. Idempotency is ensured by the nature of the messages, i.e. the device processes the message several times,
 but all the commands and settings are created to avoid errors.
 
-If the device successfully receives a configuration or command message, it sends back an acknowledgement to the server. The format of the confirmation message sent by the device is described [here](#confirmation-messages-from-server).
+If the device successfully receives a configuration or command message, it sends back an acknowledgement to the server. The format of the confirmation message sent by the device is described [here](#acknowledging-a-message-from-the-server).
 
 The device always sends the acknowledgement and receipt first and then processes the command, e.g. if
 the device receives a restart command, it sends the acknowledgement first and then restarts.
@@ -673,9 +673,9 @@ The devices communicate over a LoRa or NB-IoT network. Sending messages to the d
 
 ### NB-IoT
 
-Whenever a device sends a [message requiring confirmation](#confirmation-messages-from-server), the server has the option to send
+Whenever a device sends a [message requiring confirmation](#acknowledging-a-message-from-the-server), the server has the option to send
 a message to the device. The device waits 5 seconds for a message from the server. The server must respond
-with a command, configuration setting, or [confirmation](#confirmation-messages) if it does not want to change anything on the device.
+with a command, configuration setting, or [confirmation](#message-acknowledgment) if it does not want to change anything on the device.
 If the device does not receive any message within 5 seconds, it resends the original
 message, more [here](#5byte---confirm-disconnect-and-number-of-attempts-to-send-message).
 
@@ -714,7 +714,7 @@ Network north must always wait for the device to start communication. Therefore,
 that a message from the server is delivered after a long time.
 
 If the device successfully receives the message, it sends an acknowledgement to the server.
-  The format of the confirmation message is described [here](#confirmation-messages).
+  The format of the confirmation message is described [here](#message-acknowledgment).
 
 There is no point for the LoRa network to send an acknowledgement message to the device, even if the device [requests it](#header),
 since the LoRa network takes care of the acknowledgement automatically for all messages.
@@ -722,11 +722,11 @@ since the LoRa network takes care of the acknowledgement automatically for all m
 In some situations, the device must re-establish communication with the network server.
 Re-establishing the connection causes the messages that are stored on the network server
 to be deleted. Re-establishing communication happens whenever the device is restarted, when
-the radio modem is [restarted](#restart-radio) and in some cases when a message repeatedly fails to be delivered.
+the radio modem is [restarted](#radio-restart) and in some cases when a message repeatedly fails to be delivered.
 
 Multiple messages can be sent to the LoRa network server at the same time.
 This functionality is usually not needed, but it is possible to implement it
-and use [message-received-counter](#1byte---message-received-counter) to identify which message
+and use [message-received-counter](#1st-byte---counter-of-received-messages) to identify which message
 the device is acknowledging.
 
 #### Implementation of sending messages to devices in LoRa network
@@ -759,7 +759,7 @@ according to the value of the 4th and 5th byte.
 #### 0th byte - identifier
 
 Message identifier. The value that the server sends in this byte is copied
-and returned in the value [1stbyte - counter of received messages](#1byte---counter-of-received-messages). This value can serve as a message identifier
+and returned in the value [1st byte - counter of received messages](#1st-byte---counter-of-received-messages). This value can serve as a message identifier
 that have been received by the device.
 
 If the server never sends more than one message at a time, this identifier
@@ -937,7 +937,7 @@ The default value is 12 hours since the last message was sent.
 
 ##### Measure message period    
 
-Described [here](#period-sampling-for-temperature-and-humidity-devices-and-setting-how-frequently-should-measure-message-be-sent).
+Described [here](#sampling-period-for-temperature-and-humidity-devices-and-how-often-to-send-a-measure-message).
 
 ##### Turning LED flashing and buzzer indication during Event start on/off
 
