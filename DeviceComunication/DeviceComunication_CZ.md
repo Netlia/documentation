@@ -1,4 +1,4 @@
-# Netlia dokumentace zařízení
+# Komunikace zařízení
 
 Tento dokument slouží k popisu chování jednotlivých zařízení a k popisu společného komunikačního protokolu.
 
@@ -106,7 +106,7 @@ Stavový automat neobsahuje restart přechod. Restart zařízení může nastat 
 
 Stavový automat také nezohledňuje přijmání zpráv ze serveru.
 
-![State machine](/deviceComunicationDocumentation.png)
+![State machine](diagram_cz.png)
 
 ## Dioda
 
@@ -818,9 +818,9 @@ Kategorie je identifikována hodnotou 0x02 v 4.Byte hlavičky a obsahuje násled
 
 | Hodnota 5.byte hlavičky | Význam                                    |
 |-------------------------|-------------------------------------------|
-| 0x02                    | Potvrzení zprávy                          |
-| 0x03                    | Restart zařízení                          |
-| 0x04                    | Přepnutí zařízení do transportního režimu |
+| 0x02                    | Restart zařízení                          |
+| 0x03                    | Přepnutí zařízení do transportního režimu |
+| 0x04                    | Restart modemu                            |
 
 ##### Restart zařízení
 
@@ -919,7 +919,7 @@ Defaultní hodnota je 12 hodin od poslední odeslané zprávy.
 
 ##### Nasavení, jak často se má odeslat measure zpráva
 
-Popsáno [zde](#perioda-vzorkování-pro-teplotní-a-vlhkostní-zařízení-a-nasavení-jak-často-se-má-odeslat-measure-zpráva).
+Popsáno [zde](#perioda-vzorkování-pro-teplotní-a-vlhkostní-zařízení-a-nastavení-jak-často-se-má-odeslat-measure-zpráva).
 
 ##### Spuštění LED diody a pískání při události Event start
 
@@ -992,7 +992,7 @@ maximálního počtu.
 
 ##### Určuje periodu vzorkování pro teplotní a vlhkostní zařízení
 
-Popsáno [zde](#perioda-vzorkování-pro-teplotní-a-vlhkostní-zařízení-a-nasavení-jak-často-se-má-odeslat-measure-zpráva).
+Popsáno [níže](#perioda-vzorkování-pro-teplotní-a-vlhkostní-zařízení-a-nasavení,-jak-často-se-má-odeslat-measure-zpráva).
 
 ##### Nastavení citlivosti pohybového zařízení
 
