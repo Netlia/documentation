@@ -106,7 +106,7 @@ The state machine does not contain a restart transition. The device can restart 
 
 The state machine also does not take into account the receipt of messages from the server.
 
-![State machine](deviceComunicationDocumentation.png)
+![State machine](diagram.png)
 
 ## Diode
 

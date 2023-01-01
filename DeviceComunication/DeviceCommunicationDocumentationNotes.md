@@ -3,6 +3,82 @@
 ### Dalsi poznamky
 
 @startuml
+[*] --> TransportMode : Battery inserted
+TransportMode --> SendRestartMessage : Restart button pushed
+
+SendRestartMessage --> WaitForRestartConfirmation : Waiting for restart confirmation
+WaitForRestartConfirmation --> SendRestartMessage : Confirmation not received
+WaitForRestartConfirmation --> SendTestMessage : Confirmation not received
+
+SendTestMessage --> WaitForTestConfirmation : Waiting for confirmation
+WaitForTestConfirmation --> SendTestMessage : Confirmation not received
+note right of SendTestMessage
+Test message primarily serves 
+for downloading device settings 
+from server. Settings are always 
+restored to default after restart.
+end note
+
+WaitForTestConfirmation --> ErrorCheckMode : Confirmation received
+WaitForTestConfirmation --> SendTestMessage : Confirmation received and another test message must be sent
+Note on link
+Number of test messages differs by device type
+endNote
+
+ErrorCheckMode --> ActiveMode : Errors have been sent or don't need to be sent
+ErrorCheckMode --> ErrorCheckMode : Error message has been sent
+note left of ErrorCheckMode
+If the device has been restarted
+due to a fatal error error message
+must be sent with error details
+end note
+
+ActiveMode --> EventStartSent : Send Event start
+
+WaitForConfirmation --> ActiveMode : Confirmation received
+WaitForConfirmation --> WaitForConfirmation : Timeout, resend the message
+
+ActiveMode --> WaitForConfirmation : Send alive message
+note left of ActiveMode
+Device sends - error, measure, event, alive
+error - HW error in the device
+measure - measured values (e.g. temperature, humidity)
+event - event registered (e.g. treshold crossed, motion detected)
+alive - control message
+end note
+
+ActiveMode --> ActiveMode : Send measure/error/alive message
+ActiveMode --> WaitForConfirmation : Send measure/error message with confirmation
+ActiveMode --> EventContinueMode : Send event start without confirmation
+
+EventStartSent --> WaitForEventConfirmation : Wait for confirmation
+WaitForEventConfirmation --> EventStartSent : Confirmation not received
+WaitForEventConfirmation --> EventContinueMode : Confirmation received
+
+EventContinueMode --> WaitForConfirmationForContinue : Send alive message
+note left of EventContinueMode
+EventContinueMode is identical to ActiveModem
+The only difference is that if an event occurs
+when in EventContinueMode, event continue is 
+sent instead of event start.
+
+EventContinueMode --> EventContinueMode : Send measure/error/eventContinue/alive message
+EventContinueMode --> WaitForConfirmationForContinue : Send measure/error/eventContinue message with confirmation
+EventContinueMode --> ActiveMode : Event end
+note on link
+Event ends when no input events 
+are detected by the device for 
+some time.
+end note
+
+WaitForConfirmationForContinue --> EventContinueMode : Confirmation received
+WaitForConfirmationForContinue --> WaitForConfirmationForContinue : Timeout, resend the message
+@enduml
+
+
+
+
+@startuml
 [*] --> TransportMode : Vložení baterky
 TransportMode --> SendRestartMessage : Restart tlačítko zmáčknuto
 
