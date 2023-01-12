@@ -156,14 +156,14 @@ The primary purpose of the counter is to provide [idempotence](https://en.wikipe
 
 Example:
 
-| Message number| Value of 0th byte                                    |
-|---------------|------------------------------------------------------|
-| 1             | 00  (remainder of header is ommitted for simplicity) |
-| 2             | 01                                                   |
-| 3             | 02                                                   |
-| 255           | 254                                                  |
-| 256           | 255                                                  |
-| 257           | 00  (overflow occured and the counter is reset)      |
+| Message number| Value of 0th byte                                      |
+|---------------|--------------------------------------------------------|
+| 1             | 0x00  (remainder of header is ommitted for simplicity) |
+| 2             | 0x01                                                   |
+| 3             | 0x02                                                   |
+| 255           | 0xFE                                                   |
+| 256           | 0xFF                                                   |
+| 257           | 0x00  (overflow occured and the counter is reset)      |
 
 
 ### 1st byte - counter of received messages
@@ -187,7 +187,8 @@ The device will never send a value of 161 to 254 that corresponds to temperature
 
 ### 4th byte - RSSI
 
-Contains the [RSSI](https://en.wikipedia.org/wiki/Received_Signal_Strength_Indication) value measured when the previous message was sent.
+Contains the [RSSI](https://en.wikipedia.org/wiki/Received_Signal_Strength_Indication) value measured when the previous message was sent from NbIOT device.
+>Lora device does not support getting RSSI information, the value contains 0x00.
 
 ### 5th byte - acknowledgement and number of attempts to send a message
 
@@ -197,11 +198,11 @@ This byte contains more information about the message being sent. The contents o
 
 The byte contains information about the number of failed sends. The following table explains byte composition:
 
-| Positions | Short description |
-|---------|-----------------------------------------|
-| 0th bit   | Not used                                |
-| 1st bit   | Not used                                |
-| 2nd-7th bit | Number of attempts to send a message |
+| Positions   | Short description |
+|-------------|-----------------------------------------|
+| 0th bit     | Not used                                |
+| 1st bit     | Not used                                |
+| 2nd-7th bit | Number of attempts to send a message    |
 
 In the LoRa network, the device communicates with the network server, which then forwards messages to the server.
 If the device fails to send a message to the network server, it will increase the "Number of attempts to send a message"
@@ -279,14 +280,14 @@ this byte can take on:
 
 | Value   | Message type        |
 |---------|---------------------|
-| 1       | DownlinkAcknowlege  |
-| 2       | Restart             |
-| 3       | Test                |
-| 4       | Error               |
-| 5       | Event               |
-| 7       | Alive               |
-| 8       | Transport           |
-| 9       | Measure             |
+| 0x01    | DownlinkAcknowlege  |
+| 0x02    | Restart             |
+| 0x03    | Test                |
+| 0x04    | Error               |
+| 0x05    | Event               |
+| 0x07    | Alive               |
+| 0x08    | Transport           |
+| 0x09    | Measure             |
 
 
 Downlink and Acknowledge, Restart, Test, Error, Alive, Transport and Event have the same content for all devices.
@@ -326,7 +327,7 @@ Content:
 | Byte    | Description                   |
 |---------|-------------------------------|
 | 0th byte  | Not used, always 0xFF       |
-| 1st byte  | Not used, always 0x12       |
+| 1st byte  | Not used, always 0x0C       |
 | 2nd byte  | Device type                 |
 | 3rd byte  | Device mode                 |
 | 4th byte  | Not used                    |
@@ -349,16 +350,16 @@ The restart code indicates the reason why the restart occurred. Byte can take th
 
 | Value | Description                                                                 |
 |---------|---------------------------------------------------------------------------|
-| 1       | Restart triggered by error                                                |
-| 2       | Restart triggered by [receiving of a message from the server](#receiving-messages-from-the-server) |
-| 8       | Restart triggered reset button                                            |
+| 0x00    | Restart triggered by hardware                                             |
+| 0x01    | Restart triggered by error                                                |
+| 0x02    | Restart triggered by [receiving of a message from the server](#receiving-messages-from-the-server) |
+| 0x08    | Restart triggered reset button                                            |
 
 ### Test
 
 The test message is sent after the device sends a restart message. The primary goal of the test messages is to receive the settings from the server at the LoRa network before the device starts to function normally. You can find more about this issue on the LoRa network [here](#lora). Another use can be signal control.
 
 The default setting for most devices is to send one test message.
-How many test messages the device sends is described for each [device](#device).
 
 The device always waits 1 minute after sending a restart message and then sends a test message.
 There is a delay of 1 minute between every two test messages.
@@ -455,7 +456,9 @@ For error number 2, the device behaves according to the following list:
 ### Alive
 
 The Alive message serves as a notification that the device is OK and still transmitting. The Alive message
-is sent only if the device has not communicated for a long time. By default, an alive message is sent if the device has not sent any message for 12 hours. The interval can be set using [server command](#alive-messages-period).
+is sent only if the device has not communicated for a long time. By default, an alive message is sent if the device has not sent any message for approximately 12 hours. The interval can be set using [server command](#alive-messages-period).
+
+> There is a bug in the current version of the firmware that may cause the alive message to come more often than the set interval.
 
 Content:
 
@@ -498,12 +501,12 @@ The null byte in the message specifies the type of event that occurred.
 
 The values of the null byte can be as follows:
 
-| Value | Event    |
+| Value   | Event    |
 |---------|----------|
-| 0       | start    |
-| 1       | continue |
-| 2       | end      |
-| 3       | tamper   |
+| 0x01    | start    |
+| 0x02    | continue |
+| 0x03    | end      |
+| 0x04    | tamper   |
 
 
 #### Event start, continue and end
@@ -541,11 +544,11 @@ For event end, this value is always greater than 10 minutes.
 This type of alarm indicates that the device cover has been opened or closed.
 Event format
 
-| Byte   | Description                       |
+| Byte   | Description                  |
 |--------|------------------------------|
-| 1st byte | Not used, always 0x03 |
-| 2nd byte | 0 - Not used                |
-| 3rd byte | 0 - Not used                |
+| 1st byte | Not used, always 0x03      |
+| 2nd byte | 0x00 - Not used            |
+| 3rd byte | 0x00 - Not used            |
 
 
 ## Device
@@ -617,7 +620,7 @@ Measure message of the Thermometer device has the following format:
 | Byte                  | Description            |
 |-----------------------|------------------------|
 | 0th byte              | Not used - always 0xFF |
-| 1st byte              | Not used - always 20   |
+| 1st byte              | Not used - always 20   | TODO
 | 2nd byte - 21st byte  | Measured temperatures  |
 
 
@@ -643,10 +646,10 @@ It measures temperature and humidity at given moments (default after 1 min). Aft
 
 The Measure message has the following format:
 
-| Byte             | Description                         |
-|------------------|--------------------------------|
+| Byte             | Description            |
+|------------------|------------------------|
 | 0th byte         | Not used - always 0xFF |
-| 1st byte         | Not used - always 30   |
+| 1st byte         | Not used - always 30   | TODO
 | 2nd byte - 31st byte | Measured values of temperature and humidity    |
 
 The device works similarly to the Thermometer described [here](#thermometer). The only
@@ -785,6 +788,7 @@ This byte specifies the category of the downlink to be sent. The category can ta
 |----------------------------|-------------------------|
 | 0x01                       | Message acknowledgement |
 | 0x02                       | Commands                |
+| 0x03                       | Unused                  |
 | 0x04                       | Settings                |
 
 
@@ -895,7 +899,7 @@ Structure:
 | Byte   | Description                                                          |
 |--------|----------------------------------------------------------------------|
 | 0th byte | Not used - always 0x01                                             |
-| 1st byte | Number of consecutive messages not requiring acknowledgement, 0 - all messages require acknowledgement |
+| 1st byte | Number of consecutive messages not requiring acknowledgement, 0x00 - all messages require acknowledgement |
 
 
 ##### Turning message acknowledgement on/off
@@ -907,7 +911,7 @@ Structure:
 | Byte   | Description                                          |
 |--------|------------------------------------------------------|
 | 0th byte | Not used - always 0x01                             |
-| 1st byte | 0 turns on message acknowledgement, 1 - turns off message acknowledgement |
+| 1st byte | 0x00 turns off message acknowledgement, 0x01 - turns on message acknowledgement |
 
 
 ##### Turning Event start acknowledgement on/off 
@@ -919,7 +923,7 @@ Structure:
 | Byte   | Description                                          |
 |--------|------------------------------------------------------|
 | 0th byte | Not used - always 0x01                             |
-| 1st byte | 0 turns off event acknowledgement, 1 - turns on event acknowledgement |
+| 1st byte | 0x00 turns off event acknowledgement, 0x01 - turns on event acknowledgement |
 
 
 ##### Alive messages period
@@ -947,7 +951,7 @@ Described [here](#sampling-period-for-temperature-and-humidity-devices-and-how-o
 | 1st byte | Contains settings            |
 
 
-Composition of 1st byte:
+Composition of 1st byte (LSB):
 
 | Bit               | Description |
 |-------------------|-------------|
@@ -957,7 +961,7 @@ Composition of 1st byte:
 | 3rd bit           | Not used    |
 | 4th bit - 7th bit | Not used    |
 
-By default, the byte is set to 10100000 - both flashing and beeping are enabled during Event start.
+By default, the byte is set to 0x05, that is 00000101 - both flashing and beeping are enabled during Event start.
 
 ##### Turning LoRa ADR on/off
 
@@ -968,19 +972,19 @@ It can only be used for devices on the LoRa network.
 | Byte     | Description                  |
 |----------|------------------------------|
 | 0th byte | Not used - always 0x01       |
-| 1st byte | 0 - off, 1 - on              |
+| 1st byte | 0x00 - off, 0x01 - on              |
 
 
-##### Setting LoRa dataRate
+##### Setting LoRa Data Rate
 
-Sets [Lora dataRate](https://lora-developers.semtech.com/uploads/documents/files/Understanding_LoRa_Adaptive_Data_Rate_Downloadable.pdf)
+Sets [Data Rate](https://lora-developers.semtech.com/uploads/documents/files/Understanding_LoRa_Adaptive_Data_Rate_Downloadable.pdf)
 .
 It can only be used for devices on the LoRa network.
 
 | Byte     | Description                  |
 |----------|------------------------------|
 | 0th byte | Not used - always 0x01       |
-| 1st byte | 0 - off, 1 - on              |
+| 1st byte | Data Rate value (1 - 5)      |
 
 ##### Setting device mode
 
@@ -993,8 +997,7 @@ If the message is sent to a device that does not support other modes, it will on
 | 0th byte | Not used - always 0x01       |
 | 1st byte | Device operation mode        |
 
-Currently only Magnet devices support mode switching (0 - simple, 1 - continuous). When another mode number is sent,
-the device is set to continuous mode.
+Currently only Magnet devices support mode switching (0x00 - simple, 0x01 - continuous). When another mode number is sent, the device is set to continuous mode.
 
 ##### Limiting the maximum number of Event continue messages
 
@@ -1008,7 +1011,7 @@ the maximum number.
 | Byte     | Description                                                            |
 |----------|------------------------------------------------------------------------|
 | 0th byte | Not used - always 0x01                                                 |
-| 1st byte | Maximal number of Event continue messages. 0x0 sets unlimited number of messages |
+| 1st byte | Maximal number of Event continue messages. 0x00 sets unlimited number of messages |
 
 
 ##### Specifies the sampling period for temperature and humidity devices

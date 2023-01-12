@@ -156,14 +156,14 @@ Primární účel počítadla je zajištění [idempotence](https://cs.wikipedia
 
 Příklad:
 
-| Číslo zprávy | Hodnota 0.byte                                       |
-|--------------|------------------------------------------------------|
-| 1            | 00  (zbytek hlavičky je nahrazen - pro jednoduchost) |
-| 2            | 01                                                   |
-| 3            | 02                                                   |
-| 255          | 254                                                  |
-| 256          | 255                                                  |
-| 257          | 00  (došlo k přetečení a counter se restartoval)     |
+| Číslo zprávy | Hodnota 0.byte                                         |
+|--------------|--------------------------------------------------------|
+| 1            | 0x00  (zbytek hlavičky je nahrazen - pro jednoduchost) |
+| 2            | 0x01                                                   |
+| 3            | 0x02                                                   |
+| 255          | 0xFE                                                   |
+| 256          | 0xFF                                                   |
+| 257          | 0x00  (došlo k přetečení a counter se restartoval)     |
 
 ### 1.byte - počítadlo přijatých zpráv
 
@@ -186,7 +186,8 @@ Zařízení nikdy nepošle hodnotu 161 až 254, která by odpovídala teplotám 
 
 ### 4.byte - RSSI
 
-Obsahuje hodnotu [RSSI](https://cs.wikipedia.org/wiki/Received_Signal_Strength_Indication) naměřeného při odesílání předchozí zprávy.
+Obsahuje hodnotu [RSSI](https://cs.wikipedia.org/wiki/Received_Signal_Strength_Indication) naměřeného při odesílání předchozí zprávy u NbIOT zařízení.
+> Lora zařízení nepodporuje získání informace o RSSI, hodnota obsahuje 0x00.
 
 ### 5.byte - potvrzení a počet pokusů o odeslání zprávy
 
@@ -277,14 +278,14 @@ tento byte může nabývat:
 
 | Hodnota | Název               |
 |---------|---------------------|
-| 1       | DownlinkAcknowlege  |
-| 2       | Restart             |
-| 3       | Test                |
-| 4       | Error               |
-| 5       | Event               |
-| 7       | Alive               |
-| 8       | Transport           |
-| 9       | Measure             |
+| 0x01    | DownlinkAcknowlege  |
+| 0x02    | Restart             |
+| 0x03    | Test                |
+| 0x04    | Error               |
+| 0x05    | Event               |
+| 0x07    | Alive               |
+| 0x08    | Transport           |
+| 0x09    | Measure             |
 
 DownlinkaAcknowlege, Restart, Test, Error, Alive, Transport a Event mají stejný obsah pro všechna zařízení.
 Tyto zprávy jsou popsány v dalších odstavcích o datech.
@@ -323,7 +324,7 @@ Obsah:
 | Byte    | Význam                       |
 |---------|------------------------------|
 | 0.byte  | Nepoužitý vždy obsahuje 0xFF |
-| 1.byte  | Nepoužitý vždy obsahuje 0x12 |
+| 1.byte  | Nepoužitý vždy obsahuje 0x0C |
 | 2.byte  | Typ zařízení                 |
 | 3.byte  | Mód zařízení                 |
 | 4.byte  | Nepoužité                    |
@@ -346,16 +347,16 @@ Kód restartu udává důvod proč restart nastal. Byte může nabívat následu
 
 | Hodnota | Význam                                                                    |
 |---------|---------------------------------------------------------------------------|
-| 1       | Restart způsoben chybou                                                   |
-| 2       | Restart vyvolán [přijmutím zprávy ze serveru](#přijmání-zpráv-ze-serveru) |
-| 8       | Restart způsoben stisknutím tlačítka                                      |
+| 0x00    | Restart vyvolán hardwarem                                                 |
+| 0x01    | Restart způsoben chybou                                                   |
+| 0x02    | Restart vyvolán [přijmutím zprávy ze serveru](#přijmání-zpráv-ze-serveru) |
+| 0x08    | Restart způsoben stisknutím tlačítka                                      |
 
 ### Test
 
 Test zpráva je odeslána poté, co zařízení odešle restart zprávu. Primárním cílem test zpráv je přijmout nastavení ze serveru u LoRa sítě ještě před tím, než začne zařízení fungovat normálním způsobem. Více o této problematice na LoRa síti najdete [zde](#lora). Další způsob využití může být kontrola signálu.
 
 Defaultní nastavení pro většinu zařízení je odeslání jedné testovací zprávy.
-Kolik testovacích zpráv zařízení odesílá je popsáno u jednotlivých [zařízení](#zařízení).
 
 Zařízení vždy čeká 1 minutu po odeslání restart zprávy a následně odešle test zprávu.
 Mezi každými dvěma test zprávami je prodleva 1 minuta.
@@ -449,7 +450,9 @@ Pro chybu s číslem 2 se zařízení chová podle následujícího seznamu:
 ### Alive
 
 Alive zpráva slouží jako oznámení, že zařízení je v pořádku a stále vysílá. Alive zpráva
-se posílá pouze pokud zařízení dlouhou dobu nekomunikovalo. Defaultně je alive zpráva odeslána pokud zařízení neodeslalo žádnou zprávu 12 hodin. Interval se dá nastavit pomocí [příkazu ze serveru](#interval-alive-zpráv).
+se posílá pouze pokud zařízení dlouhou dobu nekomunikovalo. Defaultně je alive zpráva odeslána pokud zařízení neodeslalo žádnou zprávu cca 12 hodin. Interval se dá nastavit pomocí [příkazu ze serveru](#interval-alive-zpráv).
+
+> V současné verzi firmware je chyba díky které může přijít alive zpráva častěji než v nastaveném intervalu.
 
 Obsah:
 
@@ -491,10 +494,10 @@ Hodnoty nultého byte mohou být následující:
 
 | Hodnota | Event    |
 |---------|----------|
-| 0       | start    |
-| 1       | continue |
-| 2       | end      |
-| 3       | tamper   |
+| 0x01    | start    |
+| 0x02    | continue |
+| 0x03    | end      |
+| 0x04    | tamper   |
 
 #### Event start, continue a end
 
@@ -534,8 +537,8 @@ Formát události
 | Byte   | Význam                       |
 |--------|------------------------------|
 | 1.byte | Nepoužitý vždy obsahuje 0x03 |
-| 2.byte | 0 - nepoužité                |
-| 3.byte | 0 - nepoužité                |
+| 2.byte | 0x00 - nepoužité             |
+| 3.byte | 0x00 - nepoužité             |
 
 
 ## Zařízení
@@ -607,7 +610,7 @@ Measure zpráva zařízení Thermometer má následující formát:
 | Byte             | Význam                         |
 |------------------|--------------------------------|
 | 0.byte           | Nepoužité - vždy obsahuje 0xFF |
-| 1.byte           | Nepoužité - vždy obsahuje 20   |
+| 1.byte           | Nepoužité - vždy obsahuje 20   | TODO
 | 2.byte - 21.byte | Naměřené teploty               |
 
 2.byte - 21.byte obsahuje posledních 9 hodnot odeslaných na server a jednu
@@ -635,7 +638,7 @@ Measure zpráva má následující formát:
 | Byte             | Význam                         |
 |------------------|--------------------------------|
 | 0.byte           | Nepoužité - vždy obsahuje 0xFF |
-| 1.byte           | Nepoužité - vždy obsahuje 30   |
+| 1.byte           | Nepoužité - vždy obsahuje 30   | TODO
 | 2.byte - 31.byte | Naměřené teploty a vlhkosti    |
 
 Zařízení funguje podobně jako Teploměr popsaný [zde](#teploměr). Jediný
@@ -774,6 +777,7 @@ Tento byte určuje kategorii downlinku který bude odeslán. Kategorie může na
 |----------------|------------------|
 | 0x01           | Potvrzení zprávy |
 | 0x02           | Příkazy          |
+| 0x03           | Nepoužito        |
 | 0x04           | Nastavení        |
 
 V kapitolách níže jsou popsány jednotlivé kategorie a typy zpráv které mohou obsahovat.
@@ -881,7 +885,7 @@ Struktura:
 | Byte   | Význam                                                             |
 |--------|--------------------------------------------------------------------|
 | 0.byte | Nepoužité - vždy obsahuje 0x01                                     |
-| 1.byte | Určuje maximální počet pokračování poplachů které se budou posílat |
+| 1.byte | Počet po sobě jdoucích zpráv nevyžadujících potvrzení, 0x00 - všechny zprávy vyžadují potvrzení |
 
 ##### Vypnutí a zapnutí potvrzování zpráv
 
@@ -892,7 +896,7 @@ Struktura:
 | Byte   | Význam                                               |
 |--------|------------------------------------------------------|
 | 0.byte | Nepoužité - vždy obsahuje 0x01                       |
-| 1.byte | 0 vypne potvrzování zpráv, 1 - zapne potvrzoví zpráv |
+| 1.byte | 0x00 vypne potvrzování zpráv, 0x01 - zapne potvrzoví zpráv |
 
 ##### Vypnutí potvrzování události Event start
 
@@ -903,7 +907,7 @@ Struktura:
 | Byte   | Význam                                               |
 |--------|------------------------------------------------------|
 | 0.byte | Nepoužité - vždy obsahuje 0x01                       |
-| 1.byte | 0 vypne potvrzování zpráv, 1 - zapne potvrzoví zpráv |
+| 1.byte | 0x00 vypne potvrzování zpráv, 0x01 - zapne potvrzoví zpráv |
 
 ##### Interval alive zpráv
 
@@ -928,7 +932,7 @@ Popsáno [zde](#perioda-vzorkování-pro-teplotní-a-vlhkostní-zařízení-a-na
 | 0.byte | Nepoužité - vždy obsahuje 0x01 |
 | 1.byte | Obsahuje nastavení             |
 
-Složení 1.byte:
+Složení 1.byte (LSB):
 
 | Bit           | Význam    |
 |---------------|-----------|
@@ -938,7 +942,7 @@ Složení 1.byte:
 | 3.bit         | Nepoužité |
 | 4.bit - 7.bit | Nepoužité |
 
-Defaultně je byte nastaven na 10100000 - blikání i pískání je při Event start zapnuto.
+Defaultně je byte nastaven na 0x05, tedy 00000101 - blikání i pískání je při Event start zapnuto.
 
 ##### Zapnutí nebo vypnutí LoRa ADR
 
@@ -949,18 +953,18 @@ Dá se použít pouze pro zařízení na síti LoRa.
 | Byte   | Význam                         |
 |--------|--------------------------------|
 | 0.byte | Nepoužité - vždy obsahuje 0x01 |
-| 1.byte | 0 - vypnuto, 1 - zapnuto       |
+| 1.byte | 0x00 - vypnuto, 0x01 - zapnuto       |
 
-##### Nastaví LoRa dataRate
+##### Nastaví LoRa Data Rate
 
-Nastaví [Lora dataRate](https://lora-developers.semtech.com/uploads/documents/files/Understanding_LoRa_Adaptive_Data_Rate_Downloadable.pdf)
+Nastaví [Data Rate](https://lora-developers.semtech.com/uploads/documents/files/Understanding_LoRa_Adaptive_Data_Rate_Downloadable.pdf)
 .
 Dá se použít pouze pro zařízení na síti LoRa.
 
 | Byte   | Význam                         |
 |--------|--------------------------------|
 | 0.byte | Nepoužité - vždy obsahuje 0x01 |
-| 1.byte | 0 - vypnuto, 1 - zapnuto       |
+| 1.byte | Hodnota Data Rate (1 - 5)      |
 
 ##### Nastaví módu zařízení
 
@@ -973,8 +977,7 @@ Pokud je zpráva odeslána na zařízení, které nepodporuje jiné režimy, doj
 | 0.byte | Nepoužité - vždy obsahuje 0x01 |
 | 1.byte | Mód zařízení                   |
 
-Aktuálně přepnutí módu podporuje pouze zařízení Magnet (0 - simple, 1 - continuous). Při odeslání jiného čísla módu se
-zařízení nastaví do režimu continuous.
+Aktuálně přepnutí módu podporuje pouze zařízení Magnet (0x00 - simple, 0x01 - continuous). Při odeslání jiného čísla módu se zařízení nastaví do režimu continuous.
 
 ##### Omezení maximálního počtu zpráv typu Event continue
 
@@ -988,7 +991,7 @@ maximálního počtu.
 | Byte   | Význam                                                               |
 |--------|----------------------------------------------------------------------|
 | 0.byte | Nepoužité - vždy obsahuje 0x01                                       |
-| 1.byte | Maximální počet událostí continue. 0x0 nastaví na neomezené množství |
+| 1.byte | Maximální počet událostí continue. 0x00 nastaví na neomezené množství |
 
 ##### Určuje periodu vzorkování pro teplotní a vlhkostní zařízení
 
@@ -1017,7 +1020,7 @@ Pro běžné užívání by měli stačit následující nastavení:
 ##### Perioda vzorkování pro teplotní a vlhkostní zařízení a nastavení, jak často se má odeslat measure zpráva
 
 Hodnoty 0x05 a 0x0C se obě vztahují k teploměru a vlhkoměru a úzce spolu souvisí.
-Obě tyto hodnoty musejí být nastaveny naráz ve správném pořadí a bez restaru mezi zpracováními těchto zpráv.
+Obě tyto hodnoty musejí být nastaveny naráz ve správném pořadí a bez restaru mezi zpracováním těchto zpráv.
 
 První musí být nastaveno, jak často se má odesílat measure zpráva a následně jaké má být vzorkování.
 
