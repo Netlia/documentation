@@ -39,8 +39,7 @@ Pro probuzení zařízení z transportního režimu je potřeba stisknout restar
 5. Odeslání 0-N [testovacích zpráv](#test) (podle typu zařízení)
 6. Běžné fungování zařízení - odesílání událostí, measure zpráv a dalších
 
-Po spuštění zařízení je možné ho kdykoliv restartovat dvěma způsoby - standartním restartem nebo hard
-restartem.
+Po spuštění zařízení je možné ho kdykoliv restartovat dvěma způsoby - standartním restartem nebo hard restartem.
 
 ### Standartní restart
 
@@ -61,6 +60,8 @@ Standartní restart nastaví všechny informace, které zařízení udržuje v p
 Vyjímkou jsou dvě informace - mód zařízení a počítadla restartů v [restart zprávě](#restart).
 
 Jakékoliv konfigurace, které byly nastaveny zprávami ze serveru jsou  smazány. Stejně tak všechna počítadla ve zprávách.
+
+Restart způsobí přerušení všech procesů.
 
 ### Hard restart
 
@@ -128,6 +129,25 @@ Zprávy se odesílají v hexadecimálním tvaru a skládají se ze dvou částí
 Hlavička obsahuje obecné informace a typ zprávy. Typ zprávy pak určuje
 jak bude vypadat datová část zprávy.
 
+U NB-IoT zařízení, kde je payload zasílán UDP datagramem, může být před samotným payloadem ještě 16 znaků obsahujících identifikátor SIM karty. Viz. [identifikace zařízení](#identifikace-zarizeni) níže.
+
+## Identifikace zařízení
+Netlia jako výrobce označuje zařízení sériovým číslem. Toto sériové číslo není žádnou formou možné získat z payloadu zpráv. Další údaje k identifikaci jsou dodávány dle typu sítě a požadované konfigurace. Je na klientovi, aby implementoval způsob jakým bude zařízení identifikovat dle svých potřeb.
+
+### Identifikace LoRa zařízení
+Netlia dodává se zařízením údaje potřebné pro registraci zařízení na network serveru. Jedním z těchto údajů je jedinečný identifikátor DevEUI, který je při komunikaci z network serveru předáván společně se zprávou.
+
+### Identifikace NB-IoT zařízení
+Způsob identifikace závisí na požadavcích klienta a dle toho je při výrobě zařízení nakonfigurováno.
+
+Výchozím řešením je, že identifikaci si zajistí klient, který zná IP adresu zařízení ze kterého dorazil UDP datagram obsahující payload. Tato IP adresa jednoznačně identifikuje zařízení. Toto řešení je využíváno v případě sítě s privátním APN.
+
+Alternativně je možné UDP datagram doplnit o identifikátor SIM karty - IMSI. V tomto případě datagram obsahuje na začátku 16 znaků obsahujících 15 číslic IMSI doplněných 0 zleva. Toto řešení je využíváno v případě sítě se sdíleným APN, kdy zařízení jsou skryta za NATem.
+
+Příklad datagramu s IMSI: `0AAAAAAAAAAAAAAAXXXXXXXXXX`  
+`AAA...`: IMSI (obsahuje pouze číslice)  
+`XXX...`: Hexadecimální payload
+
 ## Hlavička
 
 Hlavička má 7 bytů a obsahuje obecné informace, které jsou společné pro všechny typy zpráv.
@@ -187,7 +207,7 @@ Zařízení nikdy nepošle hodnotu 161 až 254, která by odpovídala teplotám 
 ### 4.byte - RSSI
 
 Obsahuje hodnotu [RSSI](https://cs.wikipedia.org/wiki/Received_Signal_Strength_Indication) naměřeného při odesílání předchozí zprávy u NbIOT zařízení.
-> Lora zařízení nepodporuje získání informace o RSSI, hodnota obsahuje 0x00.
+> LoRa zařízení nepodporuje získání informace o RSSI, hodnota obsahuje 0x00. Důvodem je, že tento údaj samotný u LoRa nevypovídá o kvalitě signálu, tu je žádoucí vyhodnocovat na základě dodatečných informací předaných z network serveru současně se zprávou.
 
 ### 5.byte - potvrzení a počet pokusů o odeslání zprávy
 
@@ -327,14 +347,14 @@ Obsah:
 | 1.byte  | Nepoužitý vždy obsahuje 0x0C |
 | 2.byte  | Typ zařízení                 |
 | 3.byte  | Mód zařízení                 |
-| 4.byte  | Nepoužité                    |
-| 5.byte  | Nepoužité                    |
-| 6.byte  | Nepoužité                    |
-| 7.byte  | Nepoužité                    |
-| 8.byte  | Nepoužité                    |
-| 9.byte  | Nepoužité                    |
-| 10.byte | Nepoužité                    |
-| 11.byte | Nepoužité                    |
+| 4.byte  | Servisní údaj                |
+| 5.byte  | Servisní údaj                |
+| 6.byte  | Servisní údaj                |
+| 7.byte  | Servisní údaj                |
+| 8.byte  | Servisní údaj                |
+| 9.byte  | Servisní údaj                |
+| 10.byte | Servisní údaj                |
+| 11.byte | Servisní údaj                |
 | 12.byte | počet restartů               |
 | 13.byte | kód restartu                 |
 
@@ -343,7 +363,7 @@ a módu jsou popsány u jednotlivých [zařízení](#zařízení).
 
 Počet restartů udává, kolikrát bylo zařízní restartováno od [hard restartu](#hard-restart).
 
-Kód restartu udává důvod proč restart nastal. Byte může nabívat následujících hodnot:
+Kód restartu udává důvod proč restart nastal. Byte může nabývat následujících hodnot:
 
 | Hodnota | Význam                                                                    |
 |---------|---------------------------------------------------------------------------|
@@ -510,28 +530,32 @@ detekce vody (Water) nebo třeba zaznamenání pohybu v místnosti (PIR). Detail
 Některá zařízení neodesílají všechny druhy událostí nebo se chovají
 odlišně. Více o těchto odlišnostech v sekci [Zařízení](#zařízení).
 
+Při události event start zařízení ve výchozím stavu indikuje 1x bliknutím LED diody a písknutím (stejné chování jako event tamper - 0x04). Indikaci je možné upravit [konfiguračním příkazem ze serveru](#spuštění-led-diody-a-pískání-při-události-event-start).
+
 Event start, end a continue mají následující formát:
 
-| Byte   | Význam                               |
-|--------|--------------------------------------|
-| 1.byte | Nepoužitý vždy obsahuje 0x03         |
-| 2.byte | Počet událostí                       |
-| 3.byte | Čas od poslední události v sekundách |
+| Byte            | Význam                               |
+|-----------------|--------------------------------------|
+| 1.byte          | Nepoužitý vždy obsahuje 0x03         |
+| 2.byte          | Počet událostí                       |
+| 3.byte - 4.byte | Počet sekund od poslední události    |
 
-Počet událostí určuje, kolik událostí nastalo od odeslání předchozí zprávy.
-Pro event end je tato hodnota vždy 0 a pro event start je tato hodnota
-vždy 1.
+Počet událostí určuje, kolik událostí nastalo od odeslání předchozí zprávy. 
+Pro event start i event end je tato hodnota vždy 0. Pro event continue je tato hodnota v rozsahu 1-255 (0x01 - 0xFF).
 
 Čas od poslední události určuje dobu, kdy zařízení naposledy
 zaznamenalo událost. Pro event start je tato hodnota vždy 0, jelikož se odesílá
 hned po zaznamenání události zařízením. Pro událost continue je tato
 hodnota vždy 0-10 minut, jelikož zařízení odesílá event continue
 každých 10 minut a senzor mohl událost zaznamenan kdykoliv v této době.  
-Pro event end je tato hodnota vždy větší než 10 minut.
+Pro event end je tato hodnota vždy větší než 10 minut. Hodnota je dvoubajtové číslo (LSB).
 
 #### Event tamper
 
 Tento typ poplachu oznamuje, že došlo k otevření nebo k zavření krytu zařízení.
+
+Při události zařízení ve výchozím stavu indikuje 1x bliknutím LED diody a písknutím (stejné chování jako event start 0x01). Indikaci je možné upravit [konfiguračním příkazem ze serveru](#spuštění-led-diody-a-pískání-při-události-event-start).
+
 Formát události
 
 | Byte   | Význam                       |
@@ -551,7 +575,9 @@ Zařízení slouží k detekci vody, se kterou přišlo zařízení do kontaktu.
 tak je odslána zpráva event continue. Event end zpráva je odeslána, pokud
 10 minut není detekována voda.
 
-* Zařízení podporuje události - Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+* Podporované události: Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege
+* Typ zařízení (2.byte restart zprávy): 0x01
+* Výchozí mód (3. byte restart zprávy): 0x00 (v současnosti není více módů)
 
 Vodní zařízení má oproti ostatním zařízením nastavený maximální počet zpráv typu event continue.
 Zařízení vždy pošle pouze 2 zprávy continue a poté už čeká na ukončení poplachu, tj. neposílá další pokračovací zprávy.
@@ -561,7 +587,9 @@ Zařízení vždy pošle pouze 2 zprávy continue a poté už čeká na ukončen
 Zařízení slouží k detekci pohybu samotného zařízení objektu, na kterém je zařízení umístěno. Event start zpráva je odeslána, když zařízení detekuje pohyb. Event continue zpráva je odeslána, pokud je zaznamenán další pohyb v následujících 10 minutách.
 Event end zpráva je poté odeslána, pokud zařízení 10 minut nezaznamená ani jeden pohyb.
 
-* Zařízení podporuje události - Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+* Podporované události: Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege
+* Typ zařízení (2.byte restart zprávy): 0x02
+* Výchozí mód (3. byte restart zprávy): 0x00 (v současnosti není více módů)
 
 ### Magnetický detektor
 
@@ -569,19 +597,27 @@ Zařízení slouží ke sledování četnosti otevření/zavření dveří, kryt
 Zařízení podporuje dva režimy. Režim continuous a simple. Mezi těmito
 režimy lze přepínat pomocí [zprávy ze serveru pro nastavení modu zařízení](#nastaví-módu-zařízení). Defaultní mód je simple.
 
-* Zařízení podporuje události - Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+U magnetického detektoru nastává situace vyplívající z jeho chování, že při prvním použití od restartu (přiblížení magnetu) přijde jako první event zpráva s event typem end.
+
+* Podporované události: Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege
+* Typ zařízení (2.byte restart zprávy): 0x06
+* Výchozí mód (3. byte restart zprávy): 0x00 (continuous)
 
 #### Režim continuous
 
 Pokud v klidovém stavu dojde k oddálení magnetu, je odeslána zpráva Event start.
-Na přiblížení magnetu nijak nereaguje, ale počítá každé oddálení magnetů
+Na přiblížení magnetu nijak nereaguje, ale počítá každé oddálení magnetu
 a po 10 minutách pošle Event continue zpráva.
 Pokud se během 10 minut nic nestane (nedojde k oddálení magnetu),
 zařízení posílá Event end zprávu.
 
+* Hodnota módu při použití v payloadu: 0x00
+
 #### Režim simple
 
-Každé oddálení magnetů odešle zprávu Event start. Každé oddálení magnetu odešle zprávu Event end. V tomto režimu nedochází k počítání poplachů ani k odesílání zprávy typu Event continue.
+Každé oddálení magnetu odešle zprávu Event start. Každé přiblížení magnetu odešle zprávu Event end. V tomto režimu nedochází k počítání poplachů ani k odesílání zprávy typu Event continue.
+
+* Hodnota módu při použití v payloadu: 0x01
 
 ### PIR detektor
 
@@ -589,7 +625,9 @@ Detekuje pohyb nebo přítomnost člověka ve vymezeném prostoru do vzdálenost
 Pokud i nadále detekuje pohyb, posílá v 10 minutových intervalech zprávy
 Event continue. Senzor pošle zprávu Event end, pokud 10 minut nenastane žádný pohyb.
 
-* Zařízení podporuje události - Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+* Podporované události: Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege
+* Typ zařízení (2.byte restart zprávy): 0x07
+* Výchozí mód (3. byte restart zprávy): 0x00 (v současnosti není více módů)
 
 ### SOS tlačítko
 
@@ -597,20 +635,24 @@ Zařízení s tlačítkem pro přivolání pomoci nebo spuštění poplachu.
 Zařízení posílá zprávu Event start, pokud někdo zmáčnkne tlačítko.
 Zpráva typu Event end nikdy není odeslána.
 
-* Zařízení podporuje události - Event start, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+* Podporované události: Event start, Restart, Alive, Transport, Error, DownlinkAcknowlege
+* Typ zařízení (2.byte restart zprávy): 0x05
+* Výchozí mód (3. byte restart zprávy): 0x00 (v současnosti není více módů)
 
 ### Teploměr
 
 V daných okamžicích měří teplotu (defaultně po 1 min). Po X měřeních (defaultně 10) provede výpočet průměrné hodnoty a odešle zprávu Measure na server.
 
-* Zařízení podporuje události - Measure, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+* Podporované události: Measure, Restart, Alive, Transport, Error, DownlinkAcknowlege
+* Typ zařízení (2.byte restart zprávy): 0x03
+* Výchozí mód (3. byte restart zprávy): 0x00 (v současnosti není více módů)
 
 Measure zpráva zařízení Thermometer má následující formát:
 
 | Byte             | Význam                         |
 |------------------|--------------------------------|
 | 0.byte           | Nepoužité - vždy obsahuje 0xFF |
-| 1.byte           | Nepoužité - vždy obsahuje 20   | TODO
+| 1.byte           | Nepoužité - vždy obsahuje 0x14 |
 | 2.byte - 21.byte | Naměřené teploty               |
 
 2.byte - 21.byte obsahuje posledních 9 hodnot odeslaných na server a jednu
@@ -618,7 +660,7 @@ novou hodnotu. Historické hodnoty jsou ve zprávě obsažené z důvodu možnos
 
 Zprávy jsou seřazené od nejaktuálnějšího měření až po nejstarší.
 
-Každá naměřená hodnota ve zprávě zabírá 2 byte a je kódována pomocí dvojkového doplňku - jednička v nejvyšším bitu značí záporné číslo a 0 značí kladné. Pro získání teploty jeSS potřeba vypočítat dvojkový doplněk a výsledek vydělit 100. Např. pokud byte 2 obsahuje - 0x01 a byte 3 obsahuje 0x00 tak je naměřená teplota = (256/100) nebo-li 2,56 °C. Pokud druhý byte obsahuje 10000001 (0x81) a třetí 0x00 tak je naměřená teplota = (256/100) * - 1 nebo-li -2,56 °C.
+Každá naměřená hodnota ve zprávě zabírá 2 byte a je kódována pomocí dvojkového doplňku - jednička v nejvyšším bitu značí záporné číslo a 0 značí kladné. Pro získání teploty je potřeba vypočítat dvojkový doplněk a výsledek vydělit 100. Např. pokud byte 2 obsahuje - 0x01 a byte 3 obsahuje 0x00 tak je naměřená teplota = (256/100) nebo-li 2,56 °C. Pokud druhý byte obsahuje 10000001 (0x81) a třetí 0x00 tak je naměřená teplota = (256/100) * - 1 nebo-li -2,56 °C.
 
 Zařízení umožňuje nastavit, jak často se má measure zpráva odeslat a také
 kolik vzorků se má za daný interval naměřit.
@@ -631,14 +673,16 @@ teplota měřit, je možné nastavit příkazem ze serveru. Více [zde](#perioda
 
 V daných okamžicích měří teplotu a vlhkost (defaultně po 1 min). Po X měřeních (defaultně 10) provede výpočet průměrné hodnoty a odešle zprávu Measure na server.
 
-* Zařízení podporuje události - Measure, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+* Podporované události: Measure, Restart, Alive, Transport, Error, DownlinkAcknowlege
+* Typ zařízení (2.byte restart zprávy): 0x04
+* Výchozí mód (3. byte restart zprávy): 0x00 (v současnosti není více módů)
 
 Measure zpráva má následující formát:
 
 | Byte             | Význam                         |
 |------------------|--------------------------------|
 | 0.byte           | Nepoužité - vždy obsahuje 0xFF |
-| 1.byte           | Nepoužité - vždy obsahuje 30   | TODO
+| 1.byte           | Nepoužité - vždy obsahuje 0x1E |
 | 2.byte - 31.byte | Naměřené teploty a vlhkosti    |
 
 Zařízení funguje podobně jako Teploměr popsaný [zde](#teploměr). Jediný
@@ -661,11 +705,11 @@ zařízení přijme příkaz na restartování, nejdříve odešle potvrzení a 
 
 ## LoRa a NB-IoT
 
-Zařízení komunikují pomocí LoRa nebo NB-IoT sítě. Odesílání zpráv na zařízení se liší podle toho, kterou síť zařízení využívá. Síť je vybrána už při výrobě zařízení a není možné ji změnit.
+Zařízení komunikují pomocí LoRa nebo NB-IoT sítě. Odesílání zpráv na zařízení se liší podle toho, kterou síť zařízení využívá. Síť je zvolena již při výrobě zařízení a není možné ji změnit.
 
 ### NB-IoT
 
-Vždy, když zařízení odesílá [zprávu vyžadující potvrzení](#potvrzení-zprávy-ze-serveru), má server možnost odeslat
+Vždy, když zařízení odesílá [zprávu vyžadující potvrzení](#5byte---nb-iot), má server možnost odeslat
 zprávu na zařízení. Zařízení na zprávu ze serveru čeká 5 sekund. Server musí odpovědět
 příkazem, nastavením konfigurace nebo [potvrzením](#potvrzení-zprávy), pokud nechce na zařízení nic měnit.
 Pokud zařízení nepřijme v čase 5 sekund žádnou zprávu, tak znovu odesílá původní
@@ -709,7 +753,7 @@ Pokud zařízení úspěšně přijme zprávu, odešle na server
 potvrzení. Formát potvrzovací zprávy je popsán [zde](#potvrzení-zprávy).
 
 Pro LoRa síť nemá význam odesílat na zařízení potvrzovací zprávu, ikdyž si ji zařízení [vyžádá](#hlavička), jelikož o
-potvrzení se stará LoRa síť automaticky u všech zpráv.
+potvrzení se stará LoRa síť automaticky (u zpráv vyžadujících potvrzení).
 
 V některých situacích musí zařízení provést nové navázání komunikace s network serverem.
 Nové navázání spojení způsobí, že zprávy, které jsou uložené na network serveru
@@ -995,7 +1039,7 @@ maximálního počtu.
 
 ##### Určuje periodu vzorkování pro teplotní a vlhkostní zařízení
 
-Popsáno [níže](#perioda-vzorkování-pro-teplotní-a-vlhkostní-zařízení-a-nasavení,-jak-často-se-má-odeslat-measure-zpráva).
+Popsáno [níže](#perioda-vzorkování-pro-teplotní-a-vlhkostní-zařízení-a-nastavení-jak-často-se-má-odeslat-measure-zpráva).
 
 ##### Nastavení citlivosti pohybového zařízení
 
@@ -1048,3 +1092,9 @@ Zařízení vypočítá počet měření, které je potřeba udělat před odesl
 
 Zařízení pak bude čekat mezi měřeními 4 minuty a po každých dvou měření odešle zprávu. Measure
 zprávy se tedy budou odesílat každých 8 minut.
+
+## Zjednodušená implementace potvrzování
+Protože zařízení ve výchozím stavu vyžaduje potvrzení některých zpráv 
+(určuje [5.byte v hlavičce](#5byte---nb-iot)), je nutné implementovat alespoň 
+základní komunikaci ze serveru do zařízení. Na tyto zprávy je možné zjednodušeně 
+odpovídat staticky payloadem `0000000001FF00` který zajistí potvrzení přijaté zprávy.

@@ -62,6 +62,8 @@ The exceptions are two pieces of information - the device mode and the restart c
 
 Any configurations that were set by messages from the server are deleted. So are all the counters in the messages.
 
+A reboot will cause all processes to abort.
+
 ### Hard restart
 
 A hard restart occurs by removing the battery or by completely discharging the battery and then draining the device's capacitors.
@@ -128,6 +130,25 @@ Messages are sent in hexadecimal format and consist of two parts - the header an
 The header contains general information and the message type. The message type then determines
 how the data part of the message will look like.
 
+For NB-IoT devices where the payload is sent in a UDP datagram, there may be 8 chars containing the SIM card identifier before the payload itself. See [Device identification](#device-identification)  below.
+
+## Device identification
+Netlia, as the manufacturer, identifies the device with a serial number. This serial number cannot be obtained in any form from the message payload. Further identification data are supplied according to the type of network and the required configuration. It is up to the client to implement a process to identify the device according to their needs.
+
+### LoRa devices identification
+Netlia supplies the data needed for registration to the network server with the device. One of these items is the unique DevEUI identifier, which is passed along with the message from the network server.
+
+### NB-IoT devices identification
+The method of identification depends on the client's requirements and the device is configured during production.
+
+The default solution is that the identification is provided by the client, which knows the IP address of the device from which the UDP datagram arrived. This IP address uniquely identifies the device. This solution is used in networks with a private APN.
+
+Alternatively, the UDP datagram can be extended with the SIM card identifier - IMSI. In this case, the datagram contains 16 characters at the beginning, containing 15 digits of the IMSI prefixed by 0. This solution is used in networks with a shared APN, where devices are hidden behind NAT.
+
+Example of datagram with IMSI: `0AAAAAAAAAAAAAAAXXXXXXXXXX`  
+`AAA...`: IMSI (contains numbers only)  
+`XXX...`: Hexadecimal payload
+
 ## Header
 
 The header has 7 bytes and contains general information that is common to all message types.
@@ -188,7 +209,7 @@ The device will never send a value of 161 to 254 that corresponds to temperature
 ### 4th byte - RSSI
 
 Contains the [RSSI](https://en.wikipedia.org/wiki/Received_Signal_Strength_Indication) value measured when the previous message was sent from NbIOT device.
->Lora device does not support getting RSSI information, the value contains 0x00.
+>LoRa device does not support getting RSSI information, the value contains 0x00. The reason for this is that RSSI itself does not indicate the quality of the signal, it is necessary to evaluate quality from the additional informations transmitted from the network server with the message.
 
 ### 5th byte - acknowledgement and number of attempts to send a message
 
@@ -330,14 +351,14 @@ Content:
 | 1st byte  | Not used, always 0x0C       |
 | 2nd byte  | Device type                 |
 | 3rd byte  | Device mode                 |
-| 4th byte  | Not used                    |
-| 5th byte  | Not used                    |
-| 6th byte  | Not used                    |
-| 7th byte  | Not used                    |
-| 8th byte  | Not used                    |
-| 9th byte  | Not used                    |
-| 10th byte | Not used                    |
-| 11st byte | Not used                    |
+| 4th byte  | Service information         |
+| 5th byte  | Service information         |
+| 6th byte  | Service information         |
+| 7th byte  | Service information         |
+| 8th byte  | Service information         |
+| 9th byte  | Service information         |
+| 10th byte | Service information         |
+| 11st byte | Service information         |
 | 12th byte | number of restarts          |
 | 13th byte | restart code                |
 
@@ -520,28 +541,32 @@ water detection (Water) or for example motion detection in the room (PIR). A mor
 Some devices do not send all types of events or behave
 differently. More about these differences in the [Devices](#device) section.
 
+When an event start occurs, the device in the default state indicates by 1x LED flash and beep (the same behavior as event tamper - 0x04). The indication can be modified [by a configuration command from the server](#turning-led-flashing-and-buzzer-indication-during-event-start-onoff).
+
 Event start, end and continue have the following format:
 
-| Byte   | Description                              |
-|--------|------------------------------------------|
-| 1st byte | Not used, always 0x03                  |
-| 2nd byte | Number of events                       |
-| 3rd byte | Time since last event in seconds       |
+| Byte                | Description                              |
+|---------------------|------------------------------------------|
+| 1st byte            | Not used, always 0x03                    |
+| 2nd byte            | Number of events                         |
+| 3rd byte - 4th byte | Seconds since last event                 |
 
 The number of events indicates how many events have occurred since the previous message was sent.
-For event end this value is always 0 and for event start this value is
-always 1.
+For event start and event end this value is always 0. For event continue this value is in the range 1-255 (0x01 - 0xFF).
 
 Time since last event indicates the time when the device last
 recorded an event. For event start this value is always 0, as it is sent
 immediately after the event is recorded by the device. For the continue event, the value is
 always 0-10 minutes, since the device sends a continue event
 every 10 minutes and the sensor could have recorded the event at any time during this period.  
-For event end, this value is always greater than 10 minutes.
+For event end, this value is always greater than 10 minutes. The value is a two-byte number (LSB).
 
 #### Event tamper
 
 This type of alarm indicates that the device cover has been opened or closed.
+
+When an event tamper occurs, the device in the default state indicates by 1x LED flash and beep (the same behavior as event 0x01 - start). The indication can be modified [by a configuration command from the server](#turning-led-flashing-and-buzzer-indication-during-event-start-onoff).
+
 Event format
 
 | Byte   | Description                  |
@@ -561,7 +586,9 @@ The device is used to detect water that the device has come into contact with. E
 the event continue message is sent. Event end message is sent if
 no water is detected for 10 minutes.
 
-* The device supports events - Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+* Supported events: Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege
+* Device type (2nd byte in restart message): 0x01
+* Default mode (3rd byte in restart message): 0x00 (currently no more modes)
 
 The water device has a maximum number of event continue messages set compared to other devices.
 The device always sends only 2 continue messages and then waits for the alarm to end, i.e. it does not send any more continue messages.
@@ -571,7 +598,9 @@ The device always sends only 2 continue messages and then waits for the alarm to
 The device is used to detect the movement of the device itself of the object on which the device is placed. Event start message is sent when the device detects motion. Event continue message is sent if another movement is detected in the next 10 minutes.
 An event end message is then sent if the device does not detect any movement for 10 minutes.
 
-* The device supports events - Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+* Supported events: Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege
+* Device type (2nd byte in restart message): 0x02
+* Default mode (3rd byte in restart message): 0x00 (currently no more modes)
 
 ### Magnetic detector
 
@@ -579,7 +608,11 @@ The device is used to monitor the frequency of opening/closing of doors, covers,
 The device supports two modes. Continuous and simple mode. You can switch between these modes
 using the [device mode setting server message](#setting-device-mode). Default mode is simple.
 
-* The device supports events - Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+For the magnetic detector is standart situation which is result of its behaviour, that the first time it is used after a restart (when the magnet is approached), the first received event message is with the event type end.
+
+* Supported events: Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege
+* Device type (2nd byte in restart message): 0x06
+* Default mode (3rd byte in restart message): 0x00 (continuous)
 
 #### Continuous mode
 
@@ -589,9 +622,13 @@ and sends an Event continue message after 10 minutes.
 If nothing happens within 10 minutes (the magnet is not moved away),
 the device sends an Event end message.
 
+* Mode value when used in payload: 0x00
+
 #### Simple mode
 
-Each magnet delay sends an Event start message. Each magnet delay sends an Event end message. In this mode, no alarms are counted or Event continue messages are sent.
+Each magnet delay sends an Event start message. Each magnet approach sends an Event end message. In this mode, no alarms are counted or Event continue messages are sent.
+
+* Mode value when used in payload: 0x01
 
 ### PIR detector
 
@@ -599,7 +636,9 @@ Detects human movement or presence in a defined area up to 10m away using a pass
 If it continues to detect motion, it sends Event continue messages at 10-minute intervals.
    The sensor sends an Event end message if no movement occurs for 10 minutes.
 
-* The device supports events - Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+* Supported events: Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege
+* Device type (2nd byte in restart message): 0x07
+* Default mode (3rd byte in restart message): 0x00 (currently no more modes)
 
 ### SOS button
 
@@ -607,20 +646,24 @@ A device with a button to call for help or raise an alarm.
 The device sends an Event start message if someone presses the button.
 The event end message is never sent.
 
-* The device supports events - Event start, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+* Supported events: Event start, Restart, Alive, Transport, Error, DownlinkAcknowlege
+* Device type (2nd byte in restart message): 0x05
+* Default mode (3rd byte in restart message): 0x00 (currently no more modes)
 
 ### Thermometer
 
 It measures the temperature at given moments (default after 1 min). After X measurements (default 10), it calculates the average value and sends a Measure message to the server.
 
-* The device supports events - Measure, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+* Supported events: Measure, Restart, Alive, Transport, Error, DownlinkAcknowlege
+* Device type (2nd byte in restart message): 0x03
+* Default mode (3rd byte in restart message): 0x00 (currently no more modes)
 
 Measure message of the Thermometer device has the following format:
 
 | Byte                  | Description            |
 |-----------------------|------------------------|
 | 0th byte              | Not used - always 0xFF |
-| 1st byte              | Not used - always 20   | TODO
+| 1st byte              | Not used - always 0x14 |
 | 2nd byte - 21st byte  | Measured temperatures  |
 
 
@@ -629,7 +672,7 @@ new value. Historical values are included in the message due to the possibility 
 
 The messages are sorted from the most recent measurement to the oldest.
 
-Each measured value in the message occupies 2 bytes and is coded using a two's complement - 1 in the highest bit indicates a negative number and 0 indicates a positive number. To obtain the temperature, the SS needs to calculate the two's complement and divide the result by 100. For example, if byte 2 contains - 0x01 and byte 3 contains 0x00, the measured temperature = (256/100) or 2.56 °C. If the second byte contains 10000001 (0x81) and the third 0x00 then the measured temperature = (256/100) * - 1 or -2.56 °C.
+Each measured value in the message occupies 2 bytes and is coded using a two's complement - 1 in the highest bit indicates a negative number and 0 indicates a positive number. To obtain the temperature it is necessary to calculate the two's complement and divide the result by 100. For example, if byte 2 contains - 0x01 and byte 3 contains 0x00, the measured temperature = (256/100) or 2.56 °C. If the second byte contains 10000001 (0x81) and the third 0x00 then the measured temperature = (256/100) * - 1 or -2.56 °C.
 
 The device allows you to set how often the measure message should be sent and also
 how many samples should be measured in a given interval.
@@ -642,14 +685,16 @@ can be set by a command from the server. Read more [here](#sampling-period-for-t
 
 It measures temperature and humidity at given moments (default after 1 min). After X measurements (default 10), it calculates the average value and sends a Measure message to the server.
 
-* The device supports events - Measure, Restart, Alive, Transport, Error, DownlinkAcknowlege.
+* Supported events: Measure, Restart, Alive, Transport, Error, DownlinkAcknowlege
+* Device type (2nd byte in restart message): 0x04
+* Default mode (3rd byte in restart message): 0x00 (currently no more modes)
 
 The Measure message has the following format:
 
 | Byte             | Description            |
 |------------------|------------------------|
 | 0th byte         | Not used - always 0xFF |
-| 1st byte         | Not used - always 30   | TODO
+| 1st byte         | Not used - always 0x1E |
 | 2nd byte - 31st byte | Measured values of temperature and humidity    |
 
 The device works similarly to the Thermometer described [here](#thermometer). The only
@@ -676,7 +721,7 @@ The devices communicate over a LoRa or NB-IoT network. Sending messages to the d
 
 ### NB-IoT
 
-Whenever a device sends a [message requiring confirmation](#acknowledging-a-message-from-the-server), the server has the option to send
+Whenever a device sends a [message requiring confirmation](#5th-byte---nb-iot), the server has the option to send
 a message to the device. The device waits 5 seconds for a message from the server. The server must respond
 with a command, configuration setting, or [confirmation](#message-acknowledgment) if it does not want to change anything on the device.
 If the device does not receive any message within 5 seconds, it resends the original
@@ -720,7 +765,7 @@ If the device successfully receives the message, it sends an acknowledgement to 
   The format of the confirmation message is described [here](#message-acknowledgment).
 
 There is no point for the LoRa network to send an acknowledgement message to the device, even if the device [requests it](#header),
-since the LoRa network takes care of the acknowledgement automatically for all messages.
+since the LoRa network takes care of the acknowledgement automatically (for messages requiring confirmation).
 
 In some situations, the device must re-establish communication with the network server.
 Re-establishing the connection causes the messages that are stored on the network server
@@ -1070,3 +1115,7 @@ The device calculates the number of measurements that need to be taken before se
 
 The device will then wait 4 minutes between measurements and send a message after every two measurements. Measure
 messages will therefore be sent every 8 minutes.
+
+## Simplified acknowledgement implementation
+Since the device requires acknowledgement of some messages (specified 
+by the [5th byte in the header](#5th-byte---nb-iot)), it is necessary to implement at least basic communication from the server to the device. These messages can be simply responded with a static payload `0000000001FF00` which provides an acknowledgement of the received message.
