@@ -65,17 +65,17 @@ Další případné parametry neuvedené v tabulce jsou závislé na typu zpráv
 
 # Zařízení a podporované události
 
-## Zařízení WaterDetection
+## Vodní detektor
 Detekuje přítomnost vody v ohraničeném prostoru.
 
-![WaterDetection](images/devices/waterdetection.png)
+![WaterDetection](../images/devices/water-detector.png)
 
 Pokud v klidovém stavu dojde k zaplavení, je vyvolána událost `event-start`. Následně kontroluje každou minutu zda
 zaplavení trvá a pokud trvá, tak po 10 minutách vyvolá událost `event-continue`. Pokud i nadále zaplavení pokračuje,
 pošle po dalších 10 minutách událost `event-continue`, informující že zaplavení pokračuje, další již neposílá. Po skončení zaplavení
 zařízení posílá `event-end`.
 
-> DeviceType: water-detection
+> DeviceType: water-detector
 
 | EventType                                           | Popis                                                                   |
 |:----------------------------------------------------|:------------------------------------------------------------------------|
@@ -86,10 +86,10 @@ zařízení posílá `event-end`.
 | [event-continue](#eventtype-event-continue)         | Zaplavení pokračuje.                                                    |
 | [event-end](#eventtype-event-end)                   | Konec zaplavení.                                                        |
 
-## Zařízení MovementDetection
+## Detektor pohybu
 Detekuje pohyb předmětu, na kterém je zařízení připevněno nebo položeno. 
 
-![MovementDetection](images/devices/movementdetection.png)
+![MovementDetection](../images/devices/motion-detector.png)
 
 Pro případy, kdy chceme být informováni o tom, že se nějaký předmět pohnul. Například dveře, okno, kancelářský šuplík,
 taška, auto, motocykl, kolo, kočárek, batoh, kufr …
@@ -98,7 +98,7 @@ Pokud v klidovém stavu dojde pohybu, je vyvolána událost `event-start`. Pokud
 pohybu tak počítá opakování pohybu a po 10 minutách pošle `event-continue`. `event-continue` se opakuje dokud dochází k
 pohybu. Pokud je zařízení 10 minut od začátku nebo pokračování pohybu v klidu, posílá `event-end`.
 
-> DeviceType: movement-detection
+> DeviceType: motion-detector
 
 | EventType                                           | Popis                                                                      |
 |:----------------------------------------------------|:---------------------------------------------------------------------------|
@@ -110,10 +110,10 @@ pohybu. Pokud je zařízení 10 minut od začátku nebo pokračování pohybu v 
 | [event-continue](#eventtype-event-continue)         | Bohyb pokračuje.                                                           |
 | [event-end](#eventtype-event-end)                   | Během 10 minut nedošlo k pohybu.                                           |
 
-## Zařízení Magnetic
+## Magnetický detektor
 Rozpozná oddálení/přiblížení čidla od magnetu.
 
-![Magnetic](images/devices/magnetic.png)
+![MagneticDetector](../images/devices/magnetic-detector.png)
 
 ### Režim Simple
 
@@ -122,7 +122,7 @@ jiného.
 
 Vždy při oddálení magnetu je vyvolána událost `event-start`. Při přiblížení magnetu zpět vyvolá `event-end`.
 
-> DeviceType: magnetic-detection-simple
+> DeviceType: magnetic-detector-simple
 
 | EventType                                           | Popis                                                                      |
 |:----------------------------------------------------|:---------------------------------------------------------------------------|
@@ -142,7 +142,7 @@ nereaguje, ale pokud dojde do 10 minut k opětovnému oddálení magnetu tak po�
 pošle `event-continue`. `event-continue` se opakuje dokud se něco děje. Pokud se během 10 minut nic nestane (nedojde k
 oddálení magnetu), zařízení posílá `event-end`.
 
-> DeviceType: magnetic-detection-continuous
+> DeviceType: magnetic-detector-continuous
 
 | EventType                                           | Popis                                                                      |
 |:----------------------------------------------------|:---------------------------------------------------------------------------|
@@ -154,10 +154,10 @@ oddálení magnetu), zařízení posílá `event-end`.
 | [event-continue](#eventtype-event-continue)         | Dění na magnetu se opakuje, poplach pokračuje.                             |
 | [event-end](#eventtype-event-end)                   | Během 10 minut nedošlo k oddálení magnetu, konec poplachu.                 |
 
-## Zařízení Pir
+## PIR detektor
 Detekuje pohyb nebo přítomnost člověka ve vymezeném prostoru do vzdálenosti 10m. 
 
-![Pir](images/devices/pir.png)
+![PirDetector](../images/devices/pir-detector.png)
 
 Pro identifikaci, že se v místnosti nebo ohraničeném prostoru pohybuje člověk, kdy a jak často.
 
@@ -165,7 +165,7 @@ Jakmile zařízení detekuje pohyb pošle zprávu s událostí `event-start`. Po
 minutových intervalech zprávy s událostí `event-continue`, že pohyb pokračuje, kolik pohybů zaznamenal a kdy nastal
 poslední. Zařízení pošle zprávu s událostí `event-end`, že pohyb skončil pokud 10 minut nenastane žádný pohyb.
 
-> DeviceType: pir
+> DeviceType: pir-detector
 
 | EventType                                           | Popis                                                                      |
 |:----------------------------------------------------|:---------------------------------------------------------------------------|
@@ -177,15 +177,15 @@ poslední. Zařízení pošle zprávu s událostí `event-end`, že pohyb skonč
 | [event-continue](#eventtype-event-continue)         | Pohyb pokračuje.                                                           |
 | [event-end](#eventtype-event-end)                   | Během 10 minut nedošlo k pohybu.                                           |
 
-## Zařízení AlertButton
+## SOS tlačítko
 Zařízení s tlačítkem pro přivolání pomoci nebo spuštění poplachu.
 
-![AlertButton](images/devices/panic.png)
-![AlertButton](images/devices/sos.png)
+![SosButton](../images/devices/sos-button.png)
+![AlarmButton](../images/devices/alarm-button.png)
 
 Zařízení po stitknutí tlačítka pošle zprávu s událostí `event-start`.
 
-> DeviceType: event-button
+> DeviceType: sos-button
 
 | EventType                             | Popis                                                                   |
 |:--------------------------------------|:------------------------------------------------------------------------|
@@ -194,14 +194,14 @@ Zařízení po stitknutí tlačítka pošle zprávu s událostí `event-start`.
 | [transport](#eventtype-transport)     | Přechod do transportního režimu - neaktivní stav s minimální spotřebou. |
 | [event-start](#eventtype-event-start) | Stisknuto, začátek poplachu.                                            |
 
-## Zařízení Thermometer
+## Teploměr
 Měří teplotu okolního prostředí.
 
-![Thermometer](images/devices/humiditymeter.png)
+![Thermometer](../images/devices/hygrometer-thermometer.png)
 
 Každou minutu měří teplotu. Po X měření provede výpočet průměrné hodnoty a odešle událost `measured-temperature`.
 
-> DeviceType: thermometer-average
+> DeviceType: thermometer
 
 | EventType                                               | Popis                                                                   |
 |:--------------------------------------------------------|:------------------------------------------------------------------------|
@@ -226,7 +226,7 @@ Ukázka zaslané události:
 {
     "ProtocolVersion": 1,
     "DeviceId": "abc123",
-    "DeviceType": "thermometer-average",
+    "DeviceType": "thermometer",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
     "EventType": "measured-temperature",
@@ -234,15 +234,15 @@ Ukázka zaslané události:
 }
 ```
 
-## Zařízení HumidityMeter
+## Vlhkoměr/Teploměr
 Měří teplotu a vlhkost okolního prostředí.
 
-![HumidityMeter](images/devices/humiditymeter.png)
-![HumidityMeter](images/devices/movementdetection.png)
+![HumidityMeter](../images/devices/hygrometer-thermometer.png)
+![HumidityMeter](../images/devices/motion-detector.png)
 
 Každou minutu měří teplotu a vlhkost. Po X měření provede výpočet průměrné hodnoty a odešle událost `measured-humidity-temperature`.
 
-> DeviceType: humidity-meter-average
+> DeviceType: hygrometer-thermometer
 
 | EventType                                                                 | Popis                                                                   |
 |:--------------------------------------------------------------------------|:------------------------------------------------------------------------|
@@ -268,7 +268,7 @@ Ukázka zaslané události:
 {
     "ProtocolVersion": 1,
     "DeviceId": "abc123",
-    "DeviceType": "humidity-meter-average",
+    "DeviceType": "hygrometer-thermometer",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
     "EventType": "measured-humidity-temperature",
@@ -289,7 +289,7 @@ Ukázka zaslané události:
 {
     "ProtocolVersion": 1,
     "DeviceId": "abc123",
-    "DeviceType": "magnetic-detection-simple",
+    "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
     "EventType": "restart"
@@ -304,7 +304,7 @@ Ukázka zaslané události:
 {
     "ProtocolVersion": 1,
     "DeviceId": "abc123",
-    "DeviceType": "magnetic-detection-simple",
+    "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
     "EventType": "alive"
@@ -324,7 +324,7 @@ Ukázka zaslané události:
 {
     "ProtocolVersion": 1,
     "DeviceId": "abc123",
-    "DeviceType": "magnetic-detection-simple",
+    "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
     "EventType": "transport"
@@ -347,7 +347,7 @@ Ukázka zaslané události:
 
 [//]: # (    "DeviceId": "abc123",)
 
-[//]: # (    "DeviceType": "magnetic-detection-simple",)
+[//]: # (    "DeviceType": "magnetic-detector-simple",)
 
 [//]: # (    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",)
 
@@ -369,7 +369,7 @@ Ukázka zaslané události:
 {
     "ProtocolVersion": 1,
     "DeviceId": "abc123",
-    "DeviceType": "magnetic-detection-simple",
+    "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
     "EventType": "tamper"
@@ -384,7 +384,7 @@ Ukázka zaslané události:
 {
     "ProtocolVersion": 1,
     "DeviceId": "abc123",
-    "DeviceType": "magnetic-detection-simple",
+    "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
     "EventType": "event-start"
@@ -400,7 +400,7 @@ Ukázka zaslané události:
 {
     "ProtocolVersion": 1,
     "DeviceId": "abc123",
-    "DeviceType": "movement-detection",
+    "DeviceType": "motion-detector",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
     "EventType": "event-continue",
@@ -421,7 +421,7 @@ Ukázka zaslané události:
 {
     "ProtocolVersion": 1,
     "DeviceId": "abc123",
-    "DeviceType": "magnetic-detection-simple",
+    "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
     "EventType": "event-end"
