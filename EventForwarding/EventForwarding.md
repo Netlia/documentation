@@ -183,6 +183,7 @@ The device triggers `event-start` event whenever the button is pressed.
 Measures the ambient temperature.
 
 ![Thermometer](../images/devices/hygrometer-thermometer.png)
+![Thermometer](../images/devices/motion-detector.png)
 
 The device measures the temperature every minute. After X measurements, it calculates the average value and sends a `measured-temperature` message.
 
@@ -222,8 +223,8 @@ A sample of the `measured-temperature` message:
 ## Hygrometer/Thermometer
 Measures ambient temperature and humidity.
 
-![HumidityMeter](../images/devices/hygrometer-thermometer.png)
-![HumidityMeter](../images/devices/motion-detector.png)
+![HygrometerThermometer](../images/devices/hygrometer-thermometer.png)
+![HygrometerThermometer](../images/devices/motion-detector.png)
 
 The device measures the temperature and humidity every minute. After X measurements, it calculates the average value and sends a `measured-humidity-temperature` event.
 

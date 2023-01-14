@@ -198,6 +198,7 @@ Zařízení po stitknutí tlačítka pošle zprávu s událostí `event-start`.
 Měří teplotu okolního prostředí.
 
 ![Thermometer](../images/devices/hygrometer-thermometer.png)
+![Thermometer](../images/devices/motion-detector.png)
 
 Každou minutu měří teplotu. Po X měření provede výpočet průměrné hodnoty a odešle událost `measured-temperature`.
 
@@ -237,8 +238,8 @@ Ukázka zaslané události:
 ## Vlhkoměr/Teploměr
 Měří teplotu a vlhkost okolního prostředí.
 
-![HumidityMeter](../images/devices/hygrometer-thermometer.png)
-![HumidityMeter](../images/devices/motion-detector.png)
+![HygrometerThermometer](../images/devices/hygrometer-thermometer.png)
+![HygrometerThermometer](../images/devices/motion-detector.png)
 
 Každou minutu měří teplotu a vlhkost. Po X měření provede výpočet průměrné hodnoty a odešle událost `measured-humidity-temperature`.
 
