@@ -62,7 +62,7 @@ The exceptions are two pieces of information - the device mode and the restart c
 
 Any configurations that were set by messages from the server are deleted. So are all the counters in the messages.
 
-A reboot will cause all processes to abort.
+A reboot will cause all processes to abort. For example, if the restart button is pressed after a hard restart, the device does not send a transport message, but sends a restart message, and the device then behaves like after a standard restart.
 
 ### Hard restart
 
@@ -130,7 +130,7 @@ Messages are sent in hexadecimal format and consist of two parts - the header an
 The header contains general information and the message type. The message type then determines
 how the data part of the message will look like.
 
-For NB-IoT devices where the payload is sent in a UDP datagram, there may be 8 chars containing the SIM card identifier before the payload itself. See [Device identification](#device-identification)  below.
+>For NB-IoT devices where the payload is sent in a UDP datagram, there may be 8 chars containing the SIM card identifier before the payload itself. See [Device identification](#device-identification)  below.
 
 ## Device identification
 Netlia, as the manufacturer, identifies the device with a serial number. This serial number cannot be obtained in any form from the message payload. Further identification data are supplied according to the type of network and the required configuration. It is up to the client to implement a process to identify the device according to their needs.
@@ -545,11 +545,11 @@ When an event start occurs, the device in the default state indicates by 1x LED 
 
 Event start, end and continue have the following format:
 
-| Byte                | Description                              |
-|---------------------|------------------------------------------|
-| 1st byte            | Not used, always 0x03                    |
-| 2nd byte            | Number of events                         |
-| 3rd byte - 4th byte | Seconds since last event                 |
+| Byte                | Description                       |
+|---------------------|-----------------------------------|
+| 1st byte            | Not used, always 0x03             |
+| 2nd byte            | Number of events                  |
+| 3rd byte - 4th byte | Seconds since last event (2B LSB) |
 
 The number of events indicates how many events have occurred since the previous message was sent.
 For event start and event end this value is always 0. For event continue this value is in the range 1-255 (0x01 - 0xFF).
@@ -622,13 +622,13 @@ and sends an Event continue message after 10 minutes.
 If nothing happens within 10 minutes (the magnet is not moved away),
 the device sends an Event end message.
 
-* Mode value when used in payload: 0x00
+* Mode value (3rd byte in restart message): 0x00
 
 #### Simple mode
 
 Each magnet delay sends an Event start message. Each magnet approach sends an Event end message. In this mode, no alarms are counted or Event continue messages are sent.
 
-* Mode value when used in payload: 0x01
+* Mode value (3rd byte in restart message): 0x01
 
 ### PIR detector
 

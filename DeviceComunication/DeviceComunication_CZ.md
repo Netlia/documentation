@@ -61,7 +61,7 @@ Vyjímkou jsou dvě informace - mód zařízení a počítadla restartů v [rest
 
 Jakékoliv konfigurace, které byly nastaveny zprávami ze serveru jsou  smazány. Stejně tak všechna počítadla ve zprávách.
 
-Restart způsobí přerušení všech procesů.
+Restart způsobí přerušení všech procesů. Například pokud je stisknuto tlačítko restart po hard restartu tak se neodešle transport zpráva ale odešle se restart a zařízení se poté chová jako při standartním restartu.
 
 ### Hard restart
 
@@ -129,7 +129,7 @@ Zprávy se odesílají v hexadecimálním tvaru a skládají se ze dvou částí
 Hlavička obsahuje obecné informace a typ zprávy. Typ zprávy pak určuje
 jak bude vypadat datová část zprávy.
 
-U NB-IoT zařízení, kde je payload zasílán UDP datagramem, může být před samotným payloadem ještě 16 znaků obsahujících identifikátor SIM karty. Viz. [identifikace zařízení](#identifikace-zarizeni) níže.
+> U NB-IoT zařízení, kde je payload zasílán UDP datagramem, může být před samotným payloadem ještě 16 znaků obsahujících identifikátor SIM karty. Viz. [identifikace zařízení](#identifikace-zarizeni) níže.
 
 ## Identifikace zařízení
 Netlia jako výrobce označuje zařízení sériovým číslem. Toto sériové číslo není žádnou formou možné získat z payloadu zpráv. Další údaje k identifikaci jsou dodávány dle typu sítě a požadované konfigurace. Je na klientovi, aby implementoval způsob jakým bude zařízení identifikovat dle svých potřeb.
@@ -534,11 +534,11 @@ Při události event start zařízení ve výchozím stavu indikuje 1x bliknutí
 
 Event start, end a continue mají následující formát:
 
-| Byte            | Význam                               |
-|-----------------|--------------------------------------|
-| 1.byte          | Nepoužitý vždy obsahuje 0x03         |
-| 2.byte          | Počet událostí                       |
-| 3.byte - 4.byte | Počet sekund od poslední události    |
+| Byte            | Význam                                     |
+|-----------------|--------------------------------------------|
+| 1.byte          | Nepoužitý vždy obsahuje 0x03               |
+| 2.byte          | Počet událostí                             |
+| 3.byte - 4.byte | Počet sekund od poslední události (2B LSB) |
 
 Počet událostí určuje, kolik událostí nastalo od odeslání předchozí zprávy. 
 Pro event start i event end je tato hodnota vždy 0. Pro event continue je tato hodnota v rozsahu 1-255 (0x01 - 0xFF).
@@ -611,13 +611,13 @@ a po 10 minutách pošle Event continue zpráva.
 Pokud se během 10 minut nic nestane (nedojde k oddálení magnetu),
 zařízení posílá Event end zprávu.
 
-* Hodnota módu při použití v payloadu: 0x00
+* Hodnota módu (3. byte restart zprávy): 0x00
 
 #### Režim simple
 
 Každé oddálení magnetu odešle zprávu Event start. Každé přiblížení magnetu odešle zprávu Event end. V tomto režimu nedochází k počítání poplachů ani k odesílání zprávy typu Event continue.
 
-* Hodnota módu při použití v payloadu: 0x01
+* Hodnota módu (3. byte restart zprávy): 0x01
 
 ### PIR detektor
 
@@ -752,7 +752,7 @@ stát, že zpráva ze serveru je doručena po dlouhé době.
 Pokud zařízení úspěšně přijme zprávu, odešle na server
 potvrzení. Formát potvrzovací zprávy je popsán [zde](#potvrzení-zprávy).
 
-Pro LoRa síť nemá význam odesílat na zařízení potvrzovací zprávu, ikdyž si ji zařízení [vyžádá](#hlavička), jelikož o
+Pro LoRa síť nemá význam odesílat na zařízení potvrzovací zprávu, i když si ji zařízení [vyžádá](#hlavička), jelikož o
 potvrzení se stará LoRa síť automaticky (u zpráv vyžadujících potvrzení).
 
 V některých situacích musí zařízení provést nové navázání komunikace s network serverem.
