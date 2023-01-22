@@ -62,14 +62,14 @@ Other possible parameters not listed in the table depend on event and message ty
 
 # Devices and supported event types
 
-## WaterDetection device
+## Water detector
 Detects the presence of water in a defined area.
 
-![WaterDetection](images/devices/waterdetection.png)
+![WaterDetector](../images/devices/water-detector.png)
 
 If flooding occurs in the idle state, the `event-start` event is triggered. The device then checks every minute whether the flooding continues. If the flooding is detected even after 10 minutes, `event-continue` event is triggered. The device proceeds with periodical checks and triggers second `event-continue` event after another 10 minutes if the flooding is still detected. Another message is not sent unless the flooding ends, in which case `event-end` message is trasnmitted.
 
-> DeviceType: water-detection
+> DeviceType: water-detector
 
 | EventType                                           | Description                                                                  |
 |:----------------------------------------------------|:-----------------------------------------------------------------------------|
@@ -80,16 +80,16 @@ If flooding occurs in the idle state, the `event-start` event is triggered. The 
 | [event-continue](#eventtype-event-continue)         | Flooding still detected.                                                     |
 | [event-end](#eventtype-event-end)                   | End of flooding.                                                             |
 
-## MovementDetection device
+## Motion detector
 Detects movement of an object which the device is attached to or placed on.
 
-![MovementDetection](images/devices/movementdetection.png)
+![MotionDetector](../images/devices/motion-detector.png)
 
 Useful in situations when the information whether the object has moved is required. For example - door, window, office drawer, bag, car, motorcycle, bicycle, stroller, backpack, suitcase...
 
 The device counts the number of input events, where the input event is a motion of the sensor. If the input event occurs in the idle state, the `event-start` event is triggered and a 10 minute interval is started. During the interval the detector counts the number of input events. At the end of the interval an `event-continue` message with the reached number is transmitted, another 10 minute interval is started, and the counter is reset. If no input event is detected during the interval, `event-end` message is transmitted and the device returns into idle state.
 
-> DeviceType: movement-detection
+> DeviceType: motion-detector
 
 | EventType                                           | Description                                                                  |
 |:----------------------------------------------------|:-----------------------------------------------------------------------------|
@@ -101,10 +101,10 @@ The device counts the number of input events, where the input event is a motion 
 | [event-continue](#eventtype-event-continue)         | Movement continues.                                                          |
 | [event-end](#eventtype-event-end)                   | There was no movement for 10 minutes.                                        |
 
-## Magnetic device
+## Magnetic detector
 Detects the insertion/removal of a magnet into/from it's proximity.
 
-![Magnetic](images/devices/magnetic.png)
+![MagneticDetector](../images/devices/magnetic-detector.png)
 
 ### Simple mode
 
@@ -112,7 +112,7 @@ Can be used to monitor the state (opened/closed) of doors, windows, or cabinets,
 
 The `event-start` event is triggered whenever the magnet is removed form detectors proximity. When the magnet is placed back, the `event-end` event is triggered.
 
-> DeviceType: magnetic-detection-simple
+> DeviceType: magnetic-detector-simple
 
 | EventType                                           | Description                                                                  |
 |:----------------------------------------------------|:-----------------------------------------------------------------------------|
@@ -129,7 +129,7 @@ Can be used to monitor the frequency of opening/closing of doors, covers, passin
 
 The device counts the number of input events, where the input event is a removal of a magnet from detector's proximity (the placing of magnet into detector's proximity triggeres no responce). If the input event occurs with the detector in the idle state, the `event-start` event is triggered and a 10 minute interval is started. During the interval the detector counts the number of input events. At the end of the interval an `event-continue` message with the reached number is transmitted, another 10 minute interval is started, and the counter is reset. If no input event is detected during the interval, `event-end` message is transmitted and the device returns into idle state.
 
-> DeviceType: magnetic-detection-continuous
+> DeviceType: magnetic-detector-continuous
 
 | EventType                                           | Description                                                                  |
 |:----------------------------------------------------|:-----------------------------------------------------------------------------|
@@ -141,16 +141,16 @@ The device counts the number of input events, where the input event is a removal
 | [event-continue](#eventtype-event-continue)         | Further input events detected, alarm continues.                              |
 | [event-end](#eventtype-event-end)                   | No further input events detected, alarm ends.                                |
 
-## PIR device
+## PIR detector
 Detects personal presence in a specified area up to 10 meters distance. 
 
-![Pir](images/devices/pir.png)
+![PirDetector](../images/devices/pir-detector.png)
 
 Can be used to detect the time and frequency of personal presence in a room or specified area.
 
 The device counts the number of input events, where the input event is a movement in the detection area. If the input event occurs with the detector in the idle state, the `event-start` event is triggered and a 10 minute interval is started. During the interval the detector counts the number of inpupt events. At the end of the interval an `event-continue` message containing the reached number and timestamp of the last detected input event is transmitted, another 10 minute interval is started, and the counter is reset. If no input event is detected during the interval, `event-end` message is transmitted and the device returns into idle state.
 
-> DeviceType: pir
+> DeviceType: pir-detector
 
 | EventType                                           | Description                                                                  |
 |:----------------------------------------------------|:-----------------------------------------------------------------------------|
@@ -162,15 +162,15 @@ The device counts the number of input events, where the input event is a movemen
 | [event-continue](#eventtype-event-continue)         | Further input events detected, alarm continues.                              |
 | [event-end](#eventtype-event-end)                   | No further input events detected, alarm ends.                                |
 
-## AlertButton device
+## SOS button
 Device with a button to call for help or raise an alarm.
 
-![AlertButton](images/devices/panic.png)
-![AlertButton](images/devices/sos.png)
+![SosButton](../images/devices/sos-button.png)
+![AlarmButton](../images/devices/alarm-button.png)
 
 The device triggers `event-start` event whenever the button is pressed.
 
-> DeviceType: event-button
+> DeviceType: sos-button
 
 | EventType                             | Description                                                                  |
 |:--------------------------------------|:-----------------------------------------------------------------------------|
@@ -179,14 +179,15 @@ The device triggers `event-start` event whenever the button is pressed.
 | [transport](#eventtype-transport)     | Switching to transport mode - inactive state with minimum power consumption. |
 | [event-start](#eventtype-event-start) | Button pressed, alarm started.                                               |
 
-## Thermometer device
+## Thermometer
 Measures the ambient temperature.
 
-![Thermometer](images/devices/humiditymeter.png)
+![Thermometer](../images/devices/hygrometer-thermometer.png)
+![Thermometer](../images/devices/motion-detector.png)
 
 The device measures the temperature every minute. After X measurements, it calculates the average value and sends a `measured-temperature` message.
 
-> DeviceType: thermometer-average
+> DeviceType: thermometer
 
 | EventType                                               | Description                                                                  |
 |:--------------------------------------------------------|:-----------------------------------------------------------------------------|
@@ -211,7 +212,7 @@ A sample of the `measured-temperature` message:
 {
     "ProtocolVersion": 1,
     "DeviceId": "abc123",
-    "DeviceType": "thermometer-average",
+    "DeviceType": "thermometer",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
     "EventType": "measured-temperature",
@@ -219,15 +220,15 @@ A sample of the `measured-temperature` message:
 }
 ```
 
-## HumidityMeter device
+## Hygrometer/Thermometer
 Measures ambient temperature and humidity.
 
-![HumidityMeter](images/devices/humiditymeter.png)
-![HumidityMeter](images/devices/movementdetection.png)
+![HygrometerThermometer](../images/devices/hygrometer-thermometer.png)
+![HygrometerThermometer](../images/devices/motion-detector.png)
 
 The device measures the temperature and humidity every minute. After X measurements, it calculates the average value and sends a `measured-humidity-temperature` event.
 
-> DeviceType: humidity-meter-average
+> DeviceType: hygrometer-thermometer
 
 | EventType                                                                 | Description                                                                  |
 |:--------------------------------------------------------------------------|:-----------------------------------------------------------------------------|
@@ -253,7 +254,7 @@ A sample of the `measured-humidity-temperature` message:
 {
     "ProtocolVersion": 1,
     "DeviceId": "abc123",
-    "DeviceType": "humidity-meter-average",
+    "DeviceType": "hygrometer-thermometer",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
     "EventType": "measured-humidity-temperature",
@@ -274,7 +275,7 @@ A sample of the event:
 {
     "ProtocolVersion": 1,
     "DeviceId": "abc123",
-    "DeviceType": "magnetic-detection-simple",
+    "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
     "EventType": "restart"
@@ -289,7 +290,7 @@ A sample of the event:
 {
     "ProtocolVersion": 1,
     "DeviceId": "abc123",
-    "DeviceType": "magnetic-detection-simple",
+    "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
     "EventType": "alive"
@@ -308,7 +309,7 @@ A sample of the event:
 {
     "ProtocolVersion": 1,
     "DeviceId": "abc123",
-    "DeviceType": "magnetic-detection-simple",
+    "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
     "EventType": "transport"
@@ -331,7 +332,7 @@ A sample of the event:
 
 [//]: # (    "DeviceId": "abc123",)
 
-[//]: # (    "DeviceType": "magnetic-detection-simple",)
+[//]: # (    "DeviceType": "magnetic-detector-simple",)
 
 [//]: # (    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",)
 
@@ -353,7 +354,7 @@ A sample of the event:
 {
     "ProtocolVersion": 1,
     "DeviceId": "abc123",
-    "DeviceType": "magnetic-detection-simple",
+    "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
     "EventType": "tamper"
@@ -368,7 +369,7 @@ A sample of the event:
 {
     "ProtocolVersion": 1,
     "DeviceId": "abc123",
-    "DeviceType": "magnetic-detection-simple",
+    "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
     "EventType": "event-start"
@@ -384,7 +385,7 @@ A sample of the event:
 {
     "ProtocolVersion": 1,
     "DeviceId": "abc123",
-    "DeviceType": "movement-detection",
+    "DeviceType": "motion-detector",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
     "EventType": "event-continue",
@@ -405,7 +406,7 @@ A sample of the event:
 {
     "ProtocolVersion": 1,
     "DeviceId": "abc123",
-    "DeviceType": "magnetic-detection-simple",
+    "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
     "EventType": "event-end"
