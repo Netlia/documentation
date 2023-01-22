@@ -376,6 +376,8 @@ The restart code indicates the reason why the restart occurred. Byte can take th
 | 0x02    | Restart triggered by [receiving of a message from the server](#receiving-messages-from-the-server) |
 | 0x08    | Restart triggered reset button                                            |
 
+On restart, the 0th byte in the header indicating the number of sent messages is reset and therefore it cannot be used to recognize a dulicate message for the reset message. For deduplication it is possible to partly use the 12th byte with the number of restarts, except for the case of hard restart (0x00 in the 13th byte) when this counter is reset.
+
 ### Test
 
 The test message is sent after the device sends a restart message. The primary goal of the test messages is to receive the settings from the server at the LoRa network before the device starts to function normally. You can find more about this issue on the LoRa network [here](#lora). Another use can be signal control.
@@ -764,7 +766,7 @@ that a message from the server is delivered after a long time.
 If the device successfully receives the message, it sends an acknowledgement to the server.
   The format of the confirmation message is described [here](#message-acknowledgment).
 
-There is no point for the LoRa network to send an acknowledgement message to the device, even if the device [requests it](#header),
+There is no point for the LoRa network to send an acknowledgement messages from the server to the device, even if the device [requests it](#header),
 since the LoRa network takes care of the acknowledgement automatically (for messages requiring confirmation).
 
 In some situations, the device must re-establish communication with the network server.
@@ -782,7 +784,7 @@ the device is acknowledging.
 We can implement sending messages to devices in the LoRa network
 in several ways. The simplest way is "marking messages". In this
 implementation, the server sends the downlink and marks it as
-"sent". After it receives the first uplink since the downlink was sent, it changes the status of the sent downlink to "will be acknowledged in the next message". There should be an uplink with acknowledgment in the next message. If a downlink message arrives, it is successfully sent.
+"sent". After it receives the first uplink since the downlink was sent, it changes the status of the sent downlink to "will be acknowledged in the next message". There should be an uplink with acknowledgment in the next message. If this acknowledgment arrives, the downlink message has been successfully sent.
 
 ![LoraMessageMarker](Lora_MessageMarker.png)
 

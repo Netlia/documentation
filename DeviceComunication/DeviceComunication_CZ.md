@@ -372,6 +372,8 @@ Kód restartu udává důvod proč restart nastal. Byte může nabývat následu
 | 0x02    | Restart vyvolán [přijmutím zprávy ze serveru](#přijmání-zpráv-ze-serveru) |
 | 0x08    | Restart způsoben stisknutím tlačítka                                      |
 
+Při restartu se nuluje 0.byte v hlavičce udávající počet odeslaných zpráv a nelze jej tedy u tohoto typu zprávy využít pro rozpoznání dulicitní zprávy. Pro deduplikaci lze částečně využít 12.byte s údajem o počtu restartů s vyjímkou případu hard restartu (0x00 ve 13.byte) při kterém se toto počitadlo nuluje.
+
 ### Test
 
 Test zpráva je odeslána poté, co zařízení odešle restart zprávu. Primárním cílem test zpráv je přijmout nastavení ze serveru u LoRa sítě ještě před tím, než začne zařízení fungovat normálním způsobem. Více o této problematice na LoRa síti najdete [zde](#lora). Další způsob využití může být kontrola signálu.
@@ -752,8 +754,7 @@ stát, že zpráva ze serveru je doručena po dlouhé době.
 Pokud zařízení úspěšně přijme zprávu, odešle na server
 potvrzení. Formát potvrzovací zprávy je popsán [zde](#potvrzení-zprávy).
 
-Pro LoRa síť nemá význam odesílat na zařízení potvrzovací zprávu, i když si ji zařízení [vyžádá](#hlavička), jelikož o
-potvrzení se stará LoRa síť automaticky (u zpráv vyžadujících potvrzení).
+Potvrzovací zprávy ze serveru na zařízení nemá u LoRa síťě význam odesílat, ikdyž si ji zařízení [vyžádá](#hlavička), jelikož o potvrzení se stará LoRa síť automaticky (u zpráv vyžadujících potvrzení).
 
 V některých situacích musí zařízení provést nové navázání komunikace s network serverem.
 Nové navázání spojení způsobí, že zprávy, které jsou uložené na network serveru
@@ -770,7 +771,7 @@ zařízení potvrzuje.
 Implementaci odesílání zpráv na zařízení v LoRa síti můžeme provést
 několika způsoby. Nejjednoduším způsobem je "označování zpráv". V této
 implementaci server odešle downlink a označí ho jako
-"odeslaný". Poté, co přijme první uplink od odeslání downlinku, stav odeslaného downlinku změní na "bude potvrzen v příští zprávě". V další zprávě by měl přijít uplink s potvrzením. Pokud dorazí downlinková zpráva je úspěšně odeslána.
+"odeslaný". Poté, co přijme první uplink od odeslání downlinku, stav odeslaného downlinku změní na "bude potvrzen v příští zprávě". V další zprávě by měl přijít uplink s potvrzením. Pokud toto potvrzení dorazí, downlinková zpráva byla úspěšně odeslána.
 
 ![LoraMessageMarker](Lora_MessageMarker.png)
 
