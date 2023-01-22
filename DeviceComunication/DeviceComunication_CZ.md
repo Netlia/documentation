@@ -793,7 +793,7 @@ implementaci server odešle downlink a označí ho jako
 ![LoraMessageMarker](Lora_MessageMarker.png)
 
 Následující diagram ukazuje chování v případě, že zařízení
-provede join (nové navázání komunikace s network serverem) a smaže zprávu, která čeká na network serveru:
+provede join (nové navázání komunikace s network serverem) a smaže zprávu, která čeká na network serveru, nebo v případě vypadené zprávy:
 
 ![LoraMessageMarker](Lora_MessageMarker_join.png)
 

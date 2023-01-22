@@ -806,7 +806,7 @@ implementation, the server sends the downlink and marks it as
 ![LoraMessageMarker](Lora_MessageMarker.png)
 
 The following diagram shows the behaviour when a device
-performs a join (re-establishing communication with the network server) and deletes a message that is waiting on the network server:
+performs a join (re-establishing communication with the network server) and deletes a message that is waiting on the network server, or possible behaviour in case of a dropped message:
 
 ![LoraMessageMarker](Lora_MessageMarker_join.png)
 
