@@ -584,6 +584,8 @@ The following paragraphs describe the individual devices and their behaviour.
 
 ### Water detector
 
+![WaterDetection](../images/devices/water-detector.png)
+
 The device is used to detect water that the device has come into contact with. Event start is sent when the device is flooded with water. If the device detects water in the next 10 minutes,
 the event continue message is sent. Event end message is sent if
 no water is detected for 10 minutes.
@@ -597,6 +599,8 @@ The device always sends only 2 continue messages and then waits for the alarm to
 
 ### Motion detector
 
+![MovementDetection](../images/devices/motion-detector.png)
+
 The device is used to detect the movement of the device itself of the object on which the device is placed. Event start message is sent when the device detects motion. Event continue message is sent if another movement is detected in the next 10 minutes.
 An event end message is then sent if the device does not detect any movement for 10 minutes.
 
@@ -605,6 +609,8 @@ An event end message is then sent if the device does not detect any movement for
 * Default mode (3rd byte in restart message): 0x00 (currently no more modes)
 
 ### Magnetic detector
+
+![MagneticDetector](../images/devices/magnetic-detector.png)
 
 The device is used to monitor the frequency of opening/closing of doors, covers, passage of moving parts by monitoring the magnetic field of the magnet.
 The device supports two modes. Continuous and simple mode. You can switch between these modes
@@ -634,6 +640,8 @@ Each magnet delay sends an Event start message. Each magnet approach sends an Ev
 
 ### PIR detector
 
+![PirDetector](../images/devices/pir-detector.png)
+
 Detects human movement or presence in a defined area up to 10m away using a passive infrared detector. When motion is detected by the sensor, the device sends an Event start message.
 If it continues to detect motion, it sends Event continue messages at 10-minute intervals.
    The sensor sends an Event end message if no movement occurs for 10 minutes.
@@ -644,6 +652,9 @@ If it continues to detect motion, it sends Event continue messages at 10-minute 
 
 ### SOS button
 
+![SosButton](../images/devices/sos-button.png)
+![AlarmButton](../images/devices/alarm-button.png)
+
 A device with a button to call for help or raise an alarm.
 The device sends an Event start message if someone presses the button.
 The event end message is never sent.
@@ -653,6 +664,9 @@ The event end message is never sent.
 * Default mode (3rd byte in restart message): 0x00 (currently no more modes)
 
 ### Thermometer
+
+![Thermometer](../images/devices/hygrometer-thermometer.png)
+![Thermometer](../images/devices/motion-detector.png)
 
 It measures the temperature at given moments (default after 1 min). After X measurements (default 10), it calculates the average value and sends a Measure message to the server.
 
@@ -684,6 +698,9 @@ sent temperatures. How often the messages should be sent and how many times the 
 can be set by a command from the server. Read more [here](#sampling-period-for-temperature-and-humidity-devices-and-how-often-to-send-a-measure-message).
 
 ### Hygrometer/Thermometer
+
+![Thermometer](../images/devices/hygrometer-thermometer.png)
+![Thermometer](../images/devices/motion-detector.png)
 
 It measures temperature and humidity at given moments (default after 1 min). After X measurements (default 10), it calculates the average value and sends a Measure message to the server.
 

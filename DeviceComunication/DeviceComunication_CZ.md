@@ -573,6 +573,8 @@ V následujících odstavcích jsou popsána jednotlivá zařízení a jejich ch
 
 ### Vodní detektor
 
+![WaterDetection](../images/devices/water-detector.png)
+
 Zařízení slouží k detekci vody, se kterou přišlo zařízení do kontaktu. Event start se odešle, když je zařízení zaplaveno vodou. Pokud zařízení v dalších 10 minutách detekuje vodu,
 tak je odslána zpráva event continue. Event end zpráva je odeslána, pokud
 10 minut není detekována voda.
@@ -584,7 +586,9 @@ tak je odslána zpráva event continue. Event end zpráva je odeslána, pokud
 Vodní zařízení má oproti ostatním zařízením nastavený maximální počet zpráv typu event continue.
 Zařízení vždy pošle pouze 2 zprávy continue a poté už čeká na ukončení poplachu, tj. neposílá další pokračovací zprávy.
 
-### Pohybový detektor
+### Detektor pohybu
+
+![MovementDetection](../images/devices/motion-detector.png)
 
 Zařízení slouží k detekci pohybu samotného zařízení objektu, na kterém je zařízení umístěno. Event start zpráva je odeslána, když zařízení detekuje pohyb. Event continue zpráva je odeslána, pokud je zaznamenán další pohyb v následujících 10 minutách.
 Event end zpráva je poté odeslána, pokud zařízení 10 minut nezaznamená ani jeden pohyb.
@@ -594,6 +598,8 @@ Event end zpráva je poté odeslána, pokud zařízení 10 minut nezaznamená an
 * Výchozí mód (3. byte restart zprávy): 0x00 (v současnosti není více módů)
 
 ### Magnetický detektor
+
+![MagneticDetector](../images/devices/magnetic-detector.png)
 
 Zařízení slouží ke sledování četnosti otevření/zavření dveří, krytů, průchodu pohyblivých částí pomocí sledování magnetického pole magnetu.
 Zařízení podporuje dva režimy. Režim continuous a simple. Mezi těmito
@@ -623,6 +629,8 @@ Každé oddálení magnetu odešle zprávu Event start. Každé přiblížení m
 
 ### PIR detektor
 
+![PirDetector](../images/devices/pir-detector.png)
+
 Detekuje pohyb nebo přítomnost člověka ve vymezeném prostoru do vzdálenosti 10m pomocí pasivního infračerveného detektoru. Při detekci pohybu senzorem zařízení pošle zprávu Event start.
 Pokud i nadále detekuje pohyb, posílá v 10 minutových intervalech zprávy
 Event continue. Senzor pošle zprávu Event end, pokud 10 minut nenastane žádný pohyb.
@@ -633,6 +641,9 @@ Event continue. Senzor pošle zprávu Event end, pokud 10 minut nenastane žádn
 
 ### SOS tlačítko
 
+![SosButton](../images/devices/sos-button.png)
+![AlarmButton](../images/devices/alarm-button.png)
+
 Zařízení s tlačítkem pro přivolání pomoci nebo spuštění poplachu.
 Zařízení posílá zprávu Event start, pokud někdo zmáčnkne tlačítko.
 Zpráva typu Event end nikdy není odeslána.
@@ -642,6 +653,9 @@ Zpráva typu Event end nikdy není odeslána.
 * Výchozí mód (3. byte restart zprávy): 0x00 (v současnosti není více módů)
 
 ### Teploměr
+
+![Thermometer](../images/devices/hygrometer-thermometer.png)
+![Thermometer](../images/devices/motion-detector.png)
 
 V daných okamžicích měří teplotu (defaultně po 1 min). Po X měřeních (defaultně 10) provede výpočet průměrné hodnoty a odešle zprávu Measure na server.
 
@@ -672,6 +686,9 @@ odeslanými teplotami. Jak často se mají zprávy odeslat a kolikrát se má v 
 teplota měřit, je možné nastavit příkazem ze serveru. Více [zde](#perioda-vzorkování-pro-teplotní-a-vlhkostní-zařízení-a-nastavení-jak-často-se-má-odeslat-measure-zpráva).
 
 ### Vlhkoměr/Teploměr
+
+![Thermometer](../images/devices/hygrometer-thermometer.png)
+![Thermometer](../images/devices/motion-detector.png)
 
 V daných okamžicích měří teplotu a vlhkost (defaultně po 1 min). Po X měřeních (defaultně 10) provede výpočet průměrné hodnoty a odešle zprávu Measure na server.
 
