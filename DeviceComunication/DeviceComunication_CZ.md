@@ -225,7 +225,7 @@ Byte obsahuje informaci o počtu neúspěšných odeslání. Následující tabu
 
 V LoRa síti zařízení komunikuje s network serverem, který následně přeposílá zprávy na server.
 Pokud se zařízení nepodaří odeslat zprávu na network server, zvýší "Počet pokusů o odeslání zprávy"
-a pokusí se zprávu po určitém čase odeslat znovu.
+a pokusí se zprávu po určitém čase odeslat znovu (vzhledem velikosti čísla 6 bitů je rozsah čítače 0 - 63, po jeho přetečení inkrementuje opět od 0).
 
 Po určitém počtu neúspěšných odeslání zařízení čeká stále delší dobu než odešle další zprávu.
 
@@ -266,7 +266,7 @@ ze serveru přijít potvrzení, konfigurační zpráva nebo příkaz. Více o po
 na zařízení najdete [zde](#přijmání-zpráv-ze-serveru).
 
 Pokud do 3 s nedojde zpráva o potvrzení tak zařízení zvýší "Počet pokusů o odeslání zprávy"
-a pokusí se zprávu po určitém čase odeslat znovu.
+a pokusí se zprávu po určitém čase odeslat znovu (vzhledem velikosti čísla 6 bitů je rozsah čítače 0 - 63, po jeho přetečení inkrementuje opět od 0).
 
 Následující tabulka popisuje hodnotu 5.byte ve vztahu s pokusem odeslání.
 

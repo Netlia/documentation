@@ -227,7 +227,7 @@ The byte contains information about the number of failed sends. The following ta
 
 In the LoRa network, the device communicates with the network server, which then forwards messages to the server.
 If the device fails to send a message to the network server, it will increase the "Number of attempts to send a message"
-and try to send the message again after a certain time.
+and try to send the message again after a certain time (due to the size of the 6-bit number the counter range is 0 - 63, after overflowing it increments again from 0).
 
 After a certain number of unsuccessful sends, the device waits an increasingly long time before sending another message.
 
@@ -268,7 +268,7 @@ an acknowledgment, configuration message, or command must come from the server. 
 to the device, see [here](#receiving-messages-from-the-server).
 
 If the confirmation message does not arrive within 3 seconds, the device will increase the "Number of attempts to send a message"
-and try to send the message again after a certain time.
+and try to send the message again after a certain time (due to the size of the 6-bit number the counter range is 0 - 63, after overflowing it increments again from 0).
 
 The following table describes the 5th byte value in relation to the send attempt.
 
