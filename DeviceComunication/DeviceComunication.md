@@ -451,24 +451,24 @@ It then proceeds as normal - it sends a test message and then sends other messag
 The error register contains information about what error occurred. The following table describes
 the values and their meanings:
 
-| Error register                      | Description                                                                       | Number of LED flashes|
-|-------------------------------------|-----------------------------------------------------------------------------------|----------------------|
-| 00000000 00000000 00000001 00000000 | 1 - Radio isn't working correctly                                                 | 3x                   |
-| 00000000 00000000 00000010 00000000 | 2 - Inserted battery isn't fully charged. Checked only after hard restart.        | 4x                   |
-| 00000000 00000000 00000100 00000000 | 3 - Main state machine is in an undefined state.                                  | 3x                   | 
-| 00000000 00000000 00001000 00000000 | 4 - Device cannot connect to the network after standart restart.                  | 6x                   |
-| 00000000 00000000 00010000 00000000 | 5 - Standard error occured 5*                                                     | 3x                   |
+| Error register                      | Description                                                                       |
+|-------------------------------------|-----------------------------------------------------------------------------------|
+| 00000000 00000000 00000001 00000000 | 1 - Radio isn't working correctly                                                 |
+| 00000000 00000000 00000010 00000000 | 2 - Inserted battery isn't fully charged. Checked only after hard restart.        |
+| 00000000 00000000 00000100 00000000 | 3 - Main state machine is in an undefined state.                                  |
+| 00000000 00000000 00001000 00000000 | 4 - Device cannot connect to the network after standart restart.                  |
+| 00000000 00000000 00010000 00000000 | 5 - Standard error occured 5*                                                     |
 
 
 If error numbers 1,3 and 5 occur 4 hours after restart, the device proceeds as follows:
 
-1. The LED flashes X times in 10 cycles (according to the table) to indicate an error.
+1. The LED flashes X times in 10 cycles (according to the [notifications table](#led-notifications)) to indicate an error.
 2. The device restarts and continues to operate as if it were [restarted](#standard-restart)
 3. If the error still persists, the error processing is repeated
 
 If the error number 1,3,4 and 5 occurs within 4 hours of restart, the device proceeds as follows:
 
-1. The LED flashes X times in 10 cycles (according to the table) to indicate an error.
+1. The LED flashes X times in 10 cycles (according to the [notifications table](#led-notifications)) to indicate an error.
 2. The device will check if 4 hours have passed since the restart.
 3. If the time has not passed, it is put to sleep for 2 minutes and then repeats points 1 and 2.
 4. If the time has passed, the device restarts and continues to function as if it were [restarted](#standard-restart).
@@ -481,7 +481,7 @@ For error number 2, the device behaves according to the following list:
 2. The LED will flash 1x to indicate a restart.
 3. The LED will flash 1x to indicate initialization.
 4. The device detects in initialization that the battery is not fully charged.
-5. The LED flashes 4 times in 10 cycles (according to the table) to indicate an error.
+5. The LED flashes 4 times in 10 cycles (according to the [notifications table](#led-notifications)) to indicate an error.
 6. The device performs point 5 at two-minute intervals for the following 4 hours.
 7. The device restarts.
 8. The LED will flash 1x to indicate a restart.
