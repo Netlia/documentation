@@ -109,19 +109,36 @@ Stavový automat také nezohledňuje přijmání zpráv ze serveru.
 
 ![State machine](diagram_cz.png)
 
-## Dioda
+## LED notifikace
 
-Všechna zařízení mají notifikační diodu, která informuje uživatele o různých událostech. Následující tabulka
-popisuje události při kterých dioda bliká:
+Všechna zařízení mají notifikační diodu, která informuje uživatele o různých událostech.
 
-| Počet bliknutí | Událost                                                    |
-|----------------|------------------------------------------------------------|
-| 1x             | [Restartu](#standartní-restart)                            |
-| 1x             | [Spuštění inicializace](#standartní-restart)               |
-| 10x            | Přechod do [transportního režimu](#transportní-režim)      |
-| 1x             | Před odesláním události                                    |
-| 6x             | Při třetím neúspěšném odeslání zprávy                      |
-| Nkrát          | Při erroru (počet bliknutí závisí na typu [erroru](#error) |
+Notifikacemi se rozumí krátké uvedení notifikačního komponentu do aktivního stavu - rozsvícení LED a následné pauzy. Výchozí doba svícení LED je 200ms (dále označováno jako bliknutí LED). Podle počtu bliknutí se rozlišují jednotlivé notifikace. Notifikace typu ERROR a TRANS jsou pro rozlišení uvozeny dlouhým bliknutím na začátku (označeno písmenem L v popisu níže) v délce trvání 1000ms.
+
+Skupiny notifikací:
+* Notifikace RESET/INIT – vykonávají se bezprostředně po resetu
+* Notifikace EVENT – při detekci eventu (obvykle ze senzoru)
+* Notifikace INFO – oznámení při běhu zařízení (např. vykonání příkazu)
+* Notifikace ERROR – při detekci chyby
+* Notifikace TRANS – při přechodu do transportního režimu
+
+
+Následující tabulka popisuje události při kterých notifikační dioda bliká:
+
+| Skupina  notifikací | Počet bliknutí | Událost                                                    |
+|---------------------|----------------|------------------------------------------------------------|
+| RESET/INIT          | 1x             | [Restart](#standartní-restart)                             |
+| RESET/INIT          | 1x             | Oznámení dokončení inicializace při vložení baterie        |
+| RESET/INIT          | 1x             | Oznámení dokončení inicializace porestartu                 |
+| EVENT               | 1x             | Oznámení o detekci [eventu](#event)                        |
+| ERROR               | L+2x           | Chyba firmware, neočekávaný stav                           |
+| ERROR               | L+3x           | Chyba hardware                                             |
+| ERROR               | L+4x           | Vložení vybité baterie                                     |
+| ERROR               | L+5x           | Detekce nízkého napětí baterie *aktuálně neimplementováno  |
+| ERROR               | L+6x           | Chyba spojení se sítí                                      |
+| TRANS               | L+10x          | Přechod do [transportního režimu](#transportní-režim)      |
+
+Podrobnosti týkající se chybového stavu (skupina notifikací ERROR) mohou být doručeny v [error](#error) zprávě.
 
 ## Zprávy ze zařízení na server
 

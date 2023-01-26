@@ -110,19 +110,35 @@ The state machine also does not take into account the receipt of messages from t
 
 ![State machine](diagram.png)
 
-## Diode
+## LED notifications
 
-All devices have a notification LED that informs the user of various events. The following table
-describes the events when the diode flashes:
+All devices have a notification LED that informs the user of various events.
 
-| Number of flashes | Event                                                                            |
-|-------------------|----------------------------------------------------------------------------------|
-| 1x                | [Restart](#standard-restart)                                                     |
-| 1x                | [Start of inicialization](#standard-restart)                                     |
-| 10x               | Transition into [transport mode](#transport-mode)                                |
-| 1x                | Before transmitting an event                                                     |
-| 6x                | When a message fails to transmit for the 3rd time                                |
-| Ntimes            | When an error occurs (number of flashes depends on type of [error](#error)   |
+Notification means a momentary activation of the notification component into an active state - LED lighting and subsequent pauses. The default LED lighting time is 200ms (further referred as LED blinking). The number of blinks differentiates individual notifications. ERROR and TRANS notifications are initiated by a long blink at the beginning (marked as L in the description below) with a duration of 1000ms to differentiate them.
+
+Notification groups:
+* RESET/INIT notifications - executed immediately after reset.
+* EVENT notifications - when an event is detected (usually from a sensor)
+* INFO notifications - notification while device is running (e.g. command execution)
+* ERROR notifications - when an error is detected
+* TRANS notification - when the device enters the transport mode
+
+The following table describes the events when the notification LED flashes:
+
+| Notification group  | Number of flashes | Událost                                                    |
+|---------------------|-------------------|------------------------------------------------------------|
+| RESET/INIT          | 1x                | [Restart](#standartní-restart)                             |
+| RESET/INIT          | 1x                | Completion of initialization when the battery is inserted  |
+| RESET/INIT          | 1x                | Completion of initialization after restart                 |
+| EVENT               | 1x                | [Event](#event) detection                                  |
+| ERROR               | L+2x              | Chyba firmware, neočekávaný stav                           |
+| ERROR               | L+3x              | Chyba hardware                                             |
+| ERROR               | L+4x              | Discharged battery inserted                                |
+| ERROR               | L+5x              | Low battery voltage detected *not currently implemented    |
+| ERROR               | L+6x              | Network connection error                                   |
+| TRANS               | L+10x             | Transition into [transport mode](#transport-mode)          |
+
+Details regarding the error condition (ERROR notification group) can be delivered in the [error](#error) message.
 
 ## Messages from device to server
 
