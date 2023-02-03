@@ -32,7 +32,7 @@ In order to wake up the device a restart must be initialized by pressing the res
 
 1. Flashes LED 1x to indicate restart
 2. Flashes LED 1x to indicate the end of initialization
-3. [Battery status check](#check-battery-status)
+3. [Battery status check](#battery-status-check)
 4. Sends [restart message](#restart)
 5. Sends 0-N [test messages](#test) (depending on device type)
 6. Begins normal operation - event detection, measure messages transmittion etc.
@@ -48,7 +48,7 @@ After the device is restarted, it performs the following steps (if no error occu
 
 1. Flashes LED 1x to indicate restart
 2. Flashes LED 1x to indicate the end of initialization
-3. [Battery status check](#check-battery-status)
+3. [Battery status check](#battery-status-check)
 4. Sends [restart message](#restart)
 5. Sends [error message](#error) (if the restart was triggered by an error)
 6. Sends 0-N [test messages](#test) (depending on device type)
@@ -1026,7 +1026,7 @@ When the maximum number of event continues messages is reached, nothing is sent,
 
 ##### Specifies the sampling period for temperature and humidity devices
 
-Described [here](#temperature-and-devices-s-sampling-period-and-setting-the-frequency-of-Measure-messages).
+Described [here](#temperature-and-humidity-devicess-sampling-period-and-setting-the-frequency-of-measure-messages).
 
 ##### Motion detection device sensitivity setting
 
@@ -1049,7 +1049,7 @@ The following settings should be sufficient for normal use:
 | Medium    | 4        | 75       | 100      | 10       | 5        |
 | High      | 4        | 50       | 50       | 10       | 5        |
 
-##### Temperature and humidity devices's sampling period and setting the frequency of Measure messages.
+##### Temperature and humidity devices's sampling period and setting the frequency of Measure messages
 
 The values 0x05 and 0x0C both refer to the thermometer and hygrometer and are closely related.
 Both of these values must be set at once in the correct order and without restarting between processing of these messages.
