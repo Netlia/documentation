@@ -210,7 +210,7 @@ Defautlně je nastaveno na 0. Po přijetí zprávy ze serveru se nastaví na hod
 
 Určuje hodnotu napětí baterie. Pokud je zařízení napájeno ze zásuvky tak obsahuje hodnotu napětí zdroje.
 
-Napětí může nabívat hodnot 1.8 V–4.35 V. Hodnota 0 odpovídá napětí 1.8 V a hodnota 255 odpovídá napětí 4.35 V.
+Napětí může nabývat hodnot 1.8 V–4.35 V. Hodnota 0 odpovídá napětí 1.8 V a hodnota 255 odpovídá napětí 4.35 V.
 
 Aktuální napětí můžeme vypočítat podle následujícího vzorce: *přijatá hodnota ve zprávě* / 100 + 1.8
 
@@ -737,7 +737,7 @@ ale všechny příkazy a nastavení jsou vytvořené tak, aby nedošlo k chybě.
 Pokud zařízení úspěšně přijme konfigurační nebo příkazovou zprávu, odešle zpět na server potvrzení o přijetí. Formát potvrzovací zprávy které odesílá zařízení je popsán [zde](#potvrzení-zprávy-ze-serveru).
 
 Zařízení vždy nejdříve odešle potvrzení a přijetí a poté příkaz zpracuje, např. pokud
-zařízení přijme příkaz na restartování, nejdříve odešle potvrzení a poté se restartuje.
+zařízení přijme příkaz na restartování, nejdříve odešle potvrzení o přijetí a poté se restartuje.
 
 ## LoRa a NB-IoT
 
@@ -745,8 +745,7 @@ Zařízení komunikují pomocí LoRa nebo NB-IoT sítě. Odesílání zpráv na 
 
 ### NB-IoT
 
-Vždy, když zařízení odesílá [zprávu vyžadující potvrzení](#5byte---nb-iot), má server možnost odeslat
-zprávu na zařízení. Zařízení na zprávu ze serveru čeká 5 sekund. Server musí odpovědět
+Vždy, když zařízení odesílá [zprávu vyžadující potvrzení](#5byte---nb-iot), musí server odpovědět zprávou na zařízení. Zařízení na zprávu ze serveru čeká 5 sekund. Server musí odpovědět
 příkazem, nastavením konfigurace nebo [potvrzením](#potvrzení-zprávy), pokud nechce na zařízení nic měnit.
 Pokud zařízení nepřijme v čase 5 sekund žádnou zprávu, tak znovu odesílá původní
 zprávu, více [zde](#5byte---potvrzení-disconnect-a-počet-pokusů-o-odeslání-zprávy).
@@ -782,7 +781,7 @@ zprávy na zařízení. Uplink je jakákoliv zpráva odesílaná ze zařízení 
 
 ![LoraCommunication](Lora_communication.png)
 
-Network sever vždy musí čekat na zahájení komunikace ze zařízení. Může se tudíž
+Network server vždy musí čekat na zahájení komunikace ze zařízení. Může se tudíž
 stát, že zpráva ze serveru je doručena po dlouhé době.
 
 Pokud zařízení úspěšně přijme zprávu, odešle na server
@@ -850,7 +849,7 @@ Nepoužitý.
 
 #### 4.byte - kategorie zprávy
 
-Tento byte určuje kategorii downlinku který bude odeslán. Kategorie může nabívat následujících hodnot:
+Tento byte určuje kategorii downlinku. Kategorie může nabývat následujících hodnot:
 
 | Hodnota 4.Byte | Význam           |
 |----------------|------------------|
@@ -1098,8 +1097,8 @@ Pro běžné užívání by měli stačit následující nastavení:
 
 ##### Perioda vzorkování pro teplotní a vlhkostní zařízení a nastavení, jak často se má odeslat measure zpráva
 
-Hodnoty 0x05 a 0x0C se obě vztahují k teploměru a vlhkoměru a úzce spolu souvisí.
-Obě tyto hodnoty musejí být nastaveny naráz ve správném pořadí a bez restaru mezi zpracováním těchto zpráv.
+Toto nastavení (hodnota 0x0C 5.byte hlavičky) společně s nastavením ["Jak často se má odeslat measure zpráva"](#nasavení-jak-často-se-má-odeslat-measure-zpráva) (hodnota 0x05 v 5.byte hlavičky) se obě vztahují k teploměru a vlhkoměru a úzce spolu souvisí.
+Obě tyto hodnoty musejí být nastaveny ve správném pořadí a bez restaru mezi zpracováním těchto zpráv.
 
 První musí být nastaveno, jak často se má odesílat measure zpráva a následně jaké má být vzorkování.
 
