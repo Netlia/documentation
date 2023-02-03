@@ -1,6 +1,6 @@
 # Device communication
 
-This document describesthe behaviour of each device and a common communication protocol.
+This document describes the behaviour of each device and a common communication protocol.
 
 ## Basic device features
 
@@ -56,7 +56,7 @@ After the device is restarted, it performs the following steps (if no error occu
 
 All information, configuration and counter variables retained in the device memory are restored to their default values.There are only two exceptions to this - the device mode and the restart counter ([restart message](#restart)).
 
-A reboot will cause all processes to abort. For example, if the restart button is pressed after a hard restart, the device does not send a transport message, but sends a restart message, and then behaves as after a standard restart.
+A restart will cause all processes to abort. For example, if the restart button is pressed after a hard restart, the device does not send a transport message, but sends a restart message, and then behaves as after a standard restart.
 
 ### Hard restart
 
