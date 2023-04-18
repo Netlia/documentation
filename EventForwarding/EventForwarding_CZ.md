@@ -52,16 +52,19 @@ Data jsou odesílána vždy jako samostatné události. Události mají společn
 
 Společné parametry:
 
-| Parametr        | Typ     | Popis                          |
-|:----------------|:--------|:-------------------------------|
-| ProtocolVersion | integer | verze komunikačního protokolu  |
-| DeviceId        | string  | identifikátor zařízení         |
-| EventId         | string  | identifikátor události         |
-| EventTime       | string  | čas události                   |
-| DeviceType      | string  | typ zařízení                   |
-| EventType       | string  | typ události                   |
+| Parametr         | Typ      | Popis                               |
+|:-----------------|:---------|:------------------------------------|
+| ProtocolVersion  | integer  | verze komunikačního protokolu       |
+| DeviceId         | string   | identifikátor zařízení              |
+| PhysicalDeviceId | string?  | fyzický identifikátor zařízení [^1] |
+| EventId          | string   | identifikátor události              |
+| EventTime        | string   | čas události                        |
+| DeviceType       | string   | typ zařízení                        |
+| EventType        | string   | typ události                        |
 
 Další případné parametry neuvedené v tabulce jsou závislé na typu zprávy a události.
+
+[^1]: Fyzický identifikátor zařízení (většinou sériové číslo zařízení) je dostupný u eventů týkajících se konkrétního fyzického zařízení. Např. při událostech týkajících se senzorů PIR, detektorů, apod. ale i informace o vybité baterii na regulátoru teploty (který je jinak celek sestavený z několika fyzických zařízení) je uveden PhysicalDeviceId konkrétního fyzického zařízení na kterém tato událost nastala. Naopak např. naměřená teplota na regulátoru teploty se vztahuje k regulátoru jako celku, ne ke konkrétnímu fyzickému zařízení.
 
 # Zařízení a podporované události
 
@@ -226,7 +229,8 @@ Ukázka zaslané události:
 ```yaml
 {
     "ProtocolVersion": 1,
-    "DeviceId": "abc123",
+    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "PhysicalDeviceId": "abc123",
     "DeviceType": "thermometer",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
@@ -268,7 +272,8 @@ Ukázka zaslané události:
 ```yaml
 {
     "ProtocolVersion": 1,
-    "DeviceId": "abc123",
+    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "PhysicalDeviceId": "abc123",
     "DeviceType": "hygrometer-thermometer",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
@@ -289,7 +294,8 @@ Ukázka zaslané události:
 ```yaml
 {
     "ProtocolVersion": 1,
-    "DeviceId": "abc123",
+    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "PhysicalDeviceId": "abc123",
     "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
@@ -304,7 +310,8 @@ Ukázka zaslané události:
 ```yaml
 {
     "ProtocolVersion": 1,
-    "DeviceId": "abc123",
+    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "PhysicalDeviceId": "abc123",
     "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
@@ -324,7 +331,8 @@ Ukázka zaslané události:
 ```yaml
 {
     "ProtocolVersion": 1,
-    "DeviceId": "abc123",
+    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "PhysicalDeviceId": "abc123",
     "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
@@ -369,7 +377,8 @@ Ukázka zaslané události:
 ```yaml
 {
     "ProtocolVersion": 1,
-    "DeviceId": "abc123",
+    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "PhysicalDeviceId": "abc123",
     "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
@@ -384,7 +393,8 @@ Ukázka zaslané události:
 ```yaml
 {
     "ProtocolVersion": 1,
-    "DeviceId": "abc123",
+    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "PhysicalDeviceId": "abc123",
     "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
@@ -400,7 +410,8 @@ Ukázka zaslané události:
 ```yaml
 {
     "ProtocolVersion": 1,
-    "DeviceId": "abc123",
+    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "PhysicalDeviceId": "abc123",
     "DeviceType": "motion-detector",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
@@ -421,7 +432,8 @@ Ukázka zaslané události:
 ```yaml
 {
     "ProtocolVersion": 1,
-    "DeviceId": "abc123",
+    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "PhysicalDeviceId": "abc123",
     "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
