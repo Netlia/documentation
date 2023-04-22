@@ -1,7 +1,7 @@
 ## Teplotní regulátor
-Reguluje teplotu radiátorů pomocí termostatických hlavic na základě dat měřených teploměrem. Standardně zasílá události s naměřenou teplotu a vlhkostí okolního prostředí.
+Reguluje teplotu radiátorů pomocí termostatických hlavic na základě dat měřených teploměrem. Skládá se z několika fyzických zařízení - jedné nebo více termostatických hlavic a teploměru. Standardně zasílá události s naměřenou teplotu a vlhkostí okolního prostředí.
 
-Každou minutu měří teplotu a vlhkost. Po X měření provede výpočet průměrné hodnoty a odešle událost `measured-humidity-temperature`.
+Každou minutu měří teplotu a vlhkost. Po X měření (ve výchozím stavu 10) provede výpočet průměrné hodnoty a odešle událost `measured-humidity-temperature`.
 
 > DeviceType: temperature-regulator
 
