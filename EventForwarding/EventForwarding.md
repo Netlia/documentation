@@ -49,16 +49,19 @@ Data are always sent as a separate event. Events have a common parameter section
 
 Common parameters:
 
-| Parameter       | Type    | Description                    |
-|:----------------|:--------|:-------------------------------|
-| ProtocolVersion | integer | communication protocol version |
-| DeviceId        | string  | device identifier              |
-| EventId         | string  | event identifier               |
-| EventTime       | string  | time of event                  |
-| DeviceType      | string  | type of device                 |
-| EventType       | string  | type of event                  |
+| Parameter        | Type    | Description                     |
+|:-----------------|:--------|:--------------------------------|
+| ProtocolVersion  | integer | communication protocol version  |
+| DeviceId         | string  | device identifier               |
+| PhysicalDeviceId | string? | physical device identifier [^1] |
+| EventId          | string  | event identifier                |
+| EventTime        | string  | time of event                   |
+| DeviceType       | string  | type of device                  |
+| EventType        | string  | type of event                   |
 
 Other possible parameters not listed in the table depend on event and message type.
+
+[^1]: The physical device identifier (mostly the device serial number) is available for events related to a specific physical device. E.g. for events related to PIR, detectors, etc., as well as information about the discharged battery on the temperature regulator (which is composed of multiple physical devices), the PhysicalDeviceId of the physical device on which this event occurred is specified. On the contrary, for example, the measured temperature on the temperature regulator refers to the regulator as a whole device, not to a specific physical device.
 
 # Devices and supported event types
 
@@ -211,7 +214,8 @@ A sample of the `measured-temperature` message:
 ```yaml
 {
     "ProtocolVersion": 1,
-    "DeviceId": "abc123",
+    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "PhysicalDeviceId": "abc123",
     "DeviceType": "thermometer",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
@@ -253,7 +257,8 @@ A sample of the `measured-humidity-temperature` message:
 ```yaml
 {
     "ProtocolVersion": 1,
-    "DeviceId": "abc123",
+    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "PhysicalDeviceId": "abc123",
     "DeviceType": "hygrometer-thermometer",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
@@ -274,7 +279,8 @@ A sample of the event:
 ```yaml
 {
     "ProtocolVersion": 1,
-    "DeviceId": "abc123",
+    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "PhysicalDeviceId": "abc123",
     "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
@@ -289,7 +295,8 @@ A sample of the event:
 ```yaml
 {
     "ProtocolVersion": 1,
-    "DeviceId": "abc123",
+    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "PhysicalDeviceId": "abc123",
     "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
@@ -308,7 +315,8 @@ A sample of the event:
 ```yaml
 {
     "ProtocolVersion": 1,
-    "DeviceId": "abc123",
+    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "PhysicalDeviceId": "abc123",
     "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
@@ -353,7 +361,8 @@ A sample of the event:
 ```yaml
 {
     "ProtocolVersion": 1,
-    "DeviceId": "abc123",
+    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "PhysicalDeviceId": "abc123",
     "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
@@ -368,7 +377,8 @@ A sample of the event:
 ```yaml
 {
     "ProtocolVersion": 1,
-    "DeviceId": "abc123",
+    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "PhysicalDeviceId": "abc123",
     "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
@@ -384,7 +394,8 @@ A sample of the event:
 ```yaml
 {
     "ProtocolVersion": 1,
-    "DeviceId": "abc123",
+    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "PhysicalDeviceId": "abc123",
     "DeviceType": "motion-detector",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
@@ -405,7 +416,8 @@ A sample of the event:
 ```yaml
 {
     "ProtocolVersion": 1,
-    "DeviceId": "abc123",
+    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "PhysicalDeviceId": "abc123",
     "DeviceType": "magnetic-detector-simple",
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
