@@ -45,7 +45,7 @@ Cílový mód zařízení může nabývat těchto hodnot:
 
 | Hodnota            | Název                       |
 |--------------------|-----------------------------|
-| basic-regulator    | Základní regulace teploty.  |
+| basic              | Základní regulace teploty.  |
 | summer             | Letní režim.                |
 
 Ukázka requestu:
@@ -53,7 +53,7 @@ Ukázka requestu:
 ```yaml
 {
     "requestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc",
-    "mode": "basic-regulator"
+    "mode": "basic"
 }
 ```
 
@@ -71,14 +71,14 @@ Ukázka response:
 
 ```yaml
 {
-    "mode": "basic-regulator"
+    "mode": "basic"
 }
 ```
 
 ### PUT api/temperature-regulator/{DeviceId}/temperature
 
 Nastavení cílové teploty pro regulaci.
-Podporováno pouze, pokud mód regulátoru je `basic-regulator`.
+Podporováno pouze, pokud mód regulátoru je `basic`.
 
 Předávané parametry:
 
