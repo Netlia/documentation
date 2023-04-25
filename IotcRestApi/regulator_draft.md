@@ -85,14 +85,14 @@ Předávané parametry:
 | Parametr           | Typ         | Povinný | Popis                               |
 |:-------------------|:------------|:--------|:------------------------------------|
 | requestId          | string      | ano     | Jednoznačný identifikátor requestu. |
-| target-temperature | float       | ano     | Cílová teplota.                     |
+| targetTemperature  | float       | ano     | Cílová teplota.                     |
 
 Ukázka requestu:
 
 ```yaml
 {
     "requestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc",
-    "target-temperature": 21.5
+    "targetTemperature": 21.5
 }
 ```
 
@@ -111,7 +111,7 @@ Ukázka response:
 
 ```yaml
 {
-    "target-temperature": 21.5
+    "targetTemperature": 21.5
 }
 ```
 
@@ -131,8 +131,43 @@ Ukázka response:
 
 ```yaml
 {
-    "released-physical-device-ids": [
-        "889bfe0f-3c93-421a-9bf1-9bc26ba32ad8",
-        "2e7f00fa-ce15-47d2-97d1-6fa8a8098d37"]
+    "releasedPhysicalDeviceIds": ["abc123", "abc456", "abc789"]
+}
+```
+
+### POST api/temperature-regulator/
+
+Vytvoří požadavek na zavedení nového zařízení do systému. Po úspěšném vytvoření zařízení je partner informován eventem `device-created` - viz. dokumentace k předávání událostí.
+
+Předávané parametry:
+
+| Parametr           | Typ         | Povinný | Popis                                                              |
+|:-------------------|:------------|:--------|:-------------------------------------------------------------------|
+| requestId          | string      | ano     | Jednoznačný identifikátor requestu.                                |
+| deviceType         | string      | ano     | Typ zařízení.                                                      |
+| physicalDeviceIds  | string[]    | ano     | Fyzická zařízení / komponenty ze kterých je zařízení složeno.      |
+| customData         | object      | ne      | Objekt s informacemi specifickými dle partnera.                    |
+
+Ukázka requestu:
+
+```yaml
+{
+    "requestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc",
+    "deviceType": "temperature-regulator",
+    "physicalDeviceIds": ["abc123", "abc456", "abc789"],
+    "customData":
+        {
+            "sample-key-1": "sample-value-1",
+            "sample-key-2": 123 
+        }
+}
+```
+
+Ukázka response: 
+
+```yaml
+{
+    "deviceId": "7a3945e9-89c6-4464-9feb-6642c97035b2",
+    "physicalDeviceIds": ["abc123", "abc456", "abc789"]
 }
 ```
