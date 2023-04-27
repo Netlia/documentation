@@ -122,7 +122,7 @@ Ukázka zaslané události:
 
 ### EventType physical-device-replaced
 
-Událost je odeslána při náhradě fyzického zařízení - informuje o tom, že původní fyzické zařízení s `PhysicalDeviceId` bylo nahrazeno novým fyzickým zařízením s `ReplacementPhysicalDeviceId`. 
+Událost je odeslána při náhradě fyzického zařízení - informuje o tom, že původní fyzické zařízení s `PhysicalDeviceId` bylo nahrazeno novým fyzickým zařízením s `ReplacementPhysicalDeviceId`. Může nastat např. po výměně fyzického zařízení které je v poruše za nové.
 
 Dodatečné předávané parametry:
 
@@ -141,6 +141,38 @@ Ukázka zaslané události:
     "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "EventTime": "2021-05-03T14:25:31.8437511Z",
     "EventType": "physical-device-replaced",
-    "ReplacementPhysicalDeviceId": "abc123",
+    "ReplacementPhysicalDeviceId": "abc123"
+}
+```
+
+### EventType device-created
+
+Událost informuje o vytvoření zařízení. Součástí jsou informace o fyzických zařízeních ze kterých je složeno a dodatečné informace specifické pro partnera (lze využít např. pro informaci o umístění zařízení).
+
+Dodatečné předávané parametry:
+
+| Parametr                    | Typ      | Povinný | Popis                                                              |
+|:----------------------------|:---------|:--------|:-------------------------------------------------------------------|
+| PhysicalDevices             | string[] | ano     | Fyzická zařízení / komponenty ze kterých je zařízení složeno.      |
+| CustomData                  | object   | ne      | Objekt s informacemi specifickými dle partnera.                    |
+
+Mohou existovat zařízení u kterých bude `PhysicalDevices` obsahovat prázdné pole.
+
+Ukázka zaslané události:
+
+```yaml
+{
+    "ProtocolVersion": 1,
+    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "DeviceType": "temperature-regulator",
+    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "EventTime": "2021-05-03T14:25:31.8437511Z",
+    "EventType": "device-created",
+    "PhysicalDevices": ["abc123", "abc456", "abc789"],
+    "CustomData":
+        {
+            "sample-key-1": "sample-value-1",
+            "sample-key-2": 123 
+        }
 }
 ```
