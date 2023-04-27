@@ -115,6 +115,7 @@ Ukázka response:
 }
 ```
 
+<!--
 ### PUT api/temperature-regulator/{DeviceId}/factory-reset
 
 Zruší zařízení, což umožní znovu spárovat jednotlivé fyzické komponenty. Dojde k výmazu provozních dat.
@@ -135,7 +136,7 @@ Ukázka response:
 }
 ```
 
-### POST api/temperature-regulator/
+### PUT api/temperature-regulator/
 
 Vytvoří požadavek na zavedení nového zařízení do systému. Po úspěšném vytvoření zařízení je partner informován eventem `device-created` - viz. dokumentace k předávání událostí.
 
@@ -171,3 +172,4 @@ Ukázka response:
     "physicalDeviceIds": ["abc123", "abc456", "abc789"]
 }
 ```
+-->

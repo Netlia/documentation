@@ -122,7 +122,7 @@ Ukázka zaslané události:
 
 ### EventType physical-device-replaced
 
-Událost je odeslána při náhradě fyzického zařízení - informuje o tom, že původní fyzické zařízení s `PhysicalDeviceId` bylo nahrazeno novým fyzickým zařízením s `ReplacementPhysicalDeviceId`. 
+Událost je odeslána při náhradě fyzického zařízení - informuje o tom, že původní fyzické zařízení s `PhysicalDeviceId` bylo nahrazeno novým fyzickým zařízením s `ReplacementPhysicalDeviceId`. Může nastat např. po výměně fyzického zařízení které je v poruše za nové.
 
 Dodatečné předávané parametry:
 
