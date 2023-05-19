@@ -45,15 +45,15 @@ Cílový mód zařízení může nabývat těchto hodnot:
 
 | Hodnota            | Název                       |
 |--------------------|-----------------------------|
-| basic              | Základní regulace teploty.  |
-| summer             | Letní režim.                |
+| 0              | Základní regulace teploty.  |
+| 1              | Letní režim.                |
 
 Ukázka requestu:
 
 ```yaml
 {
     "RequestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc",
-    "Mode": "basic"
+    "Mode": 0
 }
 ```
 
