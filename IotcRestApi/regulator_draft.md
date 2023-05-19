@@ -4,7 +4,7 @@ Bude se jednat o REST API, bude k dispozici Swagger.
 # Zabezpečení
 Komunikace bude zabezpečena bearer tokenem v hlavičce, informace budou doplněny.
 
-Většina endpointů přijímajících data v těle requestu vyžaduje položku `RequestId`. Jedná se o jednoznačný identifikátor requestu, který generuje partner (jedná se o UUID) a slouží pro zajištění idempotence, čímž je docíleno toho, že akce je provedena jen jednou pokud dojde o opakovanému zavolání v určitém časovém intervalu. Při opakovaném požadavku se stejným `RequestId` je vrácen HTTP status `200 OK`.
+Většina endpointů přijímajících data v těle requestu vyžaduje položku `RequestId`. Jedná se o jednoznačný identifikátor requestu, který generuje partner (jedná se o UUID) a slouží pro zajištění idempotence, čímž je docíleno toho, že akce je provedena jen jednou pokud dojde o opakovanému zavolání v určitém časovém intervalu. Při opakovaném požadavku se stejným `RequestId` je vrácen HTTP status `409 Conflict`.
 
 # Chybové odpovědi
 Chyby 5xx jsou způsobené chybou serveru a neměli by nikdy nastat. Pokud server vratí tuto chybu, měl by být informován zástupce Netlia.
