@@ -71,7 +71,7 @@ Ukázka response:
 
 ```yaml
 {
-    "Mode": "basic"
+    "Mode": 0
 }
 ```
 
