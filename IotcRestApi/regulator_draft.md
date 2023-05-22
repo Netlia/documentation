@@ -9,22 +9,79 @@ Většina endpointů přijímajících data v těle requestu vyžaduje položku 
 # Chybové odpovědi
 Chyby 5xx jsou způsobené chybou serveru a neměli by nikdy nastat. Pokud server vratí tuto chybu, měl by být informován zástupce Netlia.
 
-Chyby 4xx jsou vráceny, pokud klient provedl neplatný/nevalidní request. Vysvětlení stavových kódů je možné najít v [HTTP dokumentaci](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#client_error_responses).
+Chyby 4xx jsou vráceny, pokud klient provedl neplatný/nevalidní request.
 
-V některých případech 4xx error obsahuje body s dalšími informacemi o chybě. Body má následující formát:
+Všechny chybové stavové kódy (4xx a 5xx) obsahují standartní [problem details body](https://datatracker.ietf.org/doc/html/rfc7807) které má následující formát:
 
 ```yaml
 {
-    "Errors" : [
-        {
-            "ErrorCode":int
-            "Description":string
-            "AdditionalInformation":string
-            "TraceId":string
-        }
-    ]
+  "type": string,
+  "title": string,
+  "status": int,
+  "traceId": string,
+  "errorId": int,
+  "errors": {
+    string: [string, string, ...],
+    string: [string, string, ...],
+    string: [string, string, ...],
+    ...
+  }
 }
 ```
+* Type - odkazuje na podrobné vysvětlení erroru. Pokud netlia nemá žádné specifické detaily k danému erroru tak obsahuje pouze odkaz na vysvětlení http kódu.
+* Title - obsahuje textový popis chyby. V případě obecných chyb popis odpovídá popisu stavového kódu. V případě specifických chyb obsahuje konkrétní informace (příklad v ukázce).
+* Status - duplikuje stavový kód odpovědi. Toto pole je v body obsaženo pouze pro zjedodušení práce klienta (např. pokud loguje body a neloguje vrácený http code)
+* TraceId - slouží k identifikaci chyby (typicky při nahlášení chyby firmě netlia)
+* ErrorId - unikátní identifikátor chyby. Každá chyba má svoje Id které může být použito při zpracování chyby programem. Pro obecné chyby ErrorId odpovídá http statusu.
+* Errors - je nepovinné pole které obsahují pouze responses které vrací více než jednu chybu. Obsahuje slovník kde klíčem je identifikátor chyby a hodnotou je pole chyb které se vztahuje k dané chybě.
+
+> **Pokud zpracováváte konkrétní chybu na klientovi tak nespoléhejte na hodnotu v Title. Namísto toho vždy použijte ErrorId.**
+
+Příklady chybových responses:
+
+1. Server vrátil chybu 500. Je potřeba informovat firmu Netlia aby chybu opravila:
+```json
+{
+  "type": "https://httpstatuses.io/500",
+  "title": "Internal Server Error",
+  "status": 500,
+  "errorId": 500,
+  "traceId": "00-1ecf9c21495b20af2e8aac4c71653a57-7c4329e49f308038-00"
+}
+```
+
+2. Server vrátil 404. Klient se v tomto případě snaží pracovat s neexistujícím device.
+
+```json
+{
+  "type": "https://httpstatuses.io/400",
+  "title": "Device not found",
+  "status": 404,
+  "errorId": 1,
+  "traceId": "00-eab978ed39bb58b120c99c08ef42a6a2-aca7bff9ea0a470c-00"
+}
+```
+
+3. Server vrátil chybu 400. Klient se snaží odeslat nevalidní JSON (errorId s hodnotou 400 je vrácen vždy když klient odešle JSON který není syntakticky správně):
+
+```json
+{
+  "errors": {
+    "serial": [
+      "Unexpected end when deserializing object. Path 'serial', line 3, position 21."
+    ],
+    "newDevice": [
+      "The newDevice field is required."
+    ]
+  },
+  "type": "https://httpstatuses.io/400",
+  "title": "One or more validation errors occurred.",
+  "status": 400,
+  "errorId": 400,
+  "traceId": "00-3f89119d4e33d8d706194838c4b8dc50-558f2c77a8cf08c5-00"
+}
+```
+
 
 # Zařízení a podporované endpointy
 
