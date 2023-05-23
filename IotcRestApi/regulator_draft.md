@@ -11,7 +11,7 @@ Chyby 5xx jsou způsobené chybou serveru a neměli by nikdy nastat. Pokud serve
 
 Chyby 4xx jsou vráceny, pokud klient provedl neplatný/nevalidní request.
 
-Všechny chybové stavové kódy (4xx a 5xx) obsahují standartní [problem details body](https://datatracker.ietf.org/doc/html/rfc7807) které má následující formát:
+Všechny chybové stavové kódy (4xx a 5xx) obsahují standardní [problem details body](https://datatracker.ietf.org/doc/html/rfc7807), které má následující formát:
 
 ```yaml
 {
@@ -28,12 +28,12 @@ Všechny chybové stavové kódy (4xx a 5xx) obsahují standartní [problem deta
   }
 }
 ```
-* Type - odkazuje na podrobné vysvětlení erroru. Pokud netlia nemá žádné specifické detaily k danému erroru tak obsahuje pouze odkaz na vysvětlení http kódu.
+* Type - odkazuje na podrobné vysvětlení erroru. Pokud netlia nemá žádné specifické detaily k danému erroru, tak obsahuje pouze odkaz na vysvětlení http kódu.
 * Title - obsahuje textový popis chyby. V případě obecných chyb popis odpovídá popisu stavového kódu. V případě specifických chyb obsahuje konkrétní informace (příklad v ukázce).
-* Status - duplikuje stavový kód odpovědi. Toto pole je v body obsaženo pouze pro zjedodušení práce klienta (např. pokud loguje body a neloguje vrácený http code)
-* TraceId - slouží k identifikaci chyby (typicky při nahlášení chyby firmě netlia)
-* ErrorId - unikátní identifikátor chyby. Každá chyba má svoje Id které může být použito při zpracování chyby programem. Pro obecné chyby ErrorId odpovídá http statusu.
-* Errors - je nepovinné pole které obsahují pouze responses které vrací více než jednu chybu. Obsahuje slovník kde klíčem je identifikátor chyby a hodnotou je pole chyb které se vztahuje k dané chybě.
+* Status - duplikuje stavový kód odpovědi. Toto pole je v body obsaženo pouze pro zjedodušení práce partnera (např. pokud loguje body a neloguje vrácený http kód).
+* TraceId - slouží k jednoznačné identifikaci konkrétní chyby (typicky při nahlášení chybného chování partnerem).
+* ErrorId - číselný identifikátor chyby. Každá chyba má svůj identifikátor, který může být použit partnerem při programovém zpracování chyby. Pro obecné chyby ErrorId odpovídá http statusu.
+* Errors - je nepovinné pole, které obsahují pouze odpovědi vracející více než jednu chybu. Obsahuje slovník, kde klíčem je identifikátor chyby a hodnotou je pole chyb které se vztahuje k dané chybě.
 
 > **Pokud zpracováváte konkrétní chybu na klientovi tak nespoléhejte na hodnotu v Title. Namísto toho vždy použijte ErrorId.**
 
