@@ -1,17 +1,22 @@
 # API
-Bude se jednat o REST API, bude k dispozici Swagger.
+
+Dokument popisuje API pro komunikaci se zařízenímy temperature regulator. Swagger k těmto endpointům je dostupný [zde](https://iotc.netlia.com/swagger/temperature-regulator/index.html). Přístupové údaje ke swaggeru je možné získat od zástupce z firmy Netlia.
 
 # Zabezpečení
-Komunikace bude zabezpečena bearer tokenem v hlavičce, informace budou doplněny.
+Komunikace je zabezpečna bearer tokenem ve formátu JWT. Token se posílá ve standartním headeru s klíčem Authorization. Příklad headeru:
 
-Většina endpointů přijímajících data v těle requestu vyžaduje položku `RequestId`. Jedná se o jednoznačný identifikátor requestu, který generuje partner (jedná se o UUID) a slouží pro zajištění idempotence, čímž je docíleno toho, že akce je provedena jen jednou pokud dojde o opakovanému zavolání v určitém časovém intervalu. Při opakovaném požadavku se stejným `RequestId` je vrácen HTTP status `409 Conflict`.
+| Header Key    | Header Value         |
+|:------------|:------------|
+| Authorization   | Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8v...      | 
+
+
+Token je možné získat u zástupce firmy Netlia.
 
 # Chybové odpovědi
-Chyby 5xx jsou způsobené chybou serveru a neměli by nikdy nastat. Pokud server vratí tuto chybu, měl by být informován zástupce Netlia.
+* Chyby 5xx jsou způsobené chybou serveru a neměli by nikdy nastat. Pokud server vratí tuto chybu, měl by být informován zástupce Netlia.
+* Chyby 4xx jsou vráceny, pokud klient provedl neplatný/nevalidní request.
 
-Chyby 4xx jsou vráceny, pokud klient provedl neplatný/nevalidní request.
-
-Všechny chybové stavové kódy (4xx a 5xx) obsahují standardní [problem details body](https://datatracker.ietf.org/doc/html/rfc7807), které má následující formát:
+Všechny chybové stavové kódy (4xx a 5xx) obsahují standardní [problem details](https://datatracker.ietf.org/doc/html/rfc7807) body, které má následující formát:
 
 ```yaml
 {
@@ -83,9 +88,10 @@ Příklady chybových responses:
 ```
 
 
-# Zařízení a podporované endpointy
+## Popis endpointů
 
-## Teplotní regulátor
+
+Většina endpointů přijímajících data v těle requestu vyžaduje položku `RequestId`. Jedná se o jednoznačný identifikátor requestu, který generuje partner (jedná se o UUID) a slouží pro zajištění idempotence, čímž je docíleno toho, že akce je provedena jen jednou pokud dojde o opakovanému zavolání v určitém časovém intervalu. Při opakovaném požadavku se stejným `RequestId` je vrácen HTTP status `409 Conflict`.
 
 ### PUT api/temperature-regulator/{DeviceId}/mode
 
@@ -96,7 +102,7 @@ Předávané parametry:
 | Parametr    | Typ         | Povinný | Popis                               |
 |:------------|:------------|:--------|:------------------------------------|
 | RequestId   | string      | ano     | Jednoznačný identifikátor requestu. |
-| Mode        | string      | ano     | Cílový mód zařízení.                |
+| Mode        | int      | ano     | Cílový mód zařízení.                |
 
 Cílový mód zařízení může nabývat těchto hodnot:
 
@@ -135,7 +141,7 @@ Ukázka response:
 ### PUT api/temperature-regulator/{DeviceId}/temperature
 
 Nastavení cílové teploty pro regulaci.
-Podporováno pouze, pokud mód regulátoru je `basic`.
+Podporováno pouze, pokud je mód regulátoru nastaven na`0`.
 
 Předávané parametry:
 
