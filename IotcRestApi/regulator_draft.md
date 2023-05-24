@@ -33,7 +33,7 @@ Všechny chybové stavové kódy (4xx a 5xx) obsahují standardní [problem deta
 * Status - duplikuje stavový kód odpovědi. Toto pole je v body obsaženo pouze pro zjedodušení práce partnera (např. pokud loguje body a neloguje vrácený http kód).
 * TraceId - slouží k jednoznačné identifikaci konkrétní chyby (typicky při nahlášení chybného chování partnerem).
 * ErrorId - číselný identifikátor chyby. Každá chyba má svůj identifikátor, který může být použit partnerem při programovém zpracování chyby. Pro obecné chyby ErrorId odpovídá http statusu.
-* Errors - je nepovinné pole, které obsahují pouze odpovědi vracející více než jednu chybu. Obsahuje slovník, kde klíčem je identifikátor chyby a hodnotou je pole chyb které se vztahuje k dané chybě.
+* Errors - je nepovinné pole, které obsahují pouze odpovědi vracející více než jednu chybu. Obsahuje slovník, kde klíčem je řetězec který logicky spojuje pole chyb, které následuje za ním. Viz. příklad č. 3.
 
 > **Pokud zpracováváte konkrétní chybu na klientovi tak nespoléhejte na hodnotu v Title. Namísto toho vždy použijte ErrorId.**
 
