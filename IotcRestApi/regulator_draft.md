@@ -35,7 +35,7 @@ Všechny chybové stavové kódy (4xx a 5xx) obsahují standardní [problem deta
 * ErrorId - číselný identifikátor typu chyby. Každý druh chyby má svůj identifikátor, který může být použit partnerem při programovém zpracování chyby. Pro obecné chyby ErrorId odpovídá http statusu.
 * Errors - je nepovinné pole, které obsahují pouze odpovědi vracející více než jednu chybu. Obsahuje slovník, kde klíčem je řetězec, který logicky spojuje pole chyb, které následuje za ním. Viz. příklad č. 3.
 
-> **Pokud zpracováváte konkrétní chybu na klientovi tak nespoléhejte na hodnotu v Title. Namísto toho vždy použijte ErrorId.**
+> **Pokud zpracováváte konkrétní chybu na klientovi, nespoléhejte na hodnotu v Title. Namísto toho vždy použijte ErrorId.**
 
 Příklady chybových responses:
 
