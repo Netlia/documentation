@@ -44,7 +44,8 @@ Všechny chybové stavové kódy (4xx a 5xx) obsahují standardní [problem deta
 
 Příklady chybových responses:
 
-1. Server vrátil chybu 500. Je potřeba informovat firmu Netlia aby chybu opravila:
+1. Server vrátil chybu 500. Pro vyřešení problému kontaktujte zástupce Netlia.
+
 ```json
 {
   "type": "https://httpstatuses.io/500",
@@ -108,15 +109,15 @@ Cílový mód zařízení může nabývat těchto hodnot:
 
 | Hodnota            | Název                       |
 |--------------------|-----------------------------|
-| 0              | Základní regulace teploty.  |
-| 1              | Letní režim.                |
+| basic              | Základní regulace teploty.  |
+| summer             | Letní režim.                |
 
 Ukázka requestu:
 
 ```yaml
 {
     "RequestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc",
-    "Mode": 0
+    "Mode": "basic"
 }
 ```
 
@@ -134,14 +135,14 @@ Ukázka response:
 
 ```yaml
 {
-    "Mode": 0
+    "Mode": "basic"
 }
 ```
 
 ### PUT api/temperature-regulator/{DeviceId}/temperature
 
 Nastavení cílové teploty pro regulaci.
-Podporováno pouze, pokud je mód regulátoru nastaven na`0`.
+Podporováno pouze, pokud je mód regulátoru nastaven na `basic`.
 
 Předávané parametry:
 
@@ -168,7 +169,7 @@ Ukázka response:
 ### GET api/temperature-regulator/{DeviceId}/temperature
 
 Zjištění cílové teploty pro regulaci.
-Podporováno pouze, pokud mód regulátoru je `basic`.
+Podporováno pouze, pokud je mód regulátoru nastaven na `basic`.
 
 Ukázka response:
 
