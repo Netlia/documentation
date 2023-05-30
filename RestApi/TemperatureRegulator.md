@@ -1,6 +1,6 @@
 # API
 
-Dokument popisuje API pro komunikaci se zařízenímy temperature regulator. Swagger k těmto endpointům je dostupný [zde](https://iotc.netlia.com/swagger/temperature-regulator/index.html). Přístupové údaje ke swaggeru je možné získat od zástupce z firmy Netlia.
+Dokument popisuje API pro komunikaci se zařízením temperature regulator. Swagger k těmto endpointům je dostupný [zde](https://public-api.netlia.com/swagger/temperature-regulator/index.html). Přístupové údaje ke swaggeru je možné získat od zástupce Netlia.
 
 # Zabezpečení
 Komunikace je zabezpečna bearer tokenem ve formátu JWT. Token se posílá ve standartním headeru s klíčem Authorization. Příklad headeru:
@@ -10,10 +10,10 @@ Komunikace je zabezpečna bearer tokenem ve formátu JWT. Token se posílá ve s
 | Authorization   | Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8v...      | 
 
 
-Token je možné získat u zástupce firmy Netlia.
+Token je možné získat u zástupce Netlia.
 
 # Chybové odpovědi
-* Chyby 5xx jsou způsobené chybou serveru a neměli by nikdy nastat. Pokud server vratí tuto chybu, měl by být informován zástupce Netlia.
+* Chyby 5xx jsou způsobené chybou serveru a neměly by nikdy nastat. Pokud server vratí tuto chybu, měl by být informován zástupce Netlia.
 * Chyby 4xx jsou vráceny, pokud klient provedl neplatný/nevalidní request.
 
 Všechny chybové stavové kódy (4xx a 5xx) obsahují standardní [problem details](https://datatracker.ietf.org/doc/html/rfc7807) body, které má následující formát:
@@ -33,7 +33,7 @@ Všechny chybové stavové kódy (4xx a 5xx) obsahují standardní [problem deta
   }
 }
 ```
-* Type - odkazuje na podrobné vysvětlení erroru. Pokud netlia nemá žádné specifické detaily k danému erroru, tak obsahuje pouze odkaz na vysvětlení http kódu.
+* Type - odkazuje na podrobné vysvětlení erroru. Pokud Netlia nemá žádné specifické detaily k danému erroru, tak obsahuje pouze odkaz na vysvětlení http kódu.
 * Title - obsahuje textový popis chyby. V případě obecných chyb popis odpovídá popisu stavového kódu. V případě specifických chyb obsahuje konkrétní informace (příklad v ukázce).
 * Status - duplikuje stavový kód odpovědi. Toto pole je v body obsaženo pouze pro zjedodušení práce partnera (např. pokud loguje body a neloguje vrácený http kód).
 * TraceId - slouží k jednoznačné identifikaci konkrétní chyby (typicky použito při nahlášení chybného chování partnerem).
@@ -68,7 +68,7 @@ Příklady chybových responses:
 }
 ```
 
-3. Server vrátil chybu 400. Klient se snaží odeslat nevalidní JSON (errorId s hodnotou 400 je vrácen vždy když klient odešle JSON který není syntakticky správně):
+3. Server vrátil chybu 400. Klient se snaží odeslat nevalidní JSON (errorId s hodnotou 400 je vrácen vždy když klient odešle JSON, který není syntakticky správně):
 
 ```json
 {
@@ -92,9 +92,9 @@ Příklady chybových responses:
 ## Popis endpointů
 
 
-Většina endpointů přijímajících data v těle requestu vyžaduje položku `RequestId`. Jedná se o jednoznačný identifikátor requestu, který generuje partner (jedná se o UUID) a slouží pro zajištění idempotence, čímž je docíleno toho, že akce je provedena jen jednou pokud dojde o opakovanému zavolání v určitém časovém intervalu. Při opakovaném požadavku se stejným `RequestId` je vrácen HTTP status `409 Conflict`.
+Většina endpointů přijímajících data v těle requestu vyžaduje položku `requestId`. Jedná se o jednoznačný identifikátor requestu, který generuje partner (jedná se o UUID) a slouží pro zajištění idempotence, čímž je docíleno toho, že akce je provedena jen jednou pokud dojde k opakovanému zavolání v určitém časovém intervalu. Při opakovaném požadavku se stejným `requestId` je vrácen HTTP status `409 Conflict`.
 
-### PUT api/temperature-regulator/{DeviceId}/mode
+### PUT api/temperature-regulator/{deviceId}/mode
 
 Změna módu teplotního regulátoru.
 
@@ -102,8 +102,8 @@ Předávané parametry:
 
 | Parametr    | Typ         | Povinný | Popis                               |
 |:------------|:------------|:--------|:------------------------------------|
-| RequestId   | string      | ano     | Jednoznačný identifikátor requestu. |
-| Mode        | int      | ano     | Cílový mód zařízení.                |
+| requestId   | string      | ano     | Jednoznačný identifikátor requestu. |
+| mode        | int         | ano     | Cílový mód zařízení.                |
 
 Cílový mód zařízení může nabývat těchto hodnot:
 
@@ -116,8 +116,8 @@ Ukázka requestu:
 
 ```yaml
 {
-    "RequestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc",
-    "Mode": "basic"
+    "requestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc",
+    "mode": "basic"
 }
 ```
 
@@ -127,7 +127,7 @@ Ukázka response:
 200 OK, žádné informace v body.
 ```
 
-### GET api/temperature-regulator/{DeviceId}/mode
+### GET api/temperature-regulator/{deviceId}/mode
 
 Zjištění módu teplotního regulátoru.
 
@@ -135,11 +135,11 @@ Ukázka response:
 
 ```yaml
 {
-    "Mode": "basic"
+    "mode": "basic"
 }
 ```
 
-### PUT api/temperature-regulator/{DeviceId}/temperature
+### PUT api/temperature-regulator/{deviceId}/temperature
 
 Nastavení cílové teploty pro regulaci.
 Podporováno pouze, pokud je mód regulátoru nastaven na `basic`.
@@ -148,15 +148,15 @@ Předávané parametry:
 
 | Parametr           | Typ         | Povinný | Popis                               |
 |:-------------------|:------------|:--------|:------------------------------------|
-| RequestId          | string      | ano     | Jednoznačný identifikátor requestu. |
-| TargetTemperature  | float       | ano     | Cílová teplota.                     |
+| requestId          | string      | ano     | Jednoznačný identifikátor requestu. |
+| targetTemperature  | float       | ano     | Cílová teplota.                     |
 
 Ukázka requestu:
 
 ```yaml
 {
-    "RequestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc",
-    "TargetTemperature": 21.5
+    "requestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc",
+    "targetTemperature": 21.5
 }
 ```
 
@@ -166,7 +166,7 @@ Ukázka response:
 200 OK, žádné informace v body.
 ```
 
-### GET api/temperature-regulator/{DeviceId}/temperature
+### GET api/temperature-regulator/{deviceId}/temperature
 
 Zjištění cílové teploty pro regulaci.
 Podporováno pouze, pokud je mód regulátoru nastaven na `basic`.
@@ -175,12 +175,12 @@ Ukázka response:
 
 ```yaml
 {
-    "TargetTemperature": 21.5
+    "targetTemperature": 21.5
 }
 ```
 
 
-### PUT api/temperature-regulator/{DeviceId}/factory-reset
+### PUT api/temperature-regulator/{deviceId}/factory-reset
 
 Zruší zařízení, což umožní znovu spárovat jednotlivé fyzické komponenty. Dojde k odstranění provozních dat.
 
@@ -188,7 +188,7 @@ Ukázka requestu:
 
 ```yaml
 {
-    "RequestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc"
+    "requestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc"
 }
 ```
 
@@ -196,7 +196,7 @@ Ukázka response:
 
 ```yaml
 {
-    "ReleasedPhysicalDeviceIds": ["abc123", "abc456", "abc789"]
+    "releasedPhysicalDeviceIds": ["abc123", "abc456", "abc789"]
 }
 ```
 <!--
