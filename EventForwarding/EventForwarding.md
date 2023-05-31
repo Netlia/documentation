@@ -11,7 +11,7 @@ Datetime entries are in UTC format specified in ISO 8601. The order of the param
 
 ## Event forwarding by HTTP callback
 
-Partner can specify the endpoint URLs to which events are sent as HTTP(S) POST requests. Requests have UTF-8 encoding and "application/json" Content-Type. The system tries to pass events in at-least-once mode. Therefore, an event may be delivered more than once. This situation can be handled by using the `EventId` item, which contains event identifier.
+Partner can specify the endpoint URLs to which events are sent as HTTP(S) POST requests. Requests have UTF-8 encoding and "application/json" Content-Type. The system tries to pass events in at-least-once mode. Therefore, an event may be delivered more than once. This situation can be handled by using the `eventId` item, which contains event identifier.
 
 ### HTTP request URL
 
@@ -19,10 +19,10 @@ It is possible to insert placeholders in the URL that will be replaced by the co
 
 | Parameter       | Description                    |
 |:----------------|:-------------------------------|
-| ProtocolVersion | communication protocol version |
-| DeviceId        | device identifier              |
-| DeviceType      | type of device                 |
-| EventType       | type of event                  |
+| protocolVersion | communication protocol version |
+| deviceId        | device identifier              |
+| deviceType      | type of device                 |
+| eventType       | type of event                  |
 
 URL example (recommended settings):
 
@@ -51,13 +51,13 @@ Common parameters:
 
 | Parameter        | Type    | Description                     |
 |:-----------------|:--------|:--------------------------------|
-| ProtocolVersion  | integer | communication protocol version  |
-| DeviceId         | string  | device identifier               |
-| PhysicalDeviceId | string? | physical device identifier [^1] |
-| EventId          | string  | event identifier                |
-| EventTime        | string  | time of event                   |
-| DeviceType       | string  | type of device                  |
-| EventType        | string  | type of event                   |
+| protocolVersion  | integer | communication protocol version  |
+| deviceId         | string  | device identifier               |
+| physicalDeviceId | string? | physical device identifier [^1] |
+| eventId          | string  | event identifier                |
+| eventTime        | string  | time of event                   |
+| deviceType       | string  | type of device                  |
+| eventType        | string  | type of event                   |
 
 Other possible parameters not listed in the table depend on event and message type.
 
@@ -207,20 +207,20 @@ Additional parameters:
 
 | Parameter   | Type  | Mandatory | Description          |
 |:------------|:------|:----------|:---------------------|
-| Temperature | float | yes       | measured temperature |
+| temperature | float | yes       | measured temperature |
 
 A sample of the `measured-temperature` message:
 
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "thermometer",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "measured-temperature",
-    "Temperature": 25.5
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "thermometer",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "measured-temperature",
+    "temperature": 25.5
 }
 ```
 
@@ -249,22 +249,22 @@ Additional parameters:
 
 | Parameter   | Type  | Mandatory | Description          |
 |:------------|:------|:----------|:---------------------|
-| Temperature | float | yes       | measured temperature |
-| Humidity    | float | yes       | measured humidity    |
+| temperature | float | yes       | measured temperature |
+| humidity    | float | yes       | measured humidity    |
 
 A sample of the `measured-humidity-temperature` message:
 
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "hygrometer-thermometer",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "measured-humidity-temperature",
-    "Temperature": 25.5,
-    "Humidity": 27.5
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "hygrometer-thermometer",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "measured-humidity-temperature",
+    "temperature": 25.5,
+    "humidity": 27.5
 }
 ```
 
@@ -278,13 +278,13 @@ Occurs when the device restarts. A restart can be caused by pressing the restart
 A sample of the event:
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "magnetic-detector-simple",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "restart"
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "magnetic-detector-simple",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "restart"
 }
 ```
 
@@ -294,13 +294,13 @@ Occurs at periodic intervals, confirming the functionality of the device.
 A sample of the event:
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "magnetic-detector-simple",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "alive"
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "magnetic-detector-simple",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "alive"
 }
 ```
 
@@ -314,43 +314,15 @@ the RESET button located on the PCB must be pressed.
 A sample of the event:
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "magnetic-detector-simple",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "transport"
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "magnetic-detector-simple",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "transport"
 }
 ```
-
-[//]: # (## EventType downlink-acknowledge)
-
-[//]: # (Informuje o doručení downlinkového commandu na zařízení.)
-
-[//]: # ()
-
-[//]: # (Ukázka zaslané události:)
-
-[//]: # (```yaml)
-
-[//]: # ({)
-
-[//]: # (    "ProtocolVersion": 1,)
-
-[//]: # (    "DeviceId": "abc123",)
-
-[//]: # (    "DeviceType": "magnetic-detector-simple",)
-
-[//]: # (    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",)
-
-[//]: # (    "EventTime": "2021-05-03T14:25:31.8437511Z",)
-
-[//]: # (    "EventType": "downlink-acknowledge")
-
-[//]: # (})
-
-[//]: # (```)
 
 ## EventType tamper
 
@@ -360,13 +332,13 @@ A sample of the event:
 
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "magnetic-detector-simple",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "tamper"
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "magnetic-detector-simple",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "tamper"
 }
 ```
 
@@ -376,13 +348,13 @@ It is triggered by the first occurrence of an input event such as flooding of th
 A sample of the event:
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "magnetic-detector-simple",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "event-start"
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "magnetic-detector-simple",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "event-start"
 }
 ```
 
@@ -393,21 +365,21 @@ A sample of the event:
 
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "motion-detector",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "event-continue",
-    "EventCount": 0,
-    "SecondsSinceLastEvent": 0
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "motion-detector",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "event-continue",
+    "eventCount": 0,
+    "secondsSinceLastEvent": 0
 }
 ```
 
-The `EventCount` specifies the number of event repetitions since the last `event-start` or `event-continue` was sent.
+The `eventCount` specifies the number of event repetitions since the last `event-start` or `event-continue` was sent.
 
-`SecondsSinceLastEvent` specifies the number of seconds between the last event and the sending of the message.
+`secondsSinceLastEvent` specifies the number of seconds between the last event and the sending of the message.
 
 ## EventType event-end
 Occurs at the end of the event. The situation when the `event-end` occurs is described for each device that produces this event.
@@ -415,12 +387,12 @@ Occurs at the end of the event. The situation when the `event-end` occurs is des
 A sample of the event:
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "magnetic-detector-simple",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "event-end"
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "magnetic-detector-simple",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "event-end"
 }
 ```

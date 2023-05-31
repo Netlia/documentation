@@ -22,21 +22,21 @@ Dodatečné předávané parametry:
 
 | Parametr    | Typ   | Povinný | Popis            |
 |:------------|:------|:--------|:-----------------|
-| Temperature | float | ano     | naměřená teplota |
-| Humidity    | float | ano     | naměřená vlhkost |
+| temperature | float | ano     | naměřená teplota |
+| humidity    | float | ano     | naměřená vlhkost |
 
 Ukázka zaslané události:
 
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "DeviceType": "temperature-regulator",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "measured-humidity-temperature",
-    "Temperature": 25.5,
-    "Humidity": 27.5
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "deviceType": "temperature-regulator",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "measured-humidity-temperature",
+    "temperature": 25.5,
+    "humidity": 27.5
 }
 ```
 
@@ -51,13 +51,13 @@ je třeba stisknout RESET tlačítko umístěné na plošném spoji.
 Ukázka zaslané události:
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "temperature-regulator",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "transport"
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "temperature-regulator",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "transport"
 }
 ```
 
@@ -69,36 +69,36 @@ Ukázka zaslané události:
 
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "temperature-regulator",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "tamper"
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "temperature-regulator",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "tamper"
 }
 ```
 
 ### EventType battery-alert
 
-Upozornění při nízkém stavu baterie. Aktuálně vždy s hodnotou `"BatteryStatus": "low"`, v budoucnu bude rozšířeno.
+Upozornění při nízkém stavu baterie. Aktuálně vždy s hodnotou `"batteryStatus": "low"`, v budoucnu bude rozšířeno.
 
 | Parametr         | Typ    | Povinný | Popis                      |
 |:-----------------|:-------|:--------|:---------------------------|
-| BatteryStatus    | string | ano     | Informace o stavu baterie. |
+| batteryStatus    | string | ano     | Informace o stavu baterie. |
 
 Ukázka zaslané události:
 
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "temperature-regulator",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "battery-alert",
-    "BatteryStatus": "low"
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "temperature-regulator",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "battery-alert",
+    "batteryStatus": "low"
 }
 ```
 
@@ -110,38 +110,38 @@ Ukázka zaslané události:
 
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "temperature-regulator",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "communication-alert"
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "temperature-regulator",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "communication-alert"
 }
 ```
 
 ### EventType physical-device-replaced
 
-Událost je odeslána při náhradě fyzického zařízení - informuje o tom, že původní fyzické zařízení s `PhysicalDeviceId` bylo nahrazeno novým fyzickým zařízením s `ReplacementPhysicalDeviceId`. Může nastat např. po výměně fyzického zařízení které je v poruše za nové.
+Událost je odeslána při náhradě fyzického zařízení - informuje o tom, že původní fyzické zařízení s `physicalDeviceId` bylo nahrazeno novým fyzickým zařízením s `replacementPhysicalDeviceId`. Může nastat např. po výměně fyzického zařízení které je v poruše za nové.
 
 Dodatečné předávané parametry:
 
 | Parametr                    | Typ    | Povinný | Popis                                                 |
 |:----------------------------|:-------|:--------|:------------------------------------------------------|
-| ReplacementPhysicalDeviceId | string | ano     | PhysicalDeviceId nově přiřazeného fyzického zařízení. |
+| replacementPhysicalDeviceId | string | ano     | PhysicalDeviceId nově přiřazeného fyzického zařízení. |
 
 Ukázka zaslané události:
 
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "temperature-regulator",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "physical-device-replaced",
-    "ReplacementPhysicalDeviceId": "abc123"
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "temperature-regulator",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "physical-device-replaced",
+    "replacementPhysicalDeviceId": "abc123"
 }
 ```
 
@@ -153,23 +153,23 @@ Dodatečné předávané parametry:
 
 | Parametr                    | Typ      | Povinný | Popis                                                              |
 |:----------------------------|:---------|:--------|:-------------------------------------------------------------------|
-| PhysicalDevices             | string[] | ano     | Fyzická zařízení / komponenty ze kterých je zařízení složeno.      |
-| CustomData                  | object   | ne      | Objekt s informacemi specifickými dle partnera.                    |
+| physicalDevices             | string[] | ano     | Fyzická zařízení / komponenty ze kterých je zařízení složeno.      |
+| customData                  | object   | ne      | Objekt s informacemi specifickými dle partnera.                    |
 
-Mohou existovat zařízení u kterých bude `PhysicalDevices` obsahovat prázdné pole.
+Mohou existovat zařízení u kterých bude `physicalDevices` obsahovat prázdné pole.
 
 Ukázka zaslané události:
 
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "DeviceType": "temperature-regulator",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "device-created",
-    "PhysicalDevices": ["abc123", "abc456", "abc789"],
-    "CustomData":
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "deviceType": "temperature-regulator",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "device-created",
+    "physicalDevices": ["abc123", "abc456", "abc789"],
+    "customData":
         {
             "sample-key-1": "sample-value-1",
             "sample-key-2": 123 

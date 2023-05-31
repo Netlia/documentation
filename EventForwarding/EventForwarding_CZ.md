@@ -13,7 +13,7 @@ Položky datetime jsou v UTC podle ISO 8601. Pořadí parametrů není zaručeno
 
 Partner může specifikovat URL endpointů na které jsou události zasílány formou HTTP(S) POST requestů. Requesty mají
 kódování UTF-8 a Content-Type “application/json”. Systém se snaží předat události v režimu at-least-once, může tedy
-nastat situace že je událost doručena víckrát. Tuto situaci lze ošetři s využitím položky `EventId`, která obsahuje
+nastat situace že je událost doručena víckrát. Tuto situaci lze ošetři s využitím položky `eventId`, která obsahuje
 identifikátor události.
 
 ### URL HTTP requestu
@@ -22,10 +22,10 @@ Do URL je možné vložit zástupné parametry, které budou nahrazeny odpovída
 
 | Parametr        | Popis                         |
 |:----------------|:------------------------------|
-| ProtocolVersion | verze komunikačního protokolu |
-| DeviceId        | identifikátor zařízení        |
-| DeviceType      | typ zařízení                  |
-| EventType       | typ události                  |
+| protocolVersion | verze komunikačního protokolu |
+| deviceId        | identifikátor zařízení        |
+| deviceType      | typ zařízení                  |
+| eventType       | typ události                  |
 
 Příklad URL (doporučené nastavení):
 
@@ -54,13 +54,13 @@ Společné parametry:
 
 | Parametr         | Typ      | Popis                               |
 |:-----------------|:---------|:------------------------------------|
-| ProtocolVersion  | integer  | verze komunikačního protokolu       |
-| DeviceId         | string   | identifikátor zařízení              |
-| PhysicalDeviceId | string?  | fyzický identifikátor zařízení [^1] |
-| EventId          | string   | identifikátor události              |
-| EventTime        | string   | čas události                        |
-| DeviceType       | string   | typ zařízení                        |
-| EventType        | string   | typ události                        |
+| protocolVersion  | integer  | verze komunikačního protokolu       |
+| deviceId         | string   | identifikátor zařízení              |
+| physicalDeviceId | string?  | fyzický identifikátor zařízení [^1] |
+| eventId          | string   | identifikátor události              |
+| eventTime        | string   | čas události                        |
+| deviceType       | string   | typ zařízení                        |
+| eventType        | string   | typ události                        |
 
 Další případné parametry neuvedené v tabulce jsou závislé na typu zprávy a události.
 
@@ -222,20 +222,20 @@ Dodatečné předávané parametry:
 
 | Parametr    | Typ   | Povinný | Popis            |
 |:------------|:------|:--------|:-----------------|
-| Temperature | float | ano     | naměřená teplota |
+| temperature | float | ano     | naměřená teplota |
 
 Ukázka zaslané události:
 
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "thermometer",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "measured-temperature",
-    "Temperature": 25.5
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "thermometer",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "measured-temperature",
+    "temperature": 25.5
 }
 ```
 
@@ -264,22 +264,22 @@ Dodatečné předávané parametry:
 
 | Parametr    | Typ   | Povinný | Popis            |
 |:------------|:------|:--------|:-----------------|
-| Temperature | float | ano     | naměřená teplota |
-| Humidity    | float | ano     | naměřená vlhkost |
+| temperature | float | ano     | naměřená teplota |
+| humidity    | float | ano     | naměřená vlhkost |
 
 Ukázka zaslané události:
 
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "hygrometer-thermometer",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "measured-humidity-temperature",
-    "Temperature": 25.5,
-    "Humidity": 27.5
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "hygrometer-thermometer",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "measured-humidity-temperature",
+    "temperature": 25.5,
+    "humidity": 27.5
 }
 ```
 
@@ -293,13 +293,13 @@ Nastává při restartu zařízení. K restartu může dojít stiskem restartova
 Ukázka zaslané události:
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "magnetic-detector-simple",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "restart"
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "magnetic-detector-simple",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "restart"
 }
 ```
 
@@ -309,13 +309,13 @@ Nastává v pravidelném intervalu, potvrzuje funkčnost zařízení.
 Ukázka zaslané události:
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "magnetic-detector-simple",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "alive"
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "magnetic-detector-simple",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "alive"
 }
 ```
 
@@ -330,43 +330,15 @@ je třeba stisknout RESET tlačítko umístěné na plošném spoji.
 Ukázka zaslané události:
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "magnetic-detector-simple",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "transport"
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "magnetic-detector-simple",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "transport"
 }
 ```
-
-[//]: # (## EventType downlink-acknowledge)
-
-[//]: # (Informuje o doručení downlinkového commandu na zařízení.)
-
-[//]: # ()
-
-[//]: # (Ukázka zaslané události:)
-
-[//]: # (```yaml)
-
-[//]: # ({)
-
-[//]: # (    "ProtocolVersion": 1,)
-
-[//]: # (    "DeviceId": "abc123",)
-
-[//]: # (    "DeviceType": "magnetic-detector-simple",)
-
-[//]: # (    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",)
-
-[//]: # (    "EventTime": "2021-05-03T14:25:31.8437511Z",)
-
-[//]: # (    "EventType": "downlink-acknowledge")
-
-[//]: # (})
-
-[//]: # (```)
 
 ## EventType tamper
 
@@ -376,13 +348,13 @@ Ukázka zaslané události:
 
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "magnetic-detector-simple",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "tamper"
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "magnetic-detector-simple",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "tamper"
 }
 ```
 
@@ -392,13 +364,13 @@ Nastává při prvním vzniku události jako např. zaplavení kontaktů, oddál
 Ukázka zaslané události:
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "magnetic-detector-simple",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "event-start"
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "magnetic-detector-simple",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "event-start"
 }
 ```
 
@@ -409,21 +381,21 @@ Ukázka zaslané události:
 
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "motion-detector",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "event-continue",
-    "EventCount": 0,
-    "SecondsSinceLastEvent": 0
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "motion-detector",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "event-continue",
+    "eventCount": 0,
+    "secondsSinceLastEvent": 0
 }
 ```
 
-`EventCount` udává počet opakování události od posledního odeslání `event-start` nebo `event-continue`.
+`eventCount` udává počet opakování události od posledního odeslání `event-start` nebo `event-continue`.
 
-`SecondsSinceLastEvent` udává počet vteřin mezi poslední událostí a odesláním zprávy.
+`secondsSinceLastEvent` udává počet vteřin mezi poslední událostí a odesláním zprávy.
 
 ## EventType event-end
 Nastává při skončení události. Situace kdy ukončení události nastane je popsána u každého zařízení, které tuto funkcionalitu podporuje.
@@ -431,12 +403,12 @@ Nastává při skončení události. Situace kdy ukončení události nastane je
 Ukázka zaslané události:
 ```yaml
 {
-    "ProtocolVersion": 1,
-    "DeviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "PhysicalDeviceId": "abc123",
-    "DeviceType": "magnetic-detector-simple",
-    "EventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "EventTime": "2021-05-03T14:25:31.8437511Z",
-    "EventType": "event-end"
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "magnetic-detector-simple",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "event-end"
 }
 ```
