@@ -7,12 +7,12 @@ Každou minutu měří teplotu a vlhkost. Po X měření (ve výchozím stavu 10
 
 | EventType                                                                 | Popis                                                                      |
 |:--------------------------------------------------------------------------|:---------------------------------------------------------------------------|
-| [transport](#eventtype-transport)                                         | Přechod do transportního režimu - neaktivní stav s minimální spotřebou.    |
-| [tamper](#eventtype-tamper)                                               | Sundání nebo nasazení hlavice, otevření nebo zavření krytu zařízení.       |
-| [battery-alert](#eventtype-battery-alert)                                 | Upozornění na nízký stav baterie.                                          |
-| [communication-alert](#eventtype-communication-alert)                     | Problém komunikace se zařízením.                                           |
-| [physical-device-replaced](#eventtype-physical-device-replaced)           | Nastává při náhradě fyzického zařízení.                                    |
 | [measured-humidity-temperature](#eventtype-measured-humidity-temperature) | Naměřené veličiny.                                                         |
+| [battery-alert](#eventtype-battery-alert)                                 | Upozornění na nízký stav baterie.                                          |
+| [warning](#eventtype-warning)                                             | Upozornění.                                                                |
+| [error](#eventtype-error)                                                 | Chyba.                                                                     |
+| [physical-device-replaced](#eventtype-physical-device-replaced)           | Nastává při náhradě fyzického zařízení.                                    |
+| [device-created](#eventtype-device-created)                               | Informuje o vytvoření zařízení.                                            |
 
 ### EventType measured-humidity-temperature
 
@@ -20,10 +20,10 @@ Nastává při odeslání naměřené hodnoty.
 
 Dodatečné předávané parametry:
 
-| Parametr    | Typ   | Povinný | Popis            |
-|:------------|:------|:--------|:-----------------|
-| temperature | float | ano     | naměřená teplota |
-| humidity    | float | ano     | naměřená vlhkost |
+| Parametr    | Typ   | Povinný | Popis                 |
+|:------------|:------|:--------|:----------------------|
+| temperature | float | ano     | naměřená teplota [°C] |
+| humidity    | float | ano     | naměřená vlhkost [%]  |
 
 Ukázka zaslané události:
 
@@ -37,45 +37,6 @@ Ukázka zaslané události:
     "eventType": "measured-humidity-temperature",
     "temperature": 25.5,
     "humidity": 27.5
-}
-```
-
-### EventType transport
-
-Nastává při přechodu zařízení do transportního režimu, ke kterému dojde po vložení nové baterie nebo pomocí příkazu
-zaslaného prostřednictvím downlink API.
-
-Zařízení v transportním režimu má velmi nízkou spotřebu a neposílá žádné zprávy. Pro probuzení zařízení z transportního režimu
-je třeba stisknout RESET tlačítko umístěné na plošném spoji.
-
-Ukázka zaslané události:
-```yaml
-{
-    "protocolVersion": 1,
-    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "physicalDeviceId": "abc123",
-    "deviceType": "temperature-regulator",
-    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2021-05-03T14:25:31.8437511Z",
-    "eventType": "transport"
-}
-```
-
-### EventType tamper
-
-Nastává při otevření nebo zavření krytu zařízení, manipulace s bezpečnostním spínačem.
-
-Ukázka zaslané události:
-
-```yaml
-{
-    "protocolVersion": 1,
-    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "physicalDeviceId": "abc123",
-    "deviceType": "temperature-regulator",
-    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2021-05-03T14:25:31.8437511Z",
-    "eventType": "tamper"
 }
 ```
 
@@ -102,9 +63,14 @@ Ukázka zaslané události:
 }
 ```
 
-### EventType communication-alert
+### EventType warning
 
-Upozornění při problému komunikace se zařízením. Nastává v situaci kdy ze zařízení nepřišla zpráva v pravidelném intervalu.
+Upozornění na stav zařízení nevyžadující okamžité řešení. Příkladem může být horší kvalita signálu, zhoršené mechanické vlastnosti ventilu (tuhnutí), apod...
+
+| Parametr           | Typ    | Povinný | Popis                                             |
+|:-------------------|:-------|:--------|:--------------------------------------------------|
+| warningType        | string | ano     | Označení upozornění, unikátní v rámci deviceType. |
+| warningDescription | string | ano     | Vysvětlení příčiny upozornění.                    |
 
 Ukázka zaslané události:
 
@@ -116,7 +82,34 @@ Ukázka zaslané události:
     "deviceType": "temperature-regulator",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "eventTime": "2021-05-03T14:25:31.8437511Z",
-    "eventType": "communication-alert"
+    "eventType": "warning",
+    "warningType": "some-warning",
+    "warningDescription": "A description of the warning sent."
+}
+```
+
+### EventType error
+
+Upozornění na stav zařízení vyžadující okamžité řešení z důvodu neschopnosti jeho dalšího fungování které bude nutné pravděpodobně řešit jeho výměnou. Příkladem může být hardwarový problém.
+
+| Parametr           | Typ    | Povinný | Popis                                             |
+|:-------------------|:-------|:--------|:--------------------------------------------------|
+| errorType          | string | ano     | Označení chyby, unikátní v rámci deviceType.      |
+| errorDescription   | string | ano     | Vysvětlení příčiny chyby.                         |
+
+Ukázka zaslané události:
+
+```yaml
+{
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "temperature-regulator",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "error",
+    "errorType": "some-error",
+    "errorDescription": "A description of the error sent."
 }
 ```
 
@@ -141,7 +134,7 @@ Ukázka zaslané události:
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "eventTime": "2021-05-03T14:25:31.8437511Z",
     "eventType": "physical-device-replaced",
-    "replacementPhysicalDeviceId": "abc123"
+    "replacementPhysicalDeviceId": "abc456"
 }
 ```
 
