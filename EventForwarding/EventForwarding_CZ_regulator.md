@@ -67,10 +67,10 @@ Ukázka zaslané události:
 
 Upozornění na stav zařízení nevyžadující okamžité řešení. Příkladem může být horší kvalita signálu, zhoršené mechanické vlastnosti ventilu (tuhnutí), apod...
 
-| Parametr           | Typ    | Povinný | Popis                                             |
-|:-------------------|:-------|:--------|:--------------------------------------------------|
-| warningType        | string | ano     | Označení upozornění, unikátní v rámci deviceType. |
-| warningDescription | string | ano     | Vysvětlení příčiny upozornění.                    |
+| Parametr                    | Typ    | Povinný | Popis                                             |
+|:----------------------------|:-------|:--------|:--------------------------------------------------|
+| warningType                 | string | ano     | Označení upozornění, unikátní v rámci deviceType. |
+| localizedWarningDescription | string | ano     | Vysvětlení příčiny upozornění.                    |
 
 Ukázka zaslané události:
 
@@ -84,7 +84,7 @@ Ukázka zaslané události:
     "eventTime": "2021-05-03T14:25:31.8437511Z",
     "eventType": "warning",
     "warningType": "some-warning",
-    "warningDescription": "A description of the warning sent."
+    "localizedWarningDescription": "Popis zaslaného upozornění."
 }
 ```
 
@@ -92,10 +92,10 @@ Ukázka zaslané události:
 
 Upozornění na stav zařízení vyžadující okamžité řešení z důvodu neschopnosti jeho dalšího fungování které bude nutné pravděpodobně řešit jeho výměnou. Příkladem může být hardwarový problém.
 
-| Parametr           | Typ    | Povinný | Popis                                             |
-|:-------------------|:-------|:--------|:--------------------------------------------------|
-| errorType          | string | ano     | Označení chyby, unikátní v rámci deviceType.      |
-| errorDescription   | string | ano     | Vysvětlení příčiny chyby.                         |
+| Parametr                    | Typ    | Povinný | Popis                                             |
+|:----------------------------|:-------|:--------|:--------------------------------------------------|
+| errorType                   | string | ano     | Označení chyby, unikátní v rámci deviceType.      |
+| localizedErrorDescription   | string | ano     | Vysvětlení příčiny chyby.                         |
 
 Ukázka zaslané události:
 
@@ -109,7 +109,7 @@ Ukázka zaslané události:
     "eventTime": "2021-05-03T14:25:31.8437511Z",
     "eventType": "error",
     "errorType": "some-error",
-    "errorDescription": "A description of the error sent."
+    "localizedErrorDescription": "Popis zaslané chyby."
 }
 ```
 
