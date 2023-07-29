@@ -161,7 +161,7 @@ Ukázka zaslané události:
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "eventTime": "2021-05-03T14:25:31.8437511Z",
     "eventType": "device-created",
-    "physicalDevices": ["abc123", "abc456", "abc789"],
+    "physicalDeviceIds": ["abc123", "abc456", "abc789"],
     "customData":
         {
             "sample-key-1": "sample-value-1",
