@@ -82,6 +82,9 @@ If flooding occurs in the idle state, the `event-start` event is triggered. The 
 | [event-start](#eventtype-event-start)               | Flooding detected.                                                           |
 | [event-continue](#eventtype-event-continue)         | Flooding still detected.                                                     |
 | [event-end](#eventtype-event-end)                   | End of flooding.                                                             |
+| [battery-alert](#eventtype-battery-alert)           | Low battery status warning.                                                  |
+| [warning](#eventtype-warning)                       | Notification of a condition that does not require immediate resolution.      |
+| [error](#eventtype-error)                           | Notification of a status requiring immediate resolution.                     |
 
 ## Motion detector
 Detects movement of an object which the device is attached to or placed on.
@@ -103,6 +106,9 @@ The device counts the number of input events, where the input event is a motion 
 | [event-start](#eventtype-event-start)               | Movement detected.                                                           |
 | [event-continue](#eventtype-event-continue)         | Movement continues.                                                          |
 | [event-end](#eventtype-event-end)                   | There was no movement for 10 minutes.                                        |
+| [battery-alert](#eventtype-battery-alert)           | Low battery status warning.                                                  |
+| [warning](#eventtype-warning)                       | Notification of a condition that does not require immediate resolution.      |
+| [error](#eventtype-error)                           | Notification of a status requiring immediate resolution.                     |
 
 ## Magnetic detector
 Detects the insertion/removal of a magnet into/from it's proximity.
@@ -125,6 +131,9 @@ The `event-start` event is triggered whenever the magnet is removed form detecto
 | [tamper](#eventtype-tamper)                         | Opening or closing of device case, tampering switch manipulation.            |
 | [event-start](#eventtype-event-start)               | Magnet removed, start of alarm.                                              |
 | [event-end](#eventtype-event-end)                   | Magnet placed back, end of alarm.                                            |
+| [battery-alert](#eventtype-battery-alert)           | Low battery status warning.                                                  |
+| [warning](#eventtype-warning)                       | Notification of a condition that does not require immediate resolution.      |
+| [error](#eventtype-error)                           | Notification of a status requiring immediate resolution.                     |
 
 ### Continuous mode
 
@@ -143,6 +152,9 @@ The device counts the number of input events, where the input event is a removal
 | [event-start](#eventtype-event-start)               | Input event detected, alarm starts.                                          |
 | [event-continue](#eventtype-event-continue)         | Further input events detected, alarm continues.                              |
 | [event-end](#eventtype-event-end)                   | No further input events detected, alarm ends.                                |
+| [battery-alert](#eventtype-battery-alert)           | Low battery status warning.                                                  |
+| [warning](#eventtype-warning)                       | Notification of a condition that does not require immediate resolution.      |
+| [error](#eventtype-error)                           | Notification of a status requiring immediate resolution.                     |
 
 ## PIR detector
 Detects personal presence in a specified area up to 10 meters distance. 
@@ -164,6 +176,9 @@ The device counts the number of input events, where the input event is a movemen
 | [event-start](#eventtype-event-start)               | Input event detected, alarm starts.                                          |
 | [event-continue](#eventtype-event-continue)         | Further input events detected, alarm continues.                              |
 | [event-end](#eventtype-event-end)                   | No further input events detected, alarm ends.                                |
+| [battery-alert](#eventtype-battery-alert)           | Low battery status warning.                                                  |
+| [warning](#eventtype-warning)                       | Notification of a condition that does not require immediate resolution.      |
+| [error](#eventtype-error)                           | Notification of a status requiring immediate resolution.                     |
 
 ## SOS button
 Device with a button to call for help or raise an alarm.
@@ -175,12 +190,15 @@ The device triggers `event-start` event whenever the button is pressed.
 
 > DeviceType: sos-button
 
-| EventType                             | Description                                                                  |
-|:--------------------------------------|:-----------------------------------------------------------------------------|
-| [restart](#eventtype-restart)         | Device restart.                                                              |
-| [alive](#eventtype-alive)             | Occurs at periodic intervals, confirming the functionality of the device.    |
-| [transport](#eventtype-transport)     | Switching to transport mode - inactive state with minimum power consumption. |
-| [event-start](#eventtype-event-start) | Button pressed, alarm started.                                               |
+| EventType                                           | Description                                                                  |
+|:----------------------------------------------------|:-----------------------------------------------------------------------------|
+| [restart](#eventtype-restart)                       | Device restart.                                                              |
+| [alive](#eventtype-alive)                           | Occurs at periodic intervals, confirming the functionality of the device.    |
+| [transport](#eventtype-transport)                   | Switching to transport mode - inactive state with minimum power consumption. |
+| [event-start](#eventtype-event-start)               | Button pressed, alarm started.                                               |
+| [battery-alert](#eventtype-battery-alert)           | Low battery status warning.                                                  |
+| [warning](#eventtype-warning)                       | Notification of a condition that does not require immediate resolution.      |
+| [error](#eventtype-error)                           | Notification of a status requiring immediate resolution.                     |
 
 ## Thermometer
 Measures the ambient temperature.
@@ -197,6 +215,9 @@ The device measures the temperature every minute. After X measurements, it calcu
 | [restart](#eventtype-restart)                           | Device restart.                                                              |
 | [alive](#eventtype-alive)                               | Occurs at periodic intervals, confirming the functionality of the device.    |
 | [transport](#eventtype-transport)                       | Switching to transport mode - inactive state with minimum power consumption. |
+| [battery-alert](#eventtype-battery-alert)               | Low battery status warning.                                                  |
+| [warning](#eventtype-warning)                           | Notification of a condition that does not require immediate resolution.      |
+| [error](#eventtype-error)                               | Notification of a status requiring immediate resolution.                     |
 | [measured-temperature](#eventtype-measured-temperature) | Measured values.                                                             |
 
 ### EventType measured-temperature
@@ -239,6 +260,9 @@ The device measures the temperature and humidity every minute. After X measureme
 | [restart](#eventtype-restart)                                             | Device restart.                                                              |
 | [alive](#eventtype-alive)                                                 | Occurs at periodic intervals, confirming the functionality of the device.    |
 | [transport](#eventtype-transport)                                         | Switching to transport mode - inactive state with minimum power consumption. |
+| [battery-alert](#eventtype-battery-alert)                                 | Low battery status warning.                                                  |
+| [warning](#eventtype-warning)                                             | Notification of a condition that does not require immediate resolution.      |
+| [error](#eventtype-error)                                                 | Notification of a status requiring immediate resolution.                     |
 | [measured-humidity-temperature](#eventtype-measured-humidity-temperature) | Measured values.                                                             |
 
 ### EventType measured-humidity-temperature
@@ -394,5 +418,78 @@ A sample of the event:
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "eventTime": "2021-05-03T14:25:31.8437511Z",
     "eventType": "event-end"
+}
+```
+
+## EventType battery-alert
+
+Low battery warning. Currently always with the value `"batteryStatus": "low"`, will be extended in the future.
+
+| Parameter        | Type   | Mandatory | Description                 |
+|:-----------------|:-------|:----------|:----------------------------|
+| batteryStatus    | string | yes       | Battery status information. |
+
+A sample of the event:
+
+```yaml
+{
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "magnetic-detector-simple",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "battery-alert",
+    "batteryStatus": "low"
+}
+```
+
+## EventType warning
+
+Notification of a device condition that does not require immediate resolution. For example poor signal quality, degraded mechanical characteristics of the valve, etc...
+
+| Parameter                   | Type   | Mandatory | Description                                       |
+|:----------------------------|:-------|:----------|:--------------------------------------------------|
+| warningType                 | string | yes       | Warning type, unique within deviceType.           |
+| localizedWarningDescription | string | yes       | Explanation of the cause of the warning.          |
+
+A sample of the event:
+
+```yaml
+{
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "magnetic-detector-simple",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "warning",
+    "warningType": "some-warning",
+    "localizedWarningDescription": "Explanation of the cause of the warning."
+}
+```
+
+## EventType error
+
+Notification of a device status requiring immediate solution due to its inability to continue functioning which will probably have to be solved by its replacement. For example a hardware problem.
+
+| Parameter                   | Type   | Mandatory | Description                                       |
+|:----------------------------|:-------|:----------|:--------------------------------------------------|
+| errorType                   | string | yes       | Error type, unique within deviceType.             |
+| localizedErrorDescription   | string | yes       | Explanation of the cause of the error.            |
+
+A sample of the event:
+
+```yaml
+{
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "magnetic-detector-simple",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "error",
+    "errorType": "some-error",
+    "localizedErrorDescription": "Explanation of the cause of the error."
 }
 ```

@@ -88,6 +88,9 @@ zařízení posílá `event-end`.
 | [event-start](#eventtype-event-start)               | Detekce vzniku zaplavení.                                               |
 | [event-continue](#eventtype-event-continue)         | Zaplavení pokračuje.                                                    |
 | [event-end](#eventtype-event-end)                   | Konec zaplavení.                                                        |
+| [battery-alert](#eventtype-battery-alert)           | Upozornění na nízký stav baterie.                                       |
+| [warning](#eventtype-warning)                       | Notifikace stavu, který nevyžaduje okamžité řešení.                     |
+| [error](#eventtype-error)                           | Notifikace stavu, který vyžaduje okamžité řešení.                       |
 
 ## Detektor pohybu
 Detekuje pohyb předmětu, na kterém je zařízení připevněno nebo položeno. 
@@ -112,6 +115,9 @@ pohybu. Pokud je zařízení 10 minut od začátku nebo pokračování pohybu v 
 | [event-start](#eventtype-event-start)               | Detekce začátku pohybu.                                                    |
 | [event-continue](#eventtype-event-continue)         | Bohyb pokračuje.                                                           |
 | [event-end](#eventtype-event-end)                   | Během 10 minut nedošlo k pohybu.                                           |
+| [battery-alert](#eventtype-battery-alert)           | Upozornění na nízký stav baterie.                                          |
+| [warning](#eventtype-warning)                       | Notifikace stavu, který nevyžaduje okamžité řešení.                        |
+| [error](#eventtype-error)                           | Notifikace stavu, který vyžaduje okamžité řešení.                          |
 
 ## Magnetický detektor
 Rozpozná oddálení/přiblížení čidla od magnetu.
@@ -135,6 +141,9 @@ Vždy při oddálení magnetu je vyvolána událost `event-start`. Při přiblí
 | [tamper](#eventtype-tamper)                         | Otevření nebo zavření krytu zařízení, manipulace s bezpečnostním spínačem. |
 | [event-start](#eventtype-event-start)               | Magnet oddálen, začátek poplachu.                                          |
 | [event-end](#eventtype-event-end)                   | Magnet přiblížen zpět, konec poplachu.                                     |
+| [battery-alert](#eventtype-battery-alert)           | Upozornění na nízký stav baterie.                                          |
+| [warning](#eventtype-warning)                       | Notifikace stavu, který nevyžaduje okamžité řešení.                        |
+| [error](#eventtype-error)                           | Notifikace stavu, který vyžaduje okamžité řešení.                          |
 
 ### Režim Continuous
 
@@ -156,6 +165,9 @@ oddálení magnetu), zařízení posílá `event-end`.
 | [event-start](#eventtype-event-start)               | Magnet oddálen, začátek poplachu.                                          |
 | [event-continue](#eventtype-event-continue)         | Dění na magnetu se opakuje, poplach pokračuje.                             |
 | [event-end](#eventtype-event-end)                   | Během 10 minut nedošlo k oddálení magnetu, konec poplachu.                 |
+| [battery-alert](#eventtype-battery-alert)           | Upozornění na nízký stav baterie.                                          |
+| [warning](#eventtype-warning)                       | Notifikace stavu, který nevyžaduje okamžité řešení.                        |
+| [error](#eventtype-error)                           | Notifikace stavu, který vyžaduje okamžité řešení.                          |
 
 ## PIR detektor
 Detekuje pohyb nebo přítomnost člověka ve vymezeném prostoru do vzdálenosti 10m. 
@@ -179,6 +191,9 @@ poslední. Zařízení pošle zprávu s událostí `event-end`, že pohyb skonč
 | [event-start](#eventtype-event-start)               | Detekce začátku pohybu.                                                    |
 | [event-continue](#eventtype-event-continue)         | Pohyb pokračuje.                                                           |
 | [event-end](#eventtype-event-end)                   | Během 10 minut nedošlo k pohybu.                                           |
+| [battery-alert](#eventtype-battery-alert)           | Upozornění na nízký stav baterie.                                          |
+| [warning](#eventtype-warning)                       | Notifikace stavu, který nevyžaduje okamžité řešení.                        |
+| [error](#eventtype-error)                           | Notifikace stavu, který vyžaduje okamžité řešení.                          |
 
 ## SOS tlačítko
 Zařízení s tlačítkem pro přivolání pomoci nebo spuštění poplachu.
@@ -190,12 +205,15 @@ Zařízení po stitknutí tlačítka pošle zprávu s událostí `event-start`.
 
 > DeviceType: sos-button
 
-| EventType                             | Popis                                                                   |
-|:--------------------------------------|:------------------------------------------------------------------------|
-| [restart](#eventtype-restart)         | Restart zařízení.                                                       |
-| [alive](#eventtype-alive)             | Nastává v pravidelném intervalu, potvrzuje funkčnost zařízení.          |
-| [transport](#eventtype-transport)     | Přechod do transportního režimu - neaktivní stav s minimální spotřebou. |
-| [event-start](#eventtype-event-start) | Stisknuto, začátek poplachu.                                            |
+| EventType                                           | Popis                                                                      |
+|:----------------------------------------------------|:---------------------------------------------------------------------------|
+| [restart](#eventtype-restart)                       | Restart zařízení.                                                          |
+| [alive](#eventtype-alive)                           | Nastává v pravidelném intervalu, potvrzuje funkčnost zařízení.             |
+| [transport](#eventtype-transport)                   | Přechod do transportního režimu - neaktivní stav s minimální spotřebou.    |
+| [event-start](#eventtype-event-start)               | Stisknuto, začátek poplachu.                                               |
+| [battery-alert](#eventtype-battery-alert)           | Upozornění na nízký stav baterie.                                          |
+| [warning](#eventtype-warning)                       | Notifikace stavu, který nevyžaduje okamžité řešení.                        |
+| [error](#eventtype-error)                           | Notifikace stavu, který vyžaduje okamžité řešení.                          |
 
 ## Teploměr
 Měří teplotu okolního prostředí.
@@ -212,6 +230,9 @@ Každou minutu měří teplotu. Po X měření provede výpočet průměrné hod
 | [restart](#eventtype-restart)                           | Restart zařízení.                                                       |
 | [alive](#eventtype-alive)                               | Nastává v pravidelném intervalu, potvrzuje funkčnost zařízení.          |
 | [transport](#eventtype-transport)                       | Přechod do transportního režimu - neaktivní stav s minimální spotřebou. |
+| [battery-alert](#eventtype-battery-alert)               | Upozornění na nízký stav baterie.                                       |
+| [warning](#eventtype-warning)                           | Notifikace stavu, který nevyžaduje okamžité řešení.                     |
+| [error](#eventtype-error)                               | Notifikace stavu, který vyžaduje okamžité řešení.                       |
 | [measured-temperature](#eventtype-measured-temperature) | Naměřené veličiny.                                                      |
 
 ### EventType measured-temperature
@@ -254,6 +275,9 @@ Každou minutu měří teplotu a vlhkost. Po X měření provede výpočet prům
 | [restart](#eventtype-restart)                                             | Restart zařízení.                                                       |
 | [alive](#eventtype-alive)                                                 | Nastává v pravidelném intervalu, potvrzuje funkčnost zařízení.          |
 | [transport](#eventtype-transport)                                         | Přechod do transportního režimu - neaktivní stav s minimální spotřebou. |
+| [battery-alert](#eventtype-battery-alert)                                 | Upozornění na nízký stav baterie.                                       |
+| [warning](#eventtype-warning)                                             | Notifikace stavu, který nevyžaduje okamžité řešení.                     |
+| [error](#eventtype-error)                                                 | Notifikace stavu, který vyžaduje okamžité řešení.                       |
 | [measured-humidity-temperature](#eventtype-measured-humidity-temperature) | Naměřené veličiny.                                                      |
 
 ### EventType measured-humidity-temperature
@@ -410,5 +434,78 @@ Ukázka zaslané události:
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "eventTime": "2021-05-03T14:25:31.8437511Z",
     "eventType": "event-end"
+}
+```
+
+## EventType battery-alert
+
+Upozornění při nízkém stavu baterie. Aktuálně vždy s hodnotou `"batteryStatus": "low"`, v budoucnu bude rozšířeno.
+
+| Parametr         | Typ    | Povinný | Popis                      |
+|:-----------------|:-------|:--------|:---------------------------|
+| batteryStatus    | string | ano     | Informace o stavu baterie. |
+
+Ukázka zaslané události:
+
+```yaml
+{
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "magnetic-detector-simple",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "battery-alert",
+    "batteryStatus": "low"
+}
+```
+
+## EventType warning
+
+Upozornění na stav zařízení nevyžadující okamžité řešení. Příkladem může být horší kvalita signálu, zhoršené mechanické vlastnosti ventilu (tuhnutí), apod...
+
+| Parametr                    | Typ    | Povinný | Popis                                             |
+|:----------------------------|:-------|:--------|:--------------------------------------------------|
+| warningType                 | string | ano     | Označení upozornění, unikátní v rámci deviceType. |
+| localizedWarningDescription | string | ano     | Vysvětlení příčiny upozornění.                    |
+
+Ukázka zaslané události:
+
+```yaml
+{
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "magnetic-detector-simple",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "warning",
+    "warningType": "some-warning",
+    "localizedWarningDescription": "Popis zaslaného upozornění."
+}
+```
+
+## EventType error
+
+Upozornění na stav zařízení vyžadující okamžité řešení z důvodu neschopnosti jeho dalšího fungování které bude nutné pravděpodobně řešit jeho výměnou. Příkladem může být hardwarový problém.
+
+| Parametr                    | Typ    | Povinný | Popis                                             |
+|:----------------------------|:-------|:--------|:--------------------------------------------------|
+| errorType                   | string | ano     | Označení chyby, unikátní v rámci deviceType.      |
+| localizedErrorDescription   | string | ano     | Vysvětlení příčiny chyby.                         |
+
+Ukázka zaslané události:
+
+```yaml
+{
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123",
+    "deviceType": "magnetic-detector-simple",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventType": "error",
+    "errorType": "some-error",
+    "localizedErrorDescription": "Popis zaslané chyby."
 }
 ```
