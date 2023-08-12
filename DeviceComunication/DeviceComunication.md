@@ -1,6 +1,6 @@
 # Device communication
 
-This document is used to describe the behaviour of each device and to describe a common communication protocol.
+This document describes the behaviour of each device and a common communication protocol.
 
 ## Basic device features
 
@@ -12,35 +12,32 @@ This document is used to describe the behaviour of each device and to describe a
 ## General device behaviour
 
 Devices send three main types of messages - event, restart and measure. Event messages are sent
-whenever the device detects an event (e.g., move device detects motion, water detection device comes into contact with water). Restart messages inform the server that
-the device has been restarted. Measure messages are sent at a specific
-time interval and send the measured data. An example would be the measured temperature from a temperature device.
+whenever the device detects an event (e.g., motion detection device detects motion, water detection device comes into contact with water). Restart messages inform the server that
+the device has been restarted. Measure messages are sent with a specific time period and contain the measured data (e.g. Thermometer).
 A detailed description of these and other messages can be found [here](#messages-from-device-to-server).
 
-Depending on the settings and device type, some messages require acknowledgment from the server. In these
-cases, the device waits for a response from the server and resends the message if it does not receive one. Messages that are not confirmed may be lost because the device does not try to resend them. The server does not learn about the contents of the lost messages, but it can determine that messages have been lost based on discrepancies between the message counter on the server and the [header counter](#0th-byte---counter-of-sent-messages) of subsequent messages.
+Depending on the settings and device type, acknowledgment of some messages is required from the server. Messages not requiring acknowledgment may be lost because the device does not try to resend them. The loosing of a message can be detected based on discrepancies between the message counter on the server and the [header counter](#0th-byte---counter-of-sent-messages) of subsequent messages.
 
-Some messages may arrive on the server more than once. The server can detect duplicates using [header counter](#0th-byte---counter-of-sent-messages).
+Some messages may arrive on the server more than once. Duplicates can be detect using [header counter(#0th-byte---counter-of-sent-messages).
 
 In addition to acknowledgment, the device can receive settings and commands from the server.
-For more on this news, see [here](#receiving-messages-from-the-server).
+For more information, see [here](#receiving-messages-from-the-server).
 
 ## Restart and start of the device
 
 Newly manufactured devices are always switched to transport mode. This mode is designed to put minimal load on the battery
 and is primarily used for transportation. The device does not send any messages in transport mode and all its sensors are disabled.
 
-To wake up the device from the transport mode, the restart button must be pressed. After pressing the reset button, the device performs the following steps:
+In order to wake up the device a restart must be initialized by pressing the restart button.
 
-1. LED flashes 1x to indicate restart
-2. The LED flashes 1x to indicate the end of initialization
-3. [Check battery status](#check-battery-status)
-4. Sending [restart message](#restart)
-5. Send 0-N [test messages](#test) (depending on device type)
-6. Normal operation of the device - sending events, measure messages and more
+1. Flashes LED 1x to indicate restart
+2. Flashes LED 1x to indicate the end of initialization
+3. [Battery status check](#battery-status-check)
+4. Sends [restart message](#restart)
+5. Sends 0-N [test messages](#test) (depending on device type)
+6. Begins normal operation - event detection, measure messages transmittion etc.
 
-Once the device is restarted, it can be restarted at any time in two ways - a standard restart or a hard
-restart.
+Once the device is running, it can be restarted at any time using either standard or hard restart.
 
 ### Standard restart
 
@@ -49,20 +46,17 @@ The standard restart is triggered by pressing the button,
 
 After the device is restarted, it performs the following steps (if no error occurs):
 
-1. LED flashes 1x to indicate restart
-2. The LED flashes 1x to indicate the end of initialization
-3. [Check battery status](#check-battery-status)
-4. Sending [restart message](#restart)
-5. Sending [error message](#error) (if the restart was triggered by an error)
-6. Send 0-N [test messages](#test) (depending on device type)
-7. Normal operation of the device - sending events, measure messages and more
+1. Flashes LED 1x to indicate restart
+2. Flashes LED 1x to indicate the end of initialization
+3. [Battery status check](#battery-status-check)
+4. Sends [restart message](#restart)
+5. Sends [error message](#error) (if the restart was triggered by an error)
+6. Sends 0-N [test messages](#test) (depending on device type)
+7. Begins normal operation - event detection, measure messages transmittion etc.
 
-A standard restart sets all information that the device keeps in memory to the default value.
-The exceptions are two pieces of information - the device mode and the restart counters in the [restart message](#restart).
+All information, configuration and counter variables retained in the device memory are restored to their default values.There are only two exceptions to this - the device mode and the restart counter ([restart message](#restart)).
 
-Any configurations that were set by messages from the server are deleted. So are all the counters in the messages.
-
-A reboot will cause all processes to abort. For example, if the restart button is pressed after a hard restart, the device does not send a transport message, but sends a restart message, and the device then behaves like after a standard restart.
+A restart will cause all processes to abort. For example, if the restart button is pressed after a hard restart, the device does not send a transport message, but sends a restart message, and then behaves as after a standard restart.
 
 ### Hard restart
 
@@ -70,39 +64,33 @@ A hard restart occurs by removing the battery or by completely discharging the b
 Capacitors in devices vary according to the device network used. For a hard restart, you need to proceed as follows:
 
 * For LoRa devices, simply remove the battery and insert it back in
-* For NB-IoT devices, you need to remove the battery by pressing the restart button and then reinsert the battery
+* For NB-IoT devices remove the battery, press the restart button and then reinsert the battery.
 
 After the device is restarted, it performs the following steps (if no error occurs):
 
-1. LED flashes 1x to indicate restart
-2. The LED flashes 1x to indicate the end of initialization
-3. LED flashes 10 times to indicate the transition to transport mode
-4. Sending [transport message](#transport)
-5. Go to [transport mode](#transport-mode)
+1. Flashes LED 1x to indicate restart
+2. Flashes LED 1x to indicate the end of initialization
+3. Flashes LED 10x to indicate the transition to transport mode
+4. Sends [transport message](#transport)
+5. Switches [transport mode](#transport-mode)
 
-A hard restart sets all information that the device keeps in memory to the default values.
+A hard restart restores all information, configuration and counter variables keept the device memory to their default values.
 
-If a battery is inserted into the device that is not fully charged (2.5 V - 2.9 V), the device detects an error and behaves according to
-the description in section [Fatal error](#fatal-error) - for error number 2. The device does not switch into [transport mode](#transport-mode).
+If a battery that is not fully charged (2.5 V - 2.9 V) is inserted into the device, an error is detected and dealt with as described in section [Fatal error](#fatal-error) - for error number 2. The device does not switch to [transport mode](#transport-mode).
 
-If the device detects any other error, the device follows the information described in the section on [error messages].
+If any other error is detected, it is dealt with as described in the [error messages] section.
 
-### Check battery status
+### Battery status check
 
-The device checks the battery status during restart or initialization. If the battery voltage is below 2.5 V, the device will switch to transport mode.
-
-The battery status is also checked every time the device sends a message or measures data. In this situation,
-if a low battery is detected, the device switches to transport mode.
+The device checks the battery status during restart, initialization, before sending a message or measuring data. If the battery voltage is below 2.5 V, the device will switch to transport mode.
 
 ### Transport mode
 
-Transport mode is a special state of the device in which the device does not communicate and saves the battery. Usually used for transporting or storing devices.
+Transport mode is a special state of the device in which the device does not communicate and saves the battery. It is used for transporting or storing the devices.
 
 ## Device state diagram
 
-The following diagram describes the states that the device can get into. Most devices do not support all
-states, but only support a subset of this almost complete status automaton. Details of the individual
-devices can be found [here](#device).
+The following diagram describes the states that the device can get into.  The state automaton running on most devices isn't comprised of all states, but of a subset described states. Details regarding the individual devices can be found [here](#device).
 
 The state machine does not contain a restart transition. The device can restart in any state.
 
@@ -123,16 +111,16 @@ Notification groups:
 * ERROR notifications - when an error is detected
 * TRANS notification - when the device enters the transport mode
 
-The following table describes the events when the notification LED flashes:
+The following table describes the relation between the number of LED flashes and corresponding events:
 
-| Notification group  | Number of flashes | Událost                                                    |
+| Notification group  | Number of flashes | Event                                                    |
 |---------------------|-------------------|------------------------------------------------------------|
 | RESET/INIT          | 1x                | [Restart](#standartní-restart)                             |
 | RESET/INIT          | 1x                | Completion of initialization when the battery is inserted  |
 | RESET/INIT          | 1x                | Completion of initialization after restart                 |
 | EVENT               | 1x                | [Event](#event) detection                                  |
-| ERROR               | L+2x              | Chyba firmware, neočekávaný stav                           |
-| ERROR               | L+3x              | Chyba hardware                                             |
+| ERROR               | L+2x              | Firmware error, unexpected state                           |
+| ERROR               | L+3x              | Hardware error                                             |
 | ERROR               | L+4x              | Discharged battery inserted                                |
 | ERROR               | L+5x              | Low battery voltage detected *not currently implemented    |
 | ERROR               | L+6x              | Network connection error                                   |
@@ -143,8 +131,7 @@ Details regarding the error condition (ERROR notification group) can be delivere
 ## Messages from device to server
 
 Messages are sent in hexadecimal format and consist of two parts - the header and the data.
-The header contains general information and the message type. The message type then determines
-how the data part of the message will look like.
+The header contains general information and the message type. The message type then determines the format of the data section of the message.
 
 >For NB-IoT devices where the payload is sent in a UDP datagram, there may be 8 chars containing the SIM card identifier before the payload itself. See [Device identification](#device-identification)  below.
 
@@ -155,11 +142,11 @@ Netlia, as the manufacturer, identifies the device with a serial number. This se
 Netlia supplies the data needed for registration to the network server with the device. One of these items is the unique DevEUI identifier, which is passed along with the message from the network server.
 
 ### NB-IoT devices identification
-The method of identification depends on the client's requirements and the device is configured during production.
+The method of identification depends on the client's requirements and the device is configured accordingly during production.
 
-The default solution is that the identification is provided by the client, which knows the IP address of the device from which the UDP datagram arrived. This IP address uniquely identifies the device. This solution is used in networks with a private APN.
+In case of networks with private APN, the IP address uniquely identifies the device and can be used by the client to distinguish devices.
 
-Alternatively, the UDP datagram can be extended with the SIM card identifier - IMSI. In this case, the datagram contains 16 characters at the beginning, containing 15 digits of the IMSI prefixed by 0. This solution is used in networks with a shared APN, where devices are hidden behind NAT.
+Alternatively, the UDP datagram can be extended with the SIM card identifier - IMSI. In this case, the datagram contains 16 characters at the beginning, representing 15 digits of the IMSI prefixed by 0. This solution is used in networks with a shared APN, where devices are hidden behind NAT.
 
 Example of datagram with IMSI: `0AAAAAAAAAAAAAAAXXXXXXXXXX`  
 `AAA...`: IMSI (contains numbers only)  
@@ -168,8 +155,7 @@ Example of datagram with IMSI: `0AAAAAAAAAAAAAAAXXXXXXXXXX`
 ## Header
 
 The header has 7 bytes and contains general information that is common to all message types.
-Example: 0209020. The following table contains an abbreviated description of the header. General description for
-individual bytes follows in the following paragraphs.
+Example: 0209020. The following table contains an abbreviated description of the header. General description for individual bytes follows below.
 
 | Position  | Abbreviated description                                                                                   |
 |-----------|-----------------------------------------------------------------------------------------------------------|
@@ -184,8 +170,8 @@ individual bytes follows in the following paragraphs.
 
 ### 0th byte - counter of sent messages
 
-The device will increment the counter by 1 each time a new message is sent.
-If the counter takes the value 255, it is set to 0 the next time the message is sent.
+The device will increment the counter by 1 for each new message.
+If the counter reaches 255, it is set to 0 the next time a message is sent.
 
 The counter does not increment if the device tries to resend a message that has not been confirmed.
 
@@ -225,7 +211,7 @@ The device will never send a value of 161 to 254 that corresponds to temperature
 ### 4th byte - RSSI
 
 Contains the [RSSI](https://en.wikipedia.org/wiki/Received_Signal_Strength_Indication) value measured when the previous message was sent from NbIOT device.
->LoRa device does not support getting RSSI information, the value contains 0x00. The reason for this is that RSSI itself does not indicate the quality of the signal, it is necessary to evaluate quality from the additional informations transmitted from the network server with the message.
+>LoRa devices do not support RSSI, the value contains 0x00. The reason for this is that RSSI itself does not indicate the quality of the signal and it is necessary to evaluate quality from the additional information transmitted from the network server with the message.
 
 ### 5th byte - acknowledgement and number of attempts to send a message
 
@@ -242,12 +228,11 @@ The byte contains information about the number of failed sends. The following ta
 | 2nd-7th bit | Number of attempts to send a message    |
 
 In the LoRa network, the device communicates with the network server, which then forwards messages to the server.
-If the device fails to send a message to the network server, it will increase the "Number of attempts to send a message"
-and try to send the message again after a certain time (due to the size of the 6-bit number the counter range is 0 - 63, after overflowing it increments again from 0).
+If the device fails to send a message to the network server, it will increase the "Number of attempts to send a message" counter and try to send the message again after a certain time interval (due to the size of the 6-bit number the counter range is 0 - 63, after overflow it increments again from 0).
 
 After a certain number of unsuccessful sends, the device waits an increasingly long time before sending another message.
 
-The following table describes the value of the 5th byte in relation to the send attempt.
+The following table describes the value of the 5th byte in relation to the number of attempts to send a message.
 
 | Transmission attempt    | Value of 5th byte | Description                                                                                                                      |
 |----------------------|----------------|----------------------------------------------------------------------------------------------------------------------------|
@@ -263,14 +248,14 @@ The following table describes the value of the 5th byte in relation to the send 
 | 30th  transmission attempt | 011110--       | Device had waited waited until the next [alive message](#alive) was to be transmitted. <br/>It then transmitted this message instead of the alive message. |
 | 31st  transmission attempt | 011111--       | Device waits until the next alive message is to be sent.                                                                  |
 
-The device waits until it is time to send the [alive message](#alive) before any other attempt to perform sending. The device tries to send the same message over and over again until it is restarted (battery drain or manual reset).
+The device waits until it is time to send the [alive message](#alive) before any futher attempts to resend a message. The device tries to send the same message over and over again until it is restarted (battery drain or manual reset).
 
 **The device ignores the request to send any other message until
 the current message is delivered.**
 
 #### 5th byte - NB-IoT
 
-This byte contains two pieces of information. The following table explains byte composition:
+This byte contains two pieces of information. The following table explains the byte composition:
 
 | Position  | Abbreviated description                       |
 |-----------|-----------------------------------------------|
@@ -283,10 +268,9 @@ The device waits 3s after sending and in this window
 an acknowledgment, configuration message, or command must come from the server. For more on sending messages
 to the device, see [here](#receiving-messages-from-the-server).
 
-If the confirmation message does not arrive within 3 seconds, the device will increase the "Number of attempts to send a message"
-and try to send the message again after a certain time (due to the size of the 6-bit number the counter range is 0 - 63, after overflowing it increments again from 0).
+If the confirmation message does not arrive within 3 seconds, the device will increase the "Number of attempts to send a message" counter and try to send the message again after a certain time interval. (due to the size of the 6-bit number the counter range is 0 - 63, after overflowing it increments again from 0).
 
-The following table describes the 5th byte value in relation to the send attempt.
+The following table describes the value of the 5th byte in relation to the number of attempts to send a message.
 
 | Transmission attempt     | Value of 5th byte | Description                                                                                                                                      |
 |----------------------|----------------|--------------------------------------------------------------------------------------------------------------------------------------------|
@@ -312,8 +296,7 @@ the current message is delivered.**
 
 ### 7th byte - message type
 
-The message type determines the content of the other bytes in the message. The following table lists the values
-this byte can take on:
+The message type determines the content of the other bytes in the message. The following table lists the values this byte can take:
 
 | Value   | Message type        |
 |---------|---------------------|
@@ -327,21 +310,18 @@ this byte can take on:
 | 0x09    | Measure             |
 
 
-Downlink and Acknowledge, Restart, Test, Error, Alive, Transport and Event have the same content for all devices.
-These messages are described in the following paragraphs on data.
+Downlink, Acknowledge, Restart, Test, Error, Alive, Transport and Event messages are identical for all devices. These messages are described in the following paragraphs on data.
 
-The Measure message informs about the measured value (e.g. temperature at the thermometer).
-Measure varies by device type and is described later in this document under the description of each
-[device](#device).
+The Measure message informs about the measured value (e.g. temperature for thermometer).
+Measure message varies by device type and is described later in this document for each [device](#device) separately.
 
 ## Data
 
-The following paragraphs describe the data part of the message. All of these messages begin with a common
-header which is [described above](#header).
+The following paragraphs describe the part of the message containing data. All of these messages begin with a common header which is [described above](#header).
 
 ### Acknowledging a message from the server
 
-The device sends an acknowledgement message from the server whenever it receives a configuration or command from the server.
+"Reception from server" acknowledgement message is sent by the device whenever configuration or command message is received from the server.
 This message serves as an acknowledgement. For more information about sending a message from the server, see [here](#receiving-messages-from-the-server).
 
 In the header it is marked with the value 0x01 in the 7th byte (Message type).
@@ -355,9 +335,9 @@ Content:
 
 ### Restart
 
-It is always sent after [device restart](#restart-and-start-of-the-device).
- 
-In the header it is marked with the value 0x02 in the 7th byte (Message type).
+Always sent after [device restart](#restart-and-start-of-the-device).
+
+It can be indetified by the value 0x02 in the 7th byte (Message type) of the payload.
 
 Content:
 
@@ -378,12 +358,11 @@ Content:
 | 12th byte | number of restarts          |
 | 13th byte | restart code                |
 
-The device type and mode identifies the device and its internal settings. Details about the type
-and mode are described for each [device](#device).
+The device type and mode identify the device and its internal settings. Details about these values can be found in description of corresponding [device](#device).
 
 The number of restarts indicates how many times the device has been restarted since [hard-restart](#hard-restart).
 
-The restart code indicates the reason why the restart occurred. Byte can take the following values:
+The restart code indicates the reason why the restart occurred. The byte can take the following values:
 
 | Value | Description                                                                 |
 |---------|---------------------------------------------------------------------------|
@@ -392,11 +371,11 @@ The restart code indicates the reason why the restart occurred. Byte can take th
 | 0x02    | Restart triggered by [receiving of a message from the server](#receiving-messages-from-the-server) |
 | 0x08    | Restart triggered reset button                                            |
 
-On restart, the 0th byte in the header indicating the number of sent messages is reset and therefore it cannot be used to recognize a dulicate message for the reset message. For deduplication it is possible to partly use the 12th byte with the number of restarts, except for the case of hard restart (0x00 in the 13th byte) when this counter is reset.
+The 0th byte in the header, indicating the number of sent messages, is reset during restart and therefore it cannot be used to recognize a duplicate message. For deduplication it is possible to partly use the 12th byte containing the number of restarts, except for the case of hard restart (0x00 in the 13th byte) when this counter is reset.
 
 ### Test
 
-The test message is sent after the device sends a restart message. The primary goal of the test messages is to receive the settings from the server at the LoRa network before the device starts to function normally. You can find more about this issue on the LoRa network [here](#lora). Another use can be signal control.
+The test message is sent after the device sends a restart message. The primary goal of the test messages is to receive the settings from the server at the LoRa network before the device begins normal operation. You can find more about this issue on the LoRa network [here](#lora). The message can also be used for signal quality control.
 
 The default setting for most devices is to send one test message.
 
@@ -423,10 +402,9 @@ Content:
 | 2nd byte - 5th byte   | Contains error register value         | 
 
 
-Errors are divided into two types - fatal and standard. Standart errors have a value of 0th byte
-set to 0 and fatal ones are set to 1.
+Errors are divided into two types identifiable by 0th data byte - fatal(0th byte == 1) and standard (0th byte == 0).
 
-The error register contains information about which specific errors occurred.
+Source of the error can be determined using a value of the error register.
 
 #### Standard errors
 
@@ -469,9 +447,9 @@ If error numbers 1,3 and 5 occur 4 hours after restart, the device proceeds as f
 If the error number 1,3,4 and 5 occurs within 4 hours of restart, the device proceeds as follows:
 
 1. The LED flashes X times in 10 cycles (according to the [notifications table](#led-notifications)) to indicate an error.
-2. The device will check if 4 hours have passed since the restart.
-3. If the time has not passed, it is put to sleep for 2 minutes and then repeats points 1 and 2.
-4. If the time has passed, the device restarts and continues to function as if it were [restarted](#standard-restart).
+2. The device restarts and continues to operate as [usual](#standard-restart).
+3. If the time has not passed, the device goes to sleep for 2 minutes and then repeats points 1 and 2.
+4. If the time has passed, the device restarts and continues to operate as [usual](#standard-restart).
 5. If the error still persists, the error processing is repeated again.
 
 
@@ -521,13 +499,10 @@ device transport or storage.
 
 ### Event
 
-The Event message indicates that the device has experienced some form of
-an event. What events the device responds to varies by device type.
-For example, a device that detects motion sends an event message when
-detecting a motion.
+The Event message indicates that the device has experienced some form of event. What events the device responds to varies by device type. For example, a device that detects motion sends an event message when a motion is detected.
 
-Some devices can also detect device cover opening or free fall.
-  The following paragraphs describe the event message in general terms.
+Some devices can also detect opening of device cover or free fall.
+  This section describes the event message in general terms.
 In [the following section of the documentation](#device) the individual
 devices and their behaviour are described.
 
@@ -553,13 +528,12 @@ The values of the null byte can be as follows:
 If the main sensor on the device detects an event, it sends an event start message.
 It then waits 10 minutes to record data about the next possible event. If no further events occur during this time period, the device sends an event end message. Otherwise, it sends an event continue message, waits another 10 minutes and repeats the procedure.
 
-Exactly what the alarm is varies by device. This can be to record the movement of the device (Move),
-water detection (Water) or for example motion detection in the room (PIR). A more detailed description of the operation is described in the [Devices](#device) section.
+Exactly what caused the alarm varies by device. It can be triggered by detecting movement of the device (Move), water in the area (Water) or motion in the room (PIR). A more detailed description of the operation is provided in the [Devices](#device) section.
 
 Some devices do not send all types of events or behave
 differently. More about these differences in the [Devices](#device) section.
 
-When an event start occurs, the device in the default state indicates by 1x LED flash and beep (the same behavior as event tamper - 0x04). The indication can be modified [by a configuration command from the server](#turning-led-flashing-and-buzzer-indication-during-event-start-onoff).
+When an event start occurs, the device in the default state indicates the transition by flashing the LED 1x and a single beep (the same behavior as for tamper event - 0x04). The indication can be modified [by a configuration command from the server](#turning-led-flashing-and-buzzer-indication-during-event-start-onoff).
 
 Event start, end and continue have the following format:
 
@@ -572,18 +546,13 @@ Event start, end and continue have the following format:
 The number of events indicates how many events have occurred since the previous message was sent.
 For event start and event end this value is always 0. For event continue this value is in the range 1-255 (0x01 - 0xFF).
 
-Time since last event indicates the time when the device last
-recorded an event. For event start this value is always 0, as it is sent
-immediately after the event is recorded by the device. For the continue event, the value is
-always 0-10 minutes, since the device sends a continue event
-every 10 minutes and the sensor could have recorded the event at any time during this period.  
-For event end, this value is always greater than 10 minutes. The value is a two-byte number (LSB).
+Time since last event is a timestamp of most recently recorded event. For event start this value is always 0, as the message is sent immediately after the event is recorded. For the continue event, the value is always 0-10 minutes, due to the 10 minute message period. For event end, this value is always greater than 10 minutes. The value is a two-byte number (LSB).
 
 #### Event tamper
 
 This type of alarm indicates that the device cover has been opened or closed.
 
-When an event tamper occurs, the device in the default state indicates by 1x LED flash and beep (the same behavior as event 0x01 - start). The indication can be modified [by a configuration command from the server](#turning-led-flashing-and-buzzer-indication-during-event-start-onoff).
+If the device is in it's normal state, the tamper event is inticated by a single LED flash and beep (the same behavior as event 0x01 - start). The indication can be modified [by a configuration command from the server](#turning-led-flashing-and-buzzer-indication-during-event-start-onoff).
 
 Event format
 
@@ -596,7 +565,7 @@ Event format
 
 ## Device
 
-The following paragraphs describe the individual devices and their behaviour.
+The following paragraphs describe individual devices and their behaviour.
 
 ### Water detector
 
@@ -610,15 +579,13 @@ no water is detected for 10 minutes.
 * Device type (2nd byte in restart message): 0x01
 * Default mode (3rd byte in restart message): 0x00 (currently no more modes)
 
-The water device has a maximum number of event continue messages set compared to other devices.
-The device always sends only 2 continue messages and then waits for the alarm to end, i.e. it does not send any more continue messages.
+The water device, unlike other devices, has a maximum number of event continue messages set. The device sends only 2 event continue messages and then waits for the alarm to end, i.e. it does not send any more event continue messages.
 
 ### Motion detector
 
 ![MovementDetection](../images/devices/motion-detector.png)
 
-The device is used to detect the movement of the device itself of the object on which the device is placed. Event start message is sent when the device detects motion. Event continue message is sent if another movement is detected in the next 10 minutes.
-An event end message is then sent if the device does not detect any movement for 10 minutes.
+The device is used to detect the movement of the device itself or of the object on which the device is placed. Event start message is sent when the device detects motion. Event continue message is sent if another movement is detected in the next 10 minutes. An event end message is then sent if the device does not detect any movement for 10 minutes.
 
 * Supported events: Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege
 * Device type (2nd byte in restart message): 0x02
@@ -628,11 +595,10 @@ An event end message is then sent if the device does not detect any movement for
 
 ![MagneticDetector](../images/devices/magnetic-detector.png)
 
-The device is used to monitor the frequency of opening/closing of doors, covers, passage of moving parts by monitoring the magnetic field of the magnet.
-The device supports two modes. Continuous and simple mode. You can switch between these modes
-using the [device mode setting server message](#setting-device-mode). Default mode is simple.
+The device can be used to monitor the frequency of opening/closing of doors, covers, passing of moving parts by detecting the presence of a magnetic field.
+The device supports two modes. Continuous and simple mode. The user can switch between these modes using the [device mode setting server message](#setting-device-mode). Simple mode is chosen as a default.
 
-For the magnetic detector is standart situation which is result of its behaviour, that the first time it is used after a restart (when the magnet is approached), the first received event message is with the event type end.
+If a magnetic field is detected shortly after restart, the first event message sent to the server is going to be the event end message. This behaviour is correct and follows the device's intended functionality.
 
 * Supported events: Event start/continue/end, Restart, Alive, Transport, Error, DownlinkAcknowlege
 * Device type (2nd byte in restart message): 0x06
@@ -640,11 +606,7 @@ For the magnetic detector is standart situation which is result of its behaviour
 
 #### Continuous mode
 
-If the magnet is delayed in the idle state, an Event start message is sent.
-It does not react to the magnet's approach, but it counts each magnet approaching
-and sends an Event continue message after 10 minutes.
-If nothing happens within 10 minutes (the magnet is not moved away),
-the device sends an Event end message.
+If a dissapearance of a magnetic field is detected with the device in idle state, an Event start message is sent. Reappearance of the magnetic field is ignored, but all detected dissapearances of magnetic field are counted and Event continue message is sent after 10 minutes. If nothing happens within 10 minutes (the magnetic field doesn't disappear), the device sends an Event end message.
 
 * Mode value (3rd byte in restart message): 0x00
 
@@ -684,7 +646,7 @@ The event end message is never sent.
 ![Thermometer](../images/devices/hygrometer-thermometer.png)
 ![Thermometer](../images/devices/motion-detector.png)
 
-It measures the temperature at given moments (default after 1 min). After X measurements (default 10), it calculates the average value and sends a Measure message to the server.
+The device measures ambient temperature with an adjustable sampling period (default period 1 min). After X samples are acquired (default 10), an average value is calculated and Measure message is sent, containing the result.
 
 * Supported events: Measure, Restart, Alive, Transport, Error, DownlinkAcknowlege
 * Device type (2nd byte in restart message): 0x03
@@ -699,26 +661,20 @@ Measure message of the Thermometer device has the following format:
 | 2nd byte - 21st byte  | Measured temperatures  |
 
 
-2nd byte - 21st byte contains the last 9 values sent to the server and one
-new value. Historical values are included in the message due to the possibility of losing the message. The server can then use these values during an outage.
+Bytes 2 - 21 contain the newest measurement and the previous 9 values. Older values are included in the message eliminate or at least minimize thhe loss of data due to loss of signal.
 
 The messages are sorted from the most recent measurement to the oldest.
 
 Each measured value in the message occupies 2 bytes and is coded using a two's complement - 1 in the highest bit indicates a negative number and 0 indicates a positive number. To obtain the temperature it is necessary to calculate the two's complement and divide the result by 100. For example, if byte 2 contains - 0x01 and byte 3 contains 0x00, the measured temperature = (256/100) or 2.56 °C. If the second byte contains 10000001 (0x81) and the third 0x00 then the measured temperature = (256/100) * - 1 or -2.56 °C.
 
-The device allows you to set how often the measure message should be sent and also
-how many samples should be measured in a given interval.
-The default setting is 10 minutes and 10 samples. The device measures the temperature every minute
-and after 10 minutes sends the average of the measured temperatures together with the 9 previous
-sent temperatures. How often the messages should be sent and how many times the temperature should be measured in this interval
-can be set by a command from the server. Read more [here](#sampling-period-for-temperature-and-humidity-devices-and-how-often-to-send-a-measure-message).
+The device allows you to set how often the measure message should be sent and also how many samples should be measured in between the messages. The default setting is 10 minutes and 10 samples, hence the temperature is measured every minute and after 10 minutes the device sends the average of the measured temperatures together with the 9 previous sent temperatures. How often the messages should be sent and how many times the temperature should be measured in this interval can be set by a command from the server. Read more [here](#sampling-period-for-temperature-and-humidity-devices-and-how-often-to-send-a-measure-message).
 
 ### Hygrometer/Thermometer
 
 ![Thermometer](../images/devices/hygrometer-thermometer.png)
 ![Thermometer](../images/devices/motion-detector.png)
 
-It measures temperature and humidity at given moments (default after 1 min). After X measurements (default 10), it calculates the average value and sends a Measure message to the server.
+The device measures ambient temperature and humidity with an adjustable sampling period (default period 1 min). After X samples are acquired (default 10), an average value is calculated and Measure message is sent, containing the result.
 
 * Supported events: Measure, Restart, Alive, Transport, Error, DownlinkAcknowlege
 * Device type (2nd byte in restart message): 0x04
@@ -732,9 +688,7 @@ The Measure message has the following format:
 | 1st byte         | Not used - always 0x1E |
 | 2nd byte - 31st byte | Measured values of temperature and humidity    |
 
-The device works similarly to the Thermometer described [here](#thermometer). The only
-difference is that it sends temperature and humidity. Each measured value has a length of
-3 bytes, where the first two bytes determine the temperature and the third byte determines the humidity.
+The device's functionality is identical to that of the Thermometer described [here](#thermometer) with the difference that humidity is measured as well as temperature. Each measured value has a length of 3 bytes, where the first two bytes contain the temperature and the third byte contains the humidity.
 
 The humidity is determined in % and can range from 0-100.
 
@@ -747,8 +701,7 @@ but all the commands and settings are created to avoid errors.
 
 If the device successfully receives a configuration or command message, it sends back an acknowledgement to the server. The format of the confirmation message sent by the device is described [here](#acknowledging-a-message-from-the-server).
 
-The device always sends the acknowledgement and receipt first and then processes the command, e.g. if
-the device receives a restart command, it sends the acknowledgement first and then restarts.
+The device always sends the acknowledgement of receipt first and then processes the command, e.g. if the device receives a restart command, it sends the acknowledgement first and then restarts.
 
 ## LoRa and NB-IoT
 
@@ -783,18 +736,14 @@ A situation where an acknowledgment message is lost:
 In a LoRa network, the device communicates with a network server that takes care of sending messages
 to the server and to the device. It acts as an intermediary between the server and the device.
 
-If the server wants to send a message to the device, it must send it to the network server.
-The network server saves the message and then waits until the device sends the message. Then,
-it receives a message from the device and sends it to the server. At the same time it sends a message to the server,
-it sends a message to the device.
+If the server wants to send a message to the device, it must send it to the network server. The network server saves the message and then waits until the device sends a message. Then, the network server forwards the upling message from the device to the server and at the same time the message from the server is sent to the device.
 
 The following diagrams show sending a command or configuration
 messages to the device. An uplink is any message sent from a device to a server. A downlink is any message sent from a server to a device.
 
 ![LoraCommunication](Lora_communication.png)
 
-Network north must always wait for the device to start communication. Therefore, it may happen
-that a message from the server is delivered after a long time.
+Network server must always wait for the device to initiate the communication. Therefore, it is possible that the delivery of a message from the server might take a long time.
 
 If the device successfully receives the message, it sends an acknowledgement to the server.
   The format of the confirmation message is described [here](#message-acknowledgment).
@@ -802,10 +751,7 @@ If the device successfully receives the message, it sends an acknowledgement to 
 There is no point for the LoRa network to send an acknowledgement messages from the server to the device, even if the device [requests it](#header),
 since the LoRa network takes care of the acknowledgement automatically (for messages requiring confirmation).
 
-In some situations, the device must re-establish communication with the network server.
-Re-establishing the connection causes the messages that are stored on the network server
-to be deleted. Re-establishing communication happens whenever the device is restarted, when
-the radio modem is [restarted](#radio-restart) and in some cases when a message repeatedly fails to be delivered.
+In some situations, the device must re-establish communication with the network server. This causes the messages that are stored on the network server to be deleted. Re-establishing communication happens whenever the device is restarted, when the radio modem is [restarted](#radio-restart) and in some cases when a message repeatedly fails to be delivered.
 
 Multiple messages can be sent to the LoRa network server at the same time.
 This functionality is usually not needed, but it is possible to implement it
@@ -814,10 +760,7 @@ the device is acknowledging.
 
 #### Implementation of sending messages to devices in LoRa network
 
-We can implement sending messages to devices in the LoRa network
-in several ways. The simplest way is "marking messages". In this
-implementation, the server sends the downlink and marks it as
-"sent". After it receives the first uplink since the downlink was sent, it changes the status of the sent downlink to "will be acknowledged in the next message". There should be an uplink with acknowledgment in the next message. If this acknowledgment arrives, the downlink message has been successfully sent.
+We can implement sending messages to devices in the LoRa network in several ways. The simplest way is "marking messages". In this implementation, the server sends the downlink and marks it as "sent". After it receives the first uplink since the downlink was sent, it changes the status of the sent downlink to "will be acknowledged in the next message". The following uplink message should contain acknowledgment. Arrival of acknowledgment means that the downlink message has been successfully delivered.
 
 ![LoraMessageMarker](Lora_MessageMarker.png)
 
@@ -826,11 +769,7 @@ performs a join (re-establishing communication with the network server) and dele
 
 ![LoraMessageMarker](Lora_MessageMarker_join.png)
 
-The disadvantage of this solution is that it may take a long time to deliver the message when a new
-connection to the network server is established. We can speed up the delivery of the message
-by immediately resending the current message waiting for acknowledgment when a reset message arrives on the server,
-without waiting for another message. We can do this acceleration
-because we know that a reset will always cause messages on the network server to be deleted.
+The disadvantage of this solution is that it may take a long time to deliver the message when a new connection to the network server is established. Speed of the delivery can be increased by immediately resending the current message waiting for acknowledgment when a reset message arrives on the server, without waiting for another uplink message. This method is possible because a reset will always cause messages on the network server to be deleted.
 
 ## Structure of messages received from the server
 
@@ -841,9 +780,7 @@ according to the value of the 4th and 5th byte.
 
 #### 0th byte - identifier
 
-Message identifier. The value that the server sends in this byte is copied
-and returned in the value [1st byte - counter of received messages](#1st-byte---counter-of-received-messages). This value can serve as a message identifier
-that have been received by the device.
+Message identifier. The value received from the server is copied and returned as the [1st byte - counter of received messages](#1st-byte---counter-of-received-messages). This value can serve to identify messages that have been received by the device.
 
 If the server never sends more than one message at a time, this identifier
 is not needed.
@@ -862,7 +799,7 @@ Unused.
 
 #### 4th byte - message category
 
-This byte specifies the category of the downlink to be sent. The category can take on the following values:
+This byte specifies the category of the downlink message the server needs to respond with. The category can take on the following values:
 
 | Value of header's 4th Byte | Description             |
 |----------------------------|-------------------------|
@@ -876,12 +813,11 @@ The chapters below describe the different categories and types of messages they 
 
 #### 5th byte - message type
 
-Common with the message category identifies what the data part of the message will look like.
+Together with the message category, it identifies the structure of the data part of the message.
 
 ### Data
 
-The data part is divided into three categories - message acknowledgment, commands and settings. The following chapters describe these
-categories and messages they may contain.
+The data part is divided into three categories - message acknowledgment, commands and settings. The following chapters describe these categories and messages they may contain.
 
 #### Categories - message acknowledgment
 
@@ -895,12 +831,9 @@ The category is identified by the value 0x01 in the 4th Byte of the header and c
 
 The message is identified by the value 0x01 in the 5th byte of the header.
 
-The message is used to acknowledge the message that came from the device. Message acknowledgment
-only needs to be sent if the device uses the NB-IoT network and requests it in the [header of the sent message](#header).
+Acknowledgement message is used to confirm the receipt of message that came from the device. Message acknowledgment only needs to be sent if the device uses the NB-IoT network and requests it in the [header of the uplink message](#header).
 
-By default, the following messages must be acknowledged: Event start, Alive, Reset. In addition,
-the thermometer and hygrometer must have acknowledged every sixth message since the last confirmed message. For other devices,
-every seventh message since the last message being acknowledged must be acknowledged.
+By default, the following messages must be acknowledged: Event start, Alive, Reset. In addition, the thermometer and hygrometer devices require that every sixth message is confirmed by the server. For other devices, every seventh message must be acknowledged.
 
 Structure:
 
@@ -996,7 +929,7 @@ Structure:
 
 ##### Turning Event start acknowledgement on/off 
 
-Turns the Event start event acknowledgement off or on.
+Turns the Event start acknowledgement off or on.
 
 Structure:
 
@@ -1045,9 +978,9 @@ By default, the byte is set to 0x05, that is 00000101 - both flashing and beepin
 
 ##### Turning LoRa ADR on/off
 
-Turns off or on [Lora ADR](https://lora-developers.semtech.com/documentation/tech-papers-and-guides/understanding-adr/)
-.
-It can only be used for devices on the LoRa network.
+Turns off or on [Lora ADR](https://lora-developers.semtech.com/documentation/tech-papers-and-guides/understanding-adr/).
+
+It can only be used for LoRa network devices.
 
 | Byte     | Description                  |
 |----------|------------------------------|
@@ -1057,9 +990,9 @@ It can only be used for devices on the LoRa network.
 
 ##### Setting LoRa Data Rate
 
-Sets [Data Rate](https://lora-developers.semtech.com/uploads/documents/files/Understanding_LoRa_Adaptive_Data_Rate_Downloadable.pdf)
-.
-It can only be used for devices on the LoRa network.
+Sets [Data Rate](https://lora-developers.semtech.com/uploads/documents/files/Understanding_LoRa_Adaptive_Data_Rate_Downloadable.pdf).
+
+It can only be used for LoRa network devices.
 
 | Byte     | Description                  |
 |----------|------------------------------|
@@ -1081,12 +1014,9 @@ Currently only Magnet devices support mode switching (0x00 - simple, 0x01 - cont
 
 ##### Limiting the maximum number of Event continue messages
 
-Sets the maximum number of messages of type [Event continue](#event). The default
-value for Magnet, PIR and Move device is unlimited. There are two messages for Water device.
+Sets the maximum number of messages of type [Event continue](#event). The default value for Magnet, PIR and Move device is unlimited, but there is two message limit for Water device.
 
-When the device reaches the maximum number, it stops sending Event continue messages. After sending the Event end message and
-then a new cycle starting with an Event start message, the device sends Event continue messages again up to
-the maximum number.
+When the maximum number of event continues messages is reached, nothing is sent, until the Event end message. The message counter is reset with new Event start message and the device sends Event continue messages until Event end is detected or the maximum number is reached.
 
 | Byte     | Description                                                            |
 |----------|------------------------------------------------------------------------|
@@ -1096,7 +1026,7 @@ the maximum number.
 
 ##### Specifies the sampling period for temperature and humidity devices
 
-Described [here](#sampling-period-for-temperature-and-humidity-devices-and-how-often-to-send-a-measure-message).
+Described [here](#temperature-and-humidity-devicess-sampling-period-and-setting-the-frequency-of-measure-messages).
 
 ##### Motion detection device sensitivity setting
 
@@ -1119,18 +1049,16 @@ The following settings should be sufficient for normal use:
 | Medium    | 4        | 75       | 100      | 10       | 5        |
 | High      | 4        | 50       | 50       | 10       | 5        |
 
-##### Sampling period for temperature and humidity devices and how often to send a measure message
+##### Temperature and humidity devices's sampling period and setting the frequency of Measure messages
 
 The values 0x05 and 0x0C both refer to the thermometer and hygrometer and are closely related.
 Both of these values must be set at once in the correct order and without restarting between processing of these messages.
 
-First, it must be set how often the measure message should be sent and then what the sampling should be.
+First, it must be set how often the measure message should be sent and then what the number of samples per message should be.
 
-The default setting is 10 minutes and 1 minute. The device measures every minute and averages them every 10 minutes and then
-sends a measure message.
+The default setting is 10 minutes between messages and 1 minute between consecutive samplings. The device samples a signle value from the sensor every minute and averages the current batch of values every 10 minutes and sends a measure message including the result.
 
-It is important that the period of sending the measure message is always an integer divisible by the sampling period, otherwise
-the device will send the message at the wrong interval.
+It is important that the measure message period is always an integer divisible by the sampling period in minutes, otherwise the device will send the message at the wrong interval.
 
 Both of these values have the following format:
 
@@ -1153,4 +1081,4 @@ messages will therefore be sent every 8 minutes.
 
 ## Simplified acknowledgement implementation
 Since the device requires acknowledgement of some messages (specified 
-by the [5th byte in the header](#5th-byte---nb-iot)), it is necessary to implement at least basic communication from the server to the device. These messages can be simply responded with a static payload `0000000001FF00` which provides an acknowledgement of the received message.
+by the [5th byte in the header](#5th-byte---nb-iot)), it is necessary to implement at least basic communication from the server to the device. These messages can be simply responded with a static payload `0000000001FF00` which contains an acknowledgement of the received message.
