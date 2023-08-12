@@ -228,7 +228,7 @@ The byte contains information about the number of failed sends. The following ta
 | 2nd-7th bit | Number of attempts to send a message    |
 
 In the LoRa network, the device communicates with the network server, which then forwards messages to the server.
-If the device fails to send a message to the network server, it will increase the "Number of attempts to send a message" counter and try to send the message again after a certain time interval (due to the size of the 6-bit number the counter range is 0 - 63).
+If the device fails to send a message to the network server, it will increase the "Number of attempts to send a message" counter and try to send the message again after a certain time interval (due to the size of the 6-bit number the counter range is 0 - 63, after overflow it increments again from 0).
 
 After a certain number of unsuccessful sends, the device waits an increasingly long time before sending another message.
 
@@ -978,7 +978,7 @@ By default, the byte is set to 0x05, that is 00000101 - both flashing and beepin
 
 ##### Turning LoRa ADR on/off
 
-Turns off or on [Lora ADR](https://lora-developers.semtech.com/documentation/tech-papers-and-guides/understanding-adr/)
+Turns off or on [Lora ADR](https://lora-developers.semtech.com/documentation/tech-papers-and-guides/understanding-adr/).
 
 It can only be used for LoRa network devices.
 
@@ -990,8 +990,8 @@ It can only be used for LoRa network devices.
 
 ##### Setting LoRa Data Rate
 
-Sets [Data Rate](https://lora-developers.semtech.com/uploads/documents/files/Understanding_LoRa_Adaptive_Data_Rate_Downloadable.pdf)
-.
+Sets [Data Rate](https://lora-developers.semtech.com/uploads/documents/files/Understanding_LoRa_Adaptive_Data_Rate_Downloadable.pdf).
+
 It can only be used for LoRa network devices.
 
 | Byte     | Description                  |
