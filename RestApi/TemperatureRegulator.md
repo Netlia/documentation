@@ -229,13 +229,12 @@ Ukázka response:
 ### GET api/temperature-regulator/{deviceId}/temperature
 
 Zjištění cílové teploty pro regulaci.
-Podporováno pouze, pokud je mód regulátoru nastaven na `basic`.
 
 Ukázka response:
 
 ```yaml
 {
-    "targetTemperature": 21.5
+    "targetTemperature": 21.5 // may be null
 }
 ```
 
