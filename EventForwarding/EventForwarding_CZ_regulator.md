@@ -78,7 +78,7 @@ Ukázka zaslané události:
 {
     "protocolVersion": 1,
     "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "physicalDeviceId": "abc123",
+    "physicalDeviceId": "abc123", // může být null
     "deviceType": "temperature-regulator",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "eventTime": "2021-05-03T14:25:31.8437511Z",
@@ -103,7 +103,7 @@ Ukázka zaslané události:
 {
     "protocolVersion": 1,
     "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "physicalDeviceId": "abc123",
+    "physicalDeviceId": "abc123", // může být null
     "deviceType": "temperature-regulator",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "eventTime": "2021-05-03T14:25:31.8437511Z",
