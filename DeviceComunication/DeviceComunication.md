@@ -56,7 +56,7 @@ After the device is restarted, it performs the following steps (if no error occu
 
 All information, configuration and counter variables retained in the device memory are restored to their default values.There are only two exceptions to this - the device mode and the restart counter ([restart message](#restart)).
 
-A restart will cause all processes to abort. For example, if the restart button is pressed after a hard restart, the device does not send a transport message, but sends a restart message, and then behaves as after a standard restart.
+A restart will cause all processes to abort.
 
 ### Hard restart
 
@@ -70,23 +70,24 @@ After the device is restarted, it performs the following steps (if no error occu
 
 1. Flashes LED 1x to indicate restart
 2. Flashes LED 1x to indicate the end of initialization
-3. Flashes LED 10x to indicate the transition to transport mode
-4. Sends [transport message](#transport)
-5. Switches [transport mode](#transport-mode)
+3. [Battery status check](#battery-status-check)
+4. Sends [restart message](#restart)
+5. Sends 0-N [test messages](#test) (depending on device type)
+6. Begins normal operation - event detection, measure messages transmittion etc.
 
 A hard restart restores all information, configuration and counter variables keept the device memory to their default values.
 
-If a battery that is not fully charged (2.5 V - 2.9 V) is inserted into the device, an error is detected and dealt with as described in section [Fatal error](#fatal-error) - for error number 2. The device does not switch to [transport mode](#transport-mode).
+If a battery that is not fully charged (2.1 V - 2.9 V) is inserted into the device, an error is detected and dealt with as described in section [Fatal error](#fatal-error) - for error number 2. If the battery voltage is lower than 2.1 V which is considered as a critical condition, the device will switch to [transport mode](#transport-mode).
 
-If any other error is detected, it is dealt with as described in the [error messages] section.
+If any other error is detected, it is dealt with as described in the [error messages](#error) section.
 
 ### Battery status check
 
-The device checks the battery status during restart, initialization, before sending a message or measuring data. If the battery voltage is below 2.5 V, the device will switch to transport mode.
+The device checks the battery status during restart, initialization, before sending a message or measuring data. If the battery voltage is below 2.1 V, the device will switch to [transport mode](#transport-mode).
 
 ### Transport mode
 
-Transport mode is a special state of the device in which the device does not communicate and saves the battery. It is used for transporting or storing the devices.
+Transport mode is a special state of the device in which the device does not communicate and saves the battery. It is used for transporting or storing the devices. The device sends a [Transport](#transport) message when enters transport mode.
 
 ## Device state diagram
 
@@ -364,12 +365,14 @@ The number of restarts indicates how many times the device has been restarted si
 
 The restart code indicates the reason why the restart occurred. The byte can take the following values:
 
-| Value | Description                                                                 |
-|---------|---------------------------------------------------------------------------|
-| 0x00    | Restart triggered by hardware                                             |
-| 0x01    | Restart triggered by error                                                |
+| Value | Description                                                                                          |
+|---------|----------------------------------------------------------------------------------------------------|
+| 0x00    | Hardware restart (usually triggered by a button on the device)                                     |
+| 0x01    | Restart triggered by a button on the device                                                        |
 | 0x02    | Restart triggered by [receiving of a message from the server](#receiving-messages-from-the-server) |
-| 0x08    | Restart triggered reset button                                            |
+| 0x03    | Restart triggered by a detected error, followed by sending an [error message](#error)              |
+| 0x04    | Restart triggered by a firmware change, occurs after a firmware update                             |
+| 0xFF    | Restart triggered by an unknown error                                                              |
 
 The 0th byte in the header, indicating the number of sent messages, is reset during restart and therefore it cannot be used to recognize a duplicate message. For deduplication it is possible to partly use the 12th byte containing the number of restarts, except for the case of hard restart (0x00 in the 13th byte) when this counter is reset.
 

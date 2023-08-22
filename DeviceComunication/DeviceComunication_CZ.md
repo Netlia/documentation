@@ -61,7 +61,7 @@ Vyjímkou jsou dvě informace - mód zařízení a počítadla restartů v [rest
 
 Jakékoliv konfigurace, které byly nastaveny zprávami ze serveru jsou  smazány. Stejně tak všechna počítadla ve zprávách.
 
-Restart způsobí přerušení všech procesů. Například pokud je stisknuto tlačítko restart po hard restartu tak se neodešle transport zpráva ale odešle se restart a zařízení se poté chová jako při standartním restartu.
+Restart způsobí přerušení všech procesů.
 
 ### Hard restart
 
@@ -75,27 +75,25 @@ Poté co je zařízení restartováno provádí následující kroky (pokud nedo
 
 1. Dioda blikne 1x pro oznámení restartu
 2. Dioda blikne 1x pro oznámení ukončení inicializace
-3. Dioda blikne 10x pro oznámení přechodu do transportního režimu
-4. Odeslání [transport zprávy](#transport)
-5. Přechod do [transportního režimu](#transportní-režim)
+3. [Kontrola stavu baterie](#kontrola-stavu-baterie)
+4. Odeslání [restart zprávy](#restart)
+5. Odeslání 0-N [testovacích zpráv](#test) (podle typu zařízení)
+6. Běžné fungování zařízení - odesílání událostí, measure zpráv a dalších
 
 Při hard restartu se na defaultní hodnoty nastaví všechny informace, které zařízení udržuje v paměti.
 
-Pokud je do zařízení vložena baterie, která není plně nabitá (2,5 V - 2,9 V), zařízení detekuje error a chová se podle
-popisu v sekci [Fatální chyba](#fatální-chyba) - pro chybu s číslem 2. Zařízení nepřechází do [transportního režimu](#transportní-režim).
+Pokud je do zařízení vložena baterie, která není plně nabitá (2.1 V - 2.9 V), zařízení detekuje error a chová se podle
+popisu v sekci [Fatální chyba](#fatální-chyba) - pro chybu s číslem 2. Pokud je napětí baterie nižší než 2.1 V což je považováno za kritický stav, tak se zařízení přepne do [transportního režimu](#transportní-režim).
 
-Pokud zařízení detekuje jakýkoliv jiný error, tak zařízení postupuje podle informací popsaných v sekci o [chybových zprávách].
+Pokud zařízení detekuje jakýkoliv jiný error, tak zařízení postupuje podle informací popsaných v sekci o [chybových zprávách](#error).
 
 ### Kontrola stavu baterie
 
-Zařízení při restartu, resp. při inicializaci kontroluje stav baterie. Pokud je napětí baterie nižší než 2,5 V, zařízení se přepne do transportního režimu.
-
-Stav baterie se také kontroluje pokaždé když zařízení odesílá zprávu nebo měří data. Pokud je v této situaci
-naměřen nízký stav baterie, tak se zařízení přepne do transportního režimu.
+Přístroj kontroluje stav baterie při restartu, inicializaci, před odesláním zprávy nebo měřením dat. Pokud je napětí baterie nižší než 2.1 V, přepne se zařízení do [transportního režimu](#transportní-režim).
 
 ### Transportní režim
 
-Transportní režim je speciální stav zařízení, ve kterém zařízení nekomunikuje a šetří baterii. Obvykle se používá pro přepravu nebo skladování zařízení.
+Transportní režim je speciální stav zařízení, ve kterém zařízení nekomunikuje a šetří baterii. Obvykle se používá pro přepravu nebo skladování zařízení. Při přechodu do transportního režimu zařízení odesílá zprávu [Transport](#transport).
 
 ## Stavový diagram zařízení
 
@@ -382,12 +380,14 @@ Počet restartů udává, kolikrát bylo zařízní restartováno od [hard resta
 
 Kód restartu udává důvod proč restart nastal. Byte může nabývat následujících hodnot:
 
-| Hodnota | Význam                                                                    |
-|---------|---------------------------------------------------------------------------|
-| 0x00    | Restart vyvolán hardwarem                                                 |
-| 0x01    | Restart způsoben chybou                                                   |
-| 0x02    | Restart vyvolán [přijmutím zprávy ze serveru](#přijmání-zpráv-ze-serveru) |
-| 0x08    | Restart způsoben stisknutím tlačítka                                      |
+| Hodnota | Význam                                                                           |
+|---------|----------------------------------------------------------------------------------|
+| 0x00    | Hardware restart (vyvolaný většinou tlačítkem na zařízení)                       |
+| 0x01    | Restart vyvolaný tlačítkem na zařízení                                           |
+| 0x02    | Restart vyvolán [přijmutím zprávy ze serveru](#přijmání-zpráv-ze-serveru)        |
+| 0x03    | Restart vyvolaný detekovanou chybou, následován odesláním [error zprávy](#error) |
+| 0x04    | Restart vyvolaný změnou ve firmwaru, nastává po firmware updatu                  |
+| 0xFF    | Restart vyvolaný neznámou chybou                                                 |
 
 Při restartu se nuluje 0.byte v hlavičce udávající počet odeslaných zpráv a nelze jej tedy u tohoto typu zprávy využít pro rozpoznání dulicitní zprávy. Pro deduplikaci lze částečně využít 12.byte s údajem o počtu restartů s vyjímkou případu hard restartu (0x00 ve 13.byte) při kterém se toto počitadlo nuluje.
 
