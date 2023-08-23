@@ -61,7 +61,7 @@ Vyjímkou jsou dvě informace - mód zařízení a počítadla restartů v [rest
 
 Jakékoliv konfigurace, které byly nastaveny zprávami ze serveru jsou  smazány. Stejně tak všechna počítadla ve zprávách.
 
-Restart způsobí přerušení všech procesů. Například pokud je stisknuto tlačítko restart po hard restartu tak se neodešle transport zpráva ale odešle se restart a zařízení se poté chová jako při standartním restartu.
+Restart způsobí přerušení všech procesů.
 
 ### Hard restart
 
@@ -75,27 +75,25 @@ Poté co je zařízení restartováno provádí následující kroky (pokud nedo
 
 1. Dioda blikne 1x pro oznámení restartu
 2. Dioda blikne 1x pro oznámení ukončení inicializace
-3. Dioda blikne 10x pro oznámení přechodu do transportního režimu
-4. Odeslání [transport zprávy](#transport)
-5. Přechod do [transportního režimu](#transportní-režim)
+3. [Kontrola stavu baterie](#kontrola-stavu-baterie)
+4. Odeslání [restart zprávy](#restart)
+5. Odeslání 0-N [testovacích zpráv](#test) (podle typu zařízení)
+6. Běžné fungování zařízení - odesílání událostí, measure zpráv a dalších
 
 Při hard restartu se na defaultní hodnoty nastaví všechny informace, které zařízení udržuje v paměti.
 
-Pokud je do zařízení vložena baterie, která není plně nabitá (2,5 V - 2,9 V), zařízení detekuje error a chová se podle
-popisu v sekci [Fatální chyba](#fatální-chyba) - pro chybu s číslem 2. Zařízení nepřechází do [transportního režimu](#transportní-režim).
+Pokud je do zařízení vložena baterie, která není plně nabitá (2.1 V - 2.9 V), zařízení detekuje error a chová se podle
+popisu v sekci [Fatální chyba](#fatální-chyba) - pro chybu s číslem 2. Pokud je napětí baterie nižší než 2.1 V což je považováno za kritický stav, tak se zařízení přepne do [transportního režimu](#transportní-režim).
 
-Pokud zařízení detekuje jakýkoliv jiný error, tak zařízení postupuje podle informací popsaných v sekci o [chybových zprávách].
+Pokud zařízení detekuje jakýkoliv jiný error, tak zařízení postupuje podle informací popsaných v sekci o [chybových zprávách](#error).
 
 ### Kontrola stavu baterie
 
-Zařízení při restartu, resp. při inicializaci kontroluje stav baterie. Pokud je napětí baterie nižší než 2,5 V, zařízení se přepne do transportního režimu.
-
-Stav baterie se také kontroluje pokaždé když zařízení odesílá zprávu nebo měří data. Pokud je v této situaci
-naměřen nízký stav baterie, tak se zařízení přepne do transportního režimu.
+Přístroj kontroluje stav baterie při restartu, inicializaci, před odesláním zprávy nebo měřením dat. Pokud je napětí baterie nižší než 2.1 V, přepne se zařízení do [transportního režimu](#transportní-režim).
 
 ### Transportní režim
 
-Transportní režim je speciální stav zařízení, ve kterém zařízení nekomunikuje a šetří baterii. Obvykle se používá pro přepravu nebo skladování zařízení.
+Transportní režim je speciální stav zařízení, ve kterém zařízení nekomunikuje a šetří baterii. Obvykle se používá pro přepravu nebo skladování zařízení. Při přechodu do transportního režimu zařízení odesílá zprávu [Transport](#transport).
 
 ## Stavový diagram zařízení
 
@@ -259,8 +257,8 @@ Následující tabulka popisuje hodnotu 5.bytu ve vztahu s pokusem odeslání.
 | 7. pokus o odeslání  | 000110--       | Zařízení čekalo 60 min na potvrzení z network serveru.                                                                     |
 | 8. pokus o odeslání  | 000111--       | Zařízení čekalo 60 min na potvrzení z network serveru.                                                                     |
 | 29. pokus o odeslání | 011101--       | Zařízení čekalo 60 min na potvrzení z network serveru.                                                                     |
-| 30. pokus o odeslání | 011110--       | Zařízení čekalo do doby než mělo odeslat [alive zprávu](#alive)<br/> poté namísto alive zprávy znovu odeslalo tuto zprávu. |
-| 31. pokus o odeslání | 011111--       | Zařízení opět čeká do doby než se má odeslat alive zpráva                                                                  |
+| 30. pokus o odeslání | 011110--       | Zařízení čekalo 12 hod na potvrzení z network serveru.                                                                     |
+| 31. pokus o odeslání | 011111--       | Zařízení opět čeká 12 hod |
 
 Před každým dalším odesláním zařízení čeká, dokud není čas odeslat [alive zprávu](#alive). Zařízení se snaží stejnou zprávu odeslat stále dokola, dokud není restartováno (vybití baterie nebo ruční reset).
 
@@ -298,8 +296,8 @@ Následující tabulka popisuje hodnotu 5.byte ve vztahu s pokusem odeslání.
 | 7. pokus o odeslání  | 000110-1       | Zařízení čekalo 60 min.                                                                                                                    |
 | 8. pokus o odeslání  | 000111-1       | Zařízení čekalo 60 min.                                                                                                                    |
 | 29. pokus o odeslání | 011101-1       | Zařízení čekalo 60 min.                                                                                                                    |
-| 30. pokus o odeslání | 011110-1       | Zařízení čekalo do doby než mělo odeslat [alive zprávu](#alive) <br/> poté namísto alive zprávy znovu odeslalo tuto zprávu.                |
-| 31. pokus o odeslání | 011111-1       | Zařízení opět čeká do doby než se má odeslat alive zpráva.                                                                                 |
+| 30. pokus o odeslání | 011110-1       | Zařízení čekalo 12 hod.                                                                                                                    |
+| 31. pokus o odeslání | 011111-1       | Zařízení čekalo dalších 12 hod.                                                                                                            |
 
 Před každým dalším odesláním zařízení čeká, dokud není čas odeslat [alive zprávu](#alive). Zařízení se snaží stejnou zprávu odeslat stále dokola, dokud není restartováno (vybití baterie nebo ruční reset).
 
@@ -382,12 +380,14 @@ Počet restartů udává, kolikrát bylo zařízní restartováno od [hard resta
 
 Kód restartu udává důvod proč restart nastal. Byte může nabývat následujících hodnot:
 
-| Hodnota | Význam                                                                    |
-|---------|---------------------------------------------------------------------------|
-| 0x00    | Restart vyvolán hardwarem                                                 |
-| 0x01    | Restart způsoben chybou                                                   |
-| 0x02    | Restart vyvolán [přijmutím zprávy ze serveru](#přijmání-zpráv-ze-serveru) |
-| 0x08    | Restart způsoben stisknutím tlačítka                                      |
+| Hodnota | Význam                                                                           |
+|---------|----------------------------------------------------------------------------------|
+| 0x00    | Hardware restart (vyvolaný většinou tlačítkem na zařízení)                       |
+| 0x01    | Restart vyvolaný tlačítkem na zařízení                                           |
+| 0x02    | Restart vyvolán [přijmutím zprávy ze serveru](#přijmání-zpráv-ze-serveru)        |
+| 0x03    | Restart vyvolaný detekovanou chybou, následován odesláním [error zprávy](#error) |
+| 0x04    | Restart vyvolaný změnou ve firmwaru, nastává po firmware updatu                  |
+| 0xFF    | Restart vyvolaný neznámou chybou                                                 |
 
 Při restartu se nuluje 0.byte v hlavičce udávající počet odeslaných zpráv a nelze jej tedy u tohoto typu zprávy využít pro rozpoznání dulicitní zprávy. Pro deduplikaci lze částečně využít 12.byte s údajem o počtu restartů s vyjímkou případu hard restartu (0x00 ve 13.byte) při kterém se toto počitadlo nuluje.
 
@@ -460,10 +460,10 @@ Pokud chyba s číslem 1,3 a 5 nastane 4 hodiny po restartu, tak zařízení pos
 2. Zařízení se restartuje a dále funguje běžným způsobem jako by bylo [restartováno](#standartní-restart)
 3. Pokud error stále přetrvává tak se znovu opakuje zpracování erroru
 
-Pokud chyba s číslem 1,3,4 a 5 nastane do 4 hodin od restartu tak zařízení postupuje následujícím způsobem:
+Pokud chyba s číslem 1,3,4 a 5 nastane do 1 hodiny od restartu tak zařízení postupuje následujícím způsobem:
 
 1. Dioda v deseti cyklech Xkrát blikne ([podle tabulky notifikací](#led-notifikace)) pro oznámení erroru.
-2. Zařízení zkontroluje jestli uběhly 4 hodiny od restartu.
+2. Zařízení zkontroluje jestli uběhla 1 hodina od restartu.
 3. Pokud neuběhly tak se uspí na 2 minuty a následně opakuje bod 1. a 2.
 4. Pokud uběhly tak se zařízení restartuje a dále funguje běžným způsobem jako by bylo [restartováno](#standartní-restart).
 5. Pokud error stále přetrvává tak se znovu opakuje zpracování erroru.
@@ -476,7 +476,7 @@ Pro chybu s číslem 2 se zařízení chová podle následujícího seznamu:
 3. Dioda 1x blikne, aby oznámila inicializaci.
 4. Zařízení v inicializaci zjistí, že baterie neni plně nabitá.
 5. Dioda v deseti cyklech 4x blikne ([podle tabulky notifikací](#led-notifikace)) pro oznámení erroru.
-6. Zařízení v dvouminutových intervalech provádí bod 5. následující 4 hodiny.
+6. Zařízení v dvouminutových intervalech provádí bod 5. následující 1 hodinu.
 7. Zařízení se restartuje.
 8. Dioda 1x blikne, aby oznámila restart.
 9. Dioda 1x blikne, aby oznámila inicializaci.
