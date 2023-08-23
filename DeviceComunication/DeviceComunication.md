@@ -246,8 +246,8 @@ The following table describes the value of the 5th byte in relation to the numbe
 | 7th  transmission attempt  | 000110--       | Device waited for 60 min for acknowlegement from the network server.                                                                     |
 | 8th  transmission attempt  | 000111--       | Device waited for 60 min for acknowlegement from the network server.                                                                     |
 | 29th  transmission attempt | 011101--       | Device waited for 60 min for acknowlegement from the network server.                                                                     |
-| 30th  transmission attempt | 011110--       | Device had waited waited until the next [alive message](#alive) was to be transmitted. <br/>It then transmitted this message instead of the alive message. |
-| 31st  transmission attempt | 011111--       | Device waits until the next alive message is to be sent.                                                                  |
+| 30th  transmission attempt | 011110--       | Device waited for 12 hrs for acknowlegement from the network server.                                                
+| 31st  transmission attempt | 011111--       | Device waits another 12 hrs |
 
 The device waits until it is time to send the [alive message](#alive) before any futher attempts to resend a message. The device tries to send the same message over and over again until it is restarted (battery drain or manual reset).
 
@@ -273,8 +273,8 @@ If the confirmation message does not arrive within 3 seconds, the device will in
 
 The following table describes the value of the 5th byte in relation to the number of attempts to send a message.
 
-| Transmission attempt     | Value of 5th byte | Description                                                                                                                                      |
-|----------------------|----------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| Transmission attempt       | Value of 5th byte | Description                                                          |
+|----------------------------|----------------|-------------------------------------------------------------------------|
 | 1st  transmission attempt  | 000000-**1**   | Device transmitted a message and requires an acknowledgment (bold bit). A dash represents two bits with no informational value. |
 | 2nd  transmission attempt  | **000001**-1   | Device waited for 3 s. Repetition counter (bold) was incremented by 1.  |
 | 3rd  transmission attempt  | 000010-1       | Device waited for 3 s and the waiting period is going to increase for the following attempt. |
@@ -284,9 +284,8 @@ The following table describes the value of the 5th byte in relation to the numbe
 | 7th  transmission attempt  | 000110-1       | Device waited for 60 min.                                               |
 | 8th  transmission attempt  | 000111-1       | Device waited for 60 min.                                               |
 | 29th  transmission attempt | 011101-1       | Device waited for 60 min.                                               |
-| 30th  transmission attempt | 011110-1       | Device had waited waited until the next [alive message](#alive)<br/> was
-to be transmitted. It then transmitted this message instead of the alive message.               |
-| 31st  transmission attempt | 011111-1       | Device waits until the next alive message is to be sent.                |
+| 30th  transmission attempt | 011110--       | Device waited for 12 hrs.                                               |
+| 31st  transmission attempt | 011111--       | Device waits another 12 hrs.                                            | 
 
 The device waits until it is time to send the [alive message](#alive) before any other attempt to perform sending. The device tries to send the same message over and over again until it is restarted (battery drain or manual reset).
 
@@ -441,13 +440,13 @@ the values and their meanings:
 | 00000000 00000000 00010000 00000000 | 5 - Standard error occured 5*                                                     |
 
 
-If error numbers 1,3 and 5 occur 4 hours after restart, the device proceeds as follows:
+If error numbers 1,3 and 5 occur 1 hour after restart, the device proceeds as follows:
 
 1. The LED flashes X times in 10 cycles (according to the [notifications table](#led-notifications)) to indicate an error.
 2. The device restarts and continues to operate as if it were [restarted](#standard-restart)
 3. If the error still persists, the error processing is repeated
 
-If the error number 1,3,4 and 5 occurs within 4 hours of restart, the device proceeds as follows:
+If the error number 1,3,4 and 5 occurs within 1 hour of restart, the device proceeds as follows:
 
 1. The LED flashes X times in 10 cycles (according to the [notifications table](#led-notifications)) to indicate an error.
 2. The device restarts and continues to operate as [usual](#standard-restart).
@@ -463,7 +462,7 @@ For error number 2, the device behaves according to the following list:
 3. The LED will flash 1x to indicate initialization.
 4. The device detects in initialization that the battery is not fully charged.
 5. The LED flashes 4 times in 10 cycles (according to the [notifications table](#led-notifications)) to indicate an error.
-6. The device performs point 5 at two-minute intervals for the following 4 hours.
+6. The device performs point 5 at two-minute intervals for the following 1 hour.
 7. The device restarts.
 8. The LED will flash 1x to indicate a restart.
 9. The LED will flash 1x to indicate initialization.

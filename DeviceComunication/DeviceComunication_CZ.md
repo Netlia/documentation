@@ -257,8 +257,8 @@ Následující tabulka popisuje hodnotu 5.bytu ve vztahu s pokusem odeslání.
 | 7. pokus o odeslání  | 000110--       | Zařízení čekalo 60 min na potvrzení z network serveru.                                                                     |
 | 8. pokus o odeslání  | 000111--       | Zařízení čekalo 60 min na potvrzení z network serveru.                                                                     |
 | 29. pokus o odeslání | 011101--       | Zařízení čekalo 60 min na potvrzení z network serveru.                                                                     |
-| 30. pokus o odeslání | 011110--       | Zařízení čekalo do doby než mělo odeslat [alive zprávu](#alive)<br/> poté namísto alive zprávy znovu odeslalo tuto zprávu. |
-| 31. pokus o odeslání | 011111--       | Zařízení opět čeká do doby než se má odeslat alive zpráva                                                                  |
+| 30. pokus o odeslání | 011110--       | Zařízení čekalo 12 hod na potvrzení z network serveru.                                                                     |
+| 31. pokus o odeslání | 011111--       | Zařízení opět čeká 12 hod |
 
 Před každým dalším odesláním zařízení čeká, dokud není čas odeslat [alive zprávu](#alive). Zařízení se snaží stejnou zprávu odeslat stále dokola, dokud není restartováno (vybití baterie nebo ruční reset).
 
@@ -296,8 +296,8 @@ Následující tabulka popisuje hodnotu 5.byte ve vztahu s pokusem odeslání.
 | 7. pokus o odeslání  | 000110-1       | Zařízení čekalo 60 min.                                                                                                                    |
 | 8. pokus o odeslání  | 000111-1       | Zařízení čekalo 60 min.                                                                                                                    |
 | 29. pokus o odeslání | 011101-1       | Zařízení čekalo 60 min.                                                                                                                    |
-| 30. pokus o odeslání | 011110-1       | Zařízení čekalo do doby než mělo odeslat [alive zprávu](#alive) <br/> poté namísto alive zprávy znovu odeslalo tuto zprávu.                |
-| 31. pokus o odeslání | 011111-1       | Zařízení opět čeká do doby než se má odeslat alive zpráva.                                                                                 |
+| 30. pokus o odeslání | 011110-1       | Zařízení čekalo 12 hod.                                                                                                                    |
+| 31. pokus o odeslání | 011111-1       | Zařízení čekalo dalších 12 hod.                                                                                                            |
 
 Před každým dalším odesláním zařízení čeká, dokud není čas odeslat [alive zprávu](#alive). Zařízení se snaží stejnou zprávu odeslat stále dokola, dokud není restartováno (vybití baterie nebo ruční reset).
 
@@ -460,10 +460,10 @@ Pokud chyba s číslem 1,3 a 5 nastane 4 hodiny po restartu, tak zařízení pos
 2. Zařízení se restartuje a dále funguje běžným způsobem jako by bylo [restartováno](#standartní-restart)
 3. Pokud error stále přetrvává tak se znovu opakuje zpracování erroru
 
-Pokud chyba s číslem 1,3,4 a 5 nastane do 4 hodin od restartu tak zařízení postupuje následujícím způsobem:
+Pokud chyba s číslem 1,3,4 a 5 nastane do 1 hodiny od restartu tak zařízení postupuje následujícím způsobem:
 
 1. Dioda v deseti cyklech Xkrát blikne ([podle tabulky notifikací](#led-notifikace)) pro oznámení erroru.
-2. Zařízení zkontroluje jestli uběhly 4 hodiny od restartu.
+2. Zařízení zkontroluje jestli uběhla 1 hodina od restartu.
 3. Pokud neuběhly tak se uspí na 2 minuty a následně opakuje bod 1. a 2.
 4. Pokud uběhly tak se zařízení restartuje a dále funguje běžným způsobem jako by bylo [restartováno](#standartní-restart).
 5. Pokud error stále přetrvává tak se znovu opakuje zpracování erroru.
@@ -476,7 +476,7 @@ Pro chybu s číslem 2 se zařízení chová podle následujícího seznamu:
 3. Dioda 1x blikne, aby oznámila inicializaci.
 4. Zařízení v inicializaci zjistí, že baterie neni plně nabitá.
 5. Dioda v deseti cyklech 4x blikne ([podle tabulky notifikací](#led-notifikace)) pro oznámení erroru.
-6. Zařízení v dvouminutových intervalech provádí bod 5. následující 4 hodiny.
+6. Zařízení v dvouminutových intervalech provádí bod 5. následující 1 hodinu.
 7. Zařízení se restartuje.
 8. Dioda 1x blikne, aby oznámila restart.
 9. Dioda 1x blikne, aby oznámila inicializaci.
