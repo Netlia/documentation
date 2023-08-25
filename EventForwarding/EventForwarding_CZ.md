@@ -254,7 +254,7 @@ Ukázka zaslané události:
     "physicalDeviceId": "abc123",
     "deviceType": "thermometer",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventTime": "2023-08-25T13:26:19.147Z",
     "eventType": "measured-temperature",
     "temperature": 25.5
 }
@@ -300,7 +300,7 @@ Ukázka zaslané události:
     "physicalDeviceId": "abc123",
     "deviceType": "hygrometer-thermometer",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventTime": "2023-08-25T13:26:19.147Z",
     "eventType": "measured-humidity-temperature",
     "temperature": 25.5,
     "humidity": 27.5
@@ -322,7 +322,7 @@ Ukázka zaslané události:
     "physicalDeviceId": "abc123",
     "deviceType": "magnetic-detector-simple",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventTime": "2023-08-25T13:26:19.147Z",
     "eventType": "restart"
 }
 ```
@@ -338,7 +338,7 @@ Ukázka zaslané události:
     "physicalDeviceId": "abc123",
     "deviceType": "magnetic-detector-simple",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventTime": "2023-08-25T13:26:19.147Z",
     "eventType": "alive"
 }
 ```
@@ -359,7 +359,7 @@ Ukázka zaslané události:
     "physicalDeviceId": "abc123",
     "deviceType": "magnetic-detector-simple",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventTime": "2023-08-25T13:26:19.147Z",
     "eventType": "transport"
 }
 ```
@@ -377,7 +377,7 @@ Ukázka zaslané události:
     "physicalDeviceId": "abc123",
     "deviceType": "magnetic-detector-simple",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventTime": "2023-08-25T13:26:19.147Z",
     "eventType": "tamper"
 }
 ```
@@ -393,7 +393,7 @@ Ukázka zaslané události:
     "physicalDeviceId": "abc123",
     "deviceType": "magnetic-detector-simple",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventTime": "2023-08-25T13:26:19.147Z",
     "eventType": "event-start"
 }
 ```
@@ -410,7 +410,7 @@ Ukázka zaslané události:
     "physicalDeviceId": "abc123",
     "deviceType": "motion-detector",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventTime": "2023-08-25T13:26:19.147Z",
     "eventType": "event-continue",
     "eventCount": 0,
     "secondsSinceLastEvent": 0
@@ -432,7 +432,7 @@ Ukázka zaslané události:
     "physicalDeviceId": "abc123",
     "deviceType": "magnetic-detector-simple",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventTime": "2023-08-25T13:26:19.147Z",
     "eventType": "event-end"
 }
 ```
@@ -454,7 +454,7 @@ Ukázka zaslané události:
     "physicalDeviceId": "abc123",
     "deviceType": "magnetic-detector-simple",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventTime": "2023-08-25T13:26:19.147Z",
     "eventType": "battery-alert",
     "batteryStatus": "low"
 }
@@ -478,7 +478,7 @@ Ukázka zaslané události:
     "physicalDeviceId": "abc123",
     "deviceType": "magnetic-detector-simple",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventTime": "2023-08-25T13:26:19.147Z",
     "eventType": "warning",
     "warningType": "some-warning",
     "localizedWarningDescription": "Popis zaslaného upozornění."
@@ -503,7 +503,7 @@ Ukázka zaslané události:
     "physicalDeviceId": "abc123",
     "deviceType": "magnetic-detector-simple",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventTime": "2023-08-25T13:26:19.147Z",
     "eventType": "error",
     "errorType": "some-error",
     "localizedErrorDescription": "Popis zaslané chyby."

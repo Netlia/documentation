@@ -33,7 +33,7 @@ Ukázka zaslané události:
     "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
     "deviceType": "temperature-regulator",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventTime": "2023-08-25T13:26:19.147Z",
     "eventType": "measured-humidity-temperature",
     "temperature": 25.5,
     "humidity": 27.5
@@ -58,7 +58,7 @@ Ukázka zaslané události:
     "physicalDeviceId": "abc123",
     "deviceType": "temperature-regulator",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventTime": "2023-08-25T13:26:19.147Z",
     "eventType": "battery-alert",
     "batteryStatus": "low"
 }
@@ -82,7 +82,7 @@ Ukázka zaslané události:
     "physicalDeviceId": "abc123", // může být null
     "deviceType": "temperature-regulator",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventTime": "2023-08-25T13:26:19.147Z",
     "eventType": "warning",
     "warningType": "some-warning",
     "localizedWarningDescription": "Popis zaslaného upozornění."
@@ -107,7 +107,7 @@ Ukázka zaslané události:
     "physicalDeviceId": "abc123", // může být null
     "deviceType": "temperature-regulator",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventTime": "2023-08-25T13:26:19.147Z",
     "eventType": "error",
     "errorType": "some-error",
     "localizedErrorDescription": "Popis zaslané chyby."
@@ -133,7 +133,7 @@ Ukázka zaslané události:
     "physicalDeviceId": "abc123",
     "deviceType": "temperature-regulator",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventTime": "2023-08-25T13:26:19.147Z",
     "eventType": "physical-device-replaced",
     "replacementPhysicalDeviceId": "abc456"
 }
@@ -172,7 +172,7 @@ Ukázka zaslané události:
     "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
     "deviceType": "temperature-regulator",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2021-05-03T14:25:31.8437511Z",
+    "eventTime": "2023-08-25T13:26:19.147Z",
     "eventType": "device-created",
     "physicalDevices":
     {
