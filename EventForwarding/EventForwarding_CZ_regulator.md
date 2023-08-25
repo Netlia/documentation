@@ -42,7 +42,8 @@ Ukázka zaslané události:
 
 ### EventType battery-alert
 
-Upozornění při nízkém stavu baterie. Aktuálně vždy s hodnotou `"batteryStatus": "low"`, v budoucnu bude rozšířeno.
+Upozornění při změně stavu baterie. Aktuálně posílá hodnotou `"batteryStatus": "low"` v případě téměř vybité baterie nebo
+`"batteryStatus": "high"` v případě vložení nabité baterie. V budoucnu může být rozšířeno o další hodnoty.
 
 | Parametr         | Typ    | Povinný | Popis                      |
 |:-----------------|:-------|:--------|:---------------------------|
@@ -146,10 +147,22 @@ Dodatečné předávané parametry:
 
 | Parametr                    | Typ      | Povinný | Popis                                                              |
 |:----------------------------|:---------|:--------|:-------------------------------------------------------------------|
-| physicalDevices             | string[] | ano     | Fyzická zařízení / komponenty ze kterých je zařízení složeno.      |
+| physicalDevices             | PhysicalDevices | ano     | Fyzická zařízení / komponenty ze kterých je zařízení složeno.      |
 | customData                  | object   | ne      | Objekt s informacemi specifickými dle partnera.                    |
 
-Mohou existovat zařízení u kterých bude `physicalDevices` obsahovat prázdné pole.
+Objekt PhysicalDevices je definován následujícím způsobem:
+| Parametr                    | Typ      | Povinný | Popis                                                              |
+|:----------------------------|:---------|:--------|:-------------------------------------------------------------------|
+| Data             | PhysicalDevice[] | ano     | Pole objektů obsahující informace o jednotlivých zařízeních.     |
+
+Definice PhysicalDevice:
+
+| Parametr                    | Typ      | Povinný | Popis                                                              |
+|:----------------------------|:---------|:--------|:-------------------------------------------------------------------|
+| physicalDeviceId             | string | ano     | Id fyzického zařízení.     |
+
+
+Mohou existovat zařízení u kterých bude `physicalDevices.Data` obsahovat prázdné pole.
 
 Ukázka zaslané události:
 
@@ -161,7 +174,21 @@ Ukázka zaslané události:
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "eventTime": "2021-05-03T14:25:31.8437511Z",
     "eventType": "device-created",
-    "physicalDeviceIds": ["abc123", "abc456", "abc789"],
+    "physicalDevices":
+    {
+        "data":
+        [
+            {
+                "physicalDeviceId": "abc123"
+            },
+            {
+                "physicalDeviceId": "abc456"
+            },
+            {
+                "physicalDeviceId": "abc789"
+            }
+        ]
+    },
     "customData":
         {
             "sample-key-1": "sample-value-1",
