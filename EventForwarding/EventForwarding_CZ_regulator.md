@@ -176,7 +176,7 @@ Ukázka zaslané události:
     "eventType": "device-created",
     "physicalDevices":
     {
-        data:
+        "data":
         [
             {
                 "physicalDeviceId": "abc123"
