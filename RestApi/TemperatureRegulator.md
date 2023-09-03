@@ -108,7 +108,7 @@ Příklady chybových responses:
 Většina endpointů přijímajících data v těle requestu vyžaduje položku `requestId`. Jedná se o jednoznačný identifikátor
 requestu, který generuje partner (jedná se o UUID) a slouží pro zajištění idempotence, čímž je docíleno toho, že akce je
 provedena jen jednou pokud dojde k opakovanému zavolání v určitém časovém intervalu. Při opakovaném požadavku se
-stejným `requestId` je vrácen HTTP status `409 Conflict`.
+stejným `requestId` je vrácen HTTP status 2xx který je nerozlišitelný od úspěšného provedení operace.
 
 ### PUT api/temperature-regulator/{deviceId}/mode
 
