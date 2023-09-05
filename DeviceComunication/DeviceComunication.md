@@ -697,7 +697,7 @@ The humidity is determined in % and can range from 0-100.
 ### Thermohead
 ![Thermometer](../images/devices/termohlavice.png)
 
-The device opens/closes a heater valve according to issued command described [here](#Thermohead-commands) and supports
+The device opens/closes a heater valve according to issued commands described [here](#Thermohead-commands) and supports
 `alive`, `measure`, `restart`, `transport` and `error` messages. The `measure` containing the status of the command and consequent data is sent after receiving a command as an
 acknowledgement and a responce. The message is sent after completion of the command and has following data structure:
 
@@ -706,8 +706,8 @@ acknowledgement and a responce. The message is sent after completion of the comm
 | 0th byte         | Command                |
 | 1st byte         | Parameter value        |
 | 2nd byte         | Command status         |
-| 3rd byte         | Position [0-MAX]       |
-| 4th-39th byte    | Measure Currents       |
+| 3rd-4th byte         | Position [0-MAX]       |
+| 5th-39th byte    | Measure Currents       |
 
 #### `Command` and `Parameter value`
 
@@ -1138,7 +1138,7 @@ Following commands are defined:
 
 | Value | Command              | Description |
 |-------|----------------------|-------------|
-| 0x01  | Set position         | Sets position of thermohead. The required position is passed via `Parameter` and ranges from 0 (fully closed) to 100 (fully opened). |
+| 0x01  | Set position         | Sets position of thermohead. The required position is passed via `Parameter` and ranges from 1 (fully closed) to 99 (fully opened). |
 | 0x02  | Adaptation           | Starts the adaptation procedure. |
 | 0x03  | Rotation             | Starts the rotation procedure. (Similar to adaptation, but the valve returns to the original position) |
 | 0x04  | Set disconnect value | Sets position the device transitions to in case of communication severance. |
