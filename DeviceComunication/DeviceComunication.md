@@ -694,6 +694,47 @@ The device's functionality is identical to that of the Thermometer described [he
 
 The humidity is determined in % and can range from 0-100.
 
+### Thermohead
+![Thermometer](../images/devices/termohlavice.png)
+
+The device opens/closes a heater valve according to issued command described [here](#Thermohead-commands) and supports
+`alive`, `measure`, `restart`, `transport` and `error` messages. The `measure` containing the status of the command and consequent data is sent after receiving a command as an
+acknowledgement and a responce. The message is sent after completion of the command and has following data structure:
+
+| Byte             | Description            |
+|------------------|------------------------|
+| 0th byte         | Command                |
+| 1st byte         | Parameter value        |
+| 2nd byte         | Command status         |
+| 3rd byte         | Position [0-MAX]       |
+| 4th-39th byte    | Measure Currents       |
+
+#### `Command` and `Parameter value`
+
+The `Comand` and `Parameter value` are the same as those sent to the device and serve as confirmation of receival.
+
+#### `Command status`
+`Command status` describes the status after command execution and can take following values:
+
+| Value            | Name            | Explanation |
+|------------------|------------------------| -----------------------|
+| 0x08    | Done / Position Reached         | Successful execution of the command|
+| 0x09    | Current overflow                | The motor has encountered mechanical resistance causing dangerous values of motor current. |
+| 0x0A    | No pulse                        | There is no responce from position sensor when the motor is running |
+| 0x0B    | Adaptation OK                   | Adaptation of the device was successful and the valve is now fully closed. The adaptation can be issued by either downlink command or mechanical switch on the device. |
+| 0x0C    | Unknown command                 | The command issued is not recognised by the device.|
+| 0x0D    | Command fail                    | Failure of execution due to reasons other than those listed above. |
+
+#### `Position`
+
+Measured maximum number of steps detected during `Adaptation`. The current position of the device in steps for all other
+commands.
+
+#### `Measured currents`
+
+If `Adaptation` or `Rotation` commands are issued, these bytes contain measured values of motor current in mA. The bytes
+can be ignored for all other commands.
+
 ## Receiving messages from the server
 
 The device can receive messages from the server. These messages can be divided into confirmation, configuration settings and commands. Confirmation is used to confirm messages from the device. Configuration settings allow you to set the device configuration and commands allow you to control the device in certain ways, such as forcing a restart.
@@ -778,7 +819,7 @@ The disadvantage of this solution is that it may take a long time to deliver the
 Messages are divided into header and data. The header is common for all messages and the data part differs
 according to the value of the 4th and 5th byte.
 
-### Header of the message received from the server
+### Header of the downlink messages
 
 #### 0th byte - identifier
 
@@ -902,6 +943,8 @@ The category is identified by the value 0x04 in the 4th byte of the header and c
 | 0x0B                    | Limiting the maximum number of Event continue messages      |
 | 0x0C                    | Specifies the sampling period for temperature and humidity devices |
 | 0x0E                    | Motion detection device sensitivity setting                 |
+| 0x0F                    | Reserved                                                    |
+| 0x10                    | Thermohead commands                                         |
 
 
 ##### Number of consecutive messages not requiring acknowledgement
@@ -1080,6 +1123,28 @@ The device calculates the number of measurements that need to be taken before se
 
 The device will then wait 4 minutes between measurements and send a message after every two measurements. Measure
 messages will therefore be sent every 8 minutes.
+
+##### Thermohead commands
+
+Transmits command to a thermohead device.
+
+| Byte     | Description                    |
+|----------|--------------------------------|
+| 0th byte | Not used - always 0x02         |
+| 1st byte | Command                        |
+| 2nd byte | Parameter                      |
+
+Following commands are defined:
+
+| Value | Command              | Description |
+|-------|----------------------|-------------|
+| 0x01  | Set position         | Sets position of thermohead. The required position is passed via `Parameter` and ranges from 0 (fully closed) to 100 (fully opened). |
+| 0x02  | Adaptation           | Starts the adaptation procedure. |
+| 0x03  | Rotation             | Starts the rotation procedure. (Similar to adaptation, but the valve returns to the original position) |
+| 0x04  | Set disconnect value | Sets position the device transitions to in case of communication severance. |
+| 0x05  | Set motor power      | Sets the motor power. The required position is passed via `Parameter` and ranges from 0 to 100%. Default value is 50% |
+| 0xFF  | Unadaptation         | Restores the device to state before adaptation. |
+
 
 ## Simplified acknowledgement implementation
 Since the device requires acknowledgement of some messages (specified 
