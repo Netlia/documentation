@@ -695,10 +695,15 @@ The device's functionality is identical to that of the Thermometer described [he
 The humidity is determined in % and can range from 0-100.
 
 ### Thermohead
-![Thermometer](../images/devices/termohlavice.png)
+![Thermometer](../images/devices/thermohead.png)
 
-The device opens/closes a heater valve according to issued commands described [here](#Thermohead-commands) and supports
-`alive`, `measure`, `restart`, `transport` and `error` messages. The `measure` containing the status of the command and consequent data is sent after receiving a command as an
+The device opens/closes a heater valve according to issued commands described [here](#Thermohead-commands).
+
+* Supported events: Measure, Restart, Alive, Transport, Error, DownlinkAcknowlege
+* Device type (2nd byte in restart message): 0x0C
+* Default mode (3rd byte in restart message): 0x00 (currently no more modes)
+
+The `Measure` containing the status of the command and consequent data is sent after receiving a downlink command as an
 acknowledgement and a responce. The message is sent after completion of the command and has following data structure:
 
 | Byte             | Description            |
@@ -706,8 +711,8 @@ acknowledgement and a responce. The message is sent after completion of the comm
 | 0th byte         | Command                |
 | 1st byte         | Parameter value        |
 | 2nd byte         | Command status         |
-| 3rd-4th byte         | Position [0-MAX]       |
-| 5th-39th byte    | Measure Currents       |
+| 3rd - 4th byte   | Position [0-MAX]       |
+| 5th - 39th byte  | Measure Currents       |
 
 #### `Command` and `Parameter value`
 
@@ -1136,14 +1141,14 @@ Transmits command to a thermohead device.
 
 Following commands are defined:
 
-| Value | Command              | Description |
-|-------|----------------------|-------------|
-| 0x01  | Set position         | Sets position of thermohead. The required position is passed via `Parameter` and ranges from 1 (fully closed) to 99 (fully opened). |
-| 0x02  | Adaptation           | Starts the adaptation procedure. |
-| 0x03  | Rotation             | Starts the rotation procedure. (Similar to adaptation, but the valve returns to the original position) |
-| 0x04  | Set disconnect value | Sets position the device transitions to in case of communication severance. |
-| 0x05  | Set motor power      | Sets the motor power. The required position is passed via `Parameter` and ranges from 0 to 100%. Default value is 50% |
-| 0xFF  | Unadaptation         | Restores the device to state before adaptation. |
+| Value | Command                 | Description |
+|-------|-------------------------|-------------|
+| 0x01  | Set position            | Sets position of thermohead. The required position is passed via `Parameter` and ranges from 1 (fully closed) to 99 (fully opened). |
+| 0x02  | Adaptation              | Starts the adaptation procedure. |
+| 0x03  | Rotation                | Starts the rotation procedure. (Similar to adaptation, but the valve returns to the original position) |
+| 0x04  | Set disconnect position | Sets position the device transitions to in case of communication severance. |
+| 0x05  | Set motor power         | Sets the motor power. The required position is passed via `Parameter` and ranges from 0 to 100%. Default value is 50% |
+| 0xFF  | Unadaptation            | Restores the device to state before adaptation. |
 
 
 ## Simplified acknowledgement implementation

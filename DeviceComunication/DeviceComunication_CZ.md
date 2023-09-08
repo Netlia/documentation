@@ -728,19 +728,24 @@ rozdíl je, že posílá teplotu a vlhkost. Každá naměřená hodnota má dél
 Vlhkost je určována v % a může nabývat hodnoty 0-100.
 
 ### Termohlavice
-![Termohlavice](../images/devices/termohlavice.png)
+![Termohlavice](../images/devices/thermohead.png)
 
-Zařízení otvírá/zavírá ventil radiátoru dle zaslaných příkazů popsaných [zde](#Příkazy-termohlavice) a podporuje
-`alive`, `measure`, `restart`, `transport` a `error` zprávy. `measure` obsahuje stav vykonání příkazu spolu s případnými
-dalšími daty. Zpráva je zaslána po dokončení vykonávaní příkazu a datová část má následující strukturu:
+Zařízení otvírá/zavírá ventil radiátoru dle zaslaných příkazů popsaných [zde](#Příkazy-termohlavice).
+
+* Podporované události: Measure, Restart, Alive, Transport, Error, DownlinkAcknowlege
+* Typ zařízení (2.byte restart zprávy): 0x0C
+* Výchozí mód (3. byte restart zprávy): 0x00 (v současnosti není více módů)
+
+`Measure` zpráva obsahuje stav vykonání příkazu spolu s případnými dalšími daty na základě zaslané downlinkové zprávy. 
+Zpráva je zaslána po dokončení vykonávaní příkazu a datová část má následující strukturu:
 
 | Byte            | Popis            |
 |-----------------|------------------|
 | 0. byte         | Příkaz           |
 | 1. byte         | Parametr         |
 | 2. byte         | Stav příkazu     |
-| 3.-4. byte      | Pozice [0-MAX]   |
-| 5.-39. byte     | Změřený proud    |
+| 3. - 4. byte    | Pozice [0-MAX]   |
+| 5. - 39. byte   | Změřený proud    |
 
 #### `Příkaz` a `Parametr`
 
@@ -1175,20 +1180,20 @@ Zašle příkaz termohlavici.
 
 | Byte     | Popis                          |
 |----------|--------------------------------|
-| 0th byte | Not used - always 0x02         |
-| 1st byte | Příkaz                         |
-| 2nd byte | Parametr                       |
+| 0.byte   | Not used - always 0x02         |
+| 1.byte   | Příkaz                         |
+| 2.byte   | Parametr                       |
 
 Jsou definovány tyto příkazy:
 
-| Hodnota | Příkaz              | Popis |
-|-------|-----------------------|-------------|
-| 0x01  | Nastav pozici         | Nastaví pozici termohlavice. Požadovaná pozice předávána skrz `Parametr` a může nabývat hodnot od 1 (zcela zavřeno) do 99 (zcela otevřeno). |
-| 0x02  | Adaptace              | Spustí proceduru adaptace. |
-| 0x03  | Protočení             | Spustí proceduru protočení. (Obdoba procedury Adaptace, ale hlavice je po ukončení na původní pozici.) |
-| 0x04  | Nastav nouzovou pozici| Nastaví pozici na niž termohlavice přejde v případě přerušení komunikace se serverem. |
-| 0x05  | Nastav příkon motoru  | Nastav příkon motoru. Požadovaný příkon je předán skrz `Parametr` a může nabývat hodnot od 0 do 100%. Základní hodnota je 50% |
-| 0xFF  | Odadaptace            | Vrátí zařízení do původního nastavení. |
+| Hodnota | Příkaz                | Popis |
+|-------|-------------------------|-------------|
+| 0x01  | Nastav pozici           | Nastaví pozici termohlavice. Požadovaná pozice předávána skrz `Parametr` a může nabývat hodnot od 1 (zcela zavřeno) do 99 (zcela otevřeno). |
+| 0x02  | Adaptace                | Spustí proceduru adaptace. |
+| 0x03  | Protočení               | Spustí proceduru protočení. (Obdoba procedury Adaptace, ale hlavice je po ukončení na původní pozici.) |
+| 0x04  | Nastav disconnect pozici| Nastaví pozici na niž termohlavice přejde v případě přerušení komunikace se serverem. |
+| 0x05  | Nastav příkon motoru    | Nastav příkon motoru. Požadovaný příkon je předán skrz `Parametr` a může nabývat hodnot od 0 do 100%. Základní hodnota je 50% |
+| 0xFF  | Odadaptace              | Vrátí zařízení do původního nastavení. |
 
 ## Zjednodušená implementace potvrzování
 Protože zařízení ve výchozím stavu vyžaduje potvrzení některých zpráv 
