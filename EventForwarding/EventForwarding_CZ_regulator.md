@@ -116,12 +116,13 @@ Ukázka zaslané události:
 
 ### EventType physical-device-replaced
 
-Událost je odeslána při náhradě fyzického zařízení - informuje o tom, že původní fyzické zařízení s `physicalDeviceId` bylo nahrazeno novým fyzickým zařízením s `replacementPhysicalDeviceId`. Může nastat např. po výměně fyzického zařízení které je v poruše za nové.
+Událost je odeslána při náhradě fyzického zařízení - informuje o tom, že původní fyzické zařízení s `replacedPhysicalDeviceId` bylo nahrazeno novým fyzickým zařízením s `replacementPhysicalDeviceId`. Může nastat např. po výměně fyzického zařízení které je v poruše za nové.
 
 Dodatečné předávané parametry:
 
 | Parametr                    | Typ    | Povinný | Popis                                                 |
 |:----------------------------|:-------|:--------|:------------------------------------------------------|
+| replacedPhysicalDeviceId    | string | ano     | PhysicalDeviceId původního fyzického zařízení.        |
 | replacementPhysicalDeviceId | string | ano     | PhysicalDeviceId nově přiřazeného fyzického zařízení. |
 
 Ukázka zaslané události:
@@ -130,11 +131,11 @@ Ukázka zaslané události:
 {
     "protocolVersion": 1,
     "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "physicalDeviceId": "abc123",
     "deviceType": "temperature-regulator",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "eventTime": "2023-08-25T13:26:19.147Z",
     "eventType": "physical-device-replaced",
+    "replacedPhysicalDeviceId": "abc123",
     "replacementPhysicalDeviceId": "abc456"
 }
 ```
