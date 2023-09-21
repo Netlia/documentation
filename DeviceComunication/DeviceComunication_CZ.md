@@ -727,6 +727,51 @@ rozdíl je, že posílá teplotu a vlhkost. Každá naměřená hodnota má dél
 
 Vlhkost je určována v % a může nabývat hodnoty 0-100.
 
+### Termohlavice
+![Termohlavice](../images/devices/thermohead.png)
+
+Zařízení otvírá/zavírá ventil radiátoru dle zaslaných příkazů popsaných [zde](#Příkazy-termohlavice).
+
+* Podporované události: Measure, Restart, Alive, Transport, Error, DownlinkAcknowlege
+* Typ zařízení (2.byte restart zprávy): 0x0C
+* Výchozí mód (3. byte restart zprávy): 0x00 (v současnosti není více módů)
+
+`Measure` zpráva obsahuje stav vykonání příkazu spolu s případnými dalšími daty na základě zaslané downlinkové zprávy. 
+Zpráva je zaslána po dokončení vykonávaní příkazu a datová část má následující strukturu:
+
+| Byte            | Popis            |
+|-----------------|------------------|
+| 0. byte         | Příkaz           |
+| 1. byte         | Parametr         |
+| 2. byte         | Stav příkazu     |
+| 3. - 4. byte    | Pozice [0-MAX]   |
+| 5. - 39. byte   | Změřený proud    |
+
+#### `Příkaz` a `Parametr`
+
+Hodnoty `Příkaz` a `Parametr` odpovídají hodnotám zaslaným v příkazu a slouží jako potvrzení korektního doručení příkazu.
+
+#### `Stav příkazu`
+`Stav příkazu` odpovídá výstupní hodnotě zpracování příkazu a může nabývat následujících hodnot:
+
+| Hodnota            | Význam            | Popis |
+|------------------|------------------------| -----------------------|
+| 0x08    | Hotovo / Pozice dosažena         | Příkaz byl úspěšně vykonán.|
+| 0x09    | Překročení limitu proudu         | Byly naměřeny nebezpečně vysoké hodnoty proudu motorem. |
+| 0x0A    | Chyba pozičního senzoru          | Poziční senzor nereaguje při točení motoru. |
+| 0x0B    | Adaptace OK                      | Adaptace zařízení proběhla v pořádku a ventil je nyní zcela zavřen. Adaptace může být spuštěna downlinkovým příkazem nebo zaaretováním hlavice. |
+| 0x0C    | Neznámý příkaz                   | Zaslaný příkaz neodpovídá žádnému definovanému příkazu.|
+| 0x0D    | Příkaz selhal                    | Vykonávání příkazu selhalo z důvodů jiných než těch vyjmenovaných výše. |
+
+#### `Pozice`
+
+Maximální počet kroků detekovaný v rámci `Adaptace`. Aktuální pozice zařízení pro všechny ostatní příkazy.
+
+#### `Změřený proud`
+
+Pokud byl zaslán příkaz `Adaptace` nebo `Rotace`, obsahují tyto byty změřené hodnoty proudu v mA. Hodnoty mohou být
+ignorovány pro ostatní příkazy.
+
 ## Přijmání zpráv ze serveru
 
 Zařízení dokáže přijímat zprávy ze serveru. Tyto zprávy můžeme rozdělit na potvrzení, nastavení konfigurace a příkazy. Potvrzení slouží k potvrzování zpráv ze zařízení. Nastavení konfigurace umožňuje nastavit konfiguraci zařízení a příkazy umožňují určitým způsobem ovládat zařízením, např. vynutit restart.
@@ -952,6 +997,8 @@ Kategorie je identifikována hodnotou 0x04 v 4.Byte hlavičky a obsahuje násled
 | 0x0B                    | Omezení maximálního počtu zpráv typu událost pokračuje      |
 | 0x0C                    | Určuje periodu vzorkování pro teplotní a vlhkostní zařízení |
 | 0x0E                    | Nastavení citlivosti pohybového zařízení                    |
+| 0x0F                    | Rezervováno                                                 |
+| 0x10                    | Příkazy termohlavice                                        |
 
 ##### Kolikátá zpráva vyžaduje potvrzení
 
@@ -1126,6 +1173,27 @@ Zařízení vypočítá počet měření, které je potřeba udělat před odesl
 
 Zařízení pak bude čekat mezi měřeními 4 minuty a po každých dvou měření odešle zprávu. Measure
 zprávy se tedy budou odesílat každých 8 minut.
+
+##### Příkazy termohlavice
+
+Zašle příkaz termohlavici.
+
+| Byte     | Popis                          |
+|----------|--------------------------------|
+| 0.byte   | Not used - always 0x02         |
+| 1.byte   | Příkaz                         |
+| 2.byte   | Parametr                       |
+
+Jsou definovány tyto příkazy:
+
+| Hodnota | Příkaz                | Popis |
+|-------|-------------------------|-------------|
+| 0x01  | Nastav pozici           | Nastaví pozici termohlavice. Požadovaná pozice předávána skrz `Parametr` a může nabývat hodnot od 1 (zcela zavřeno) do 99 (zcela otevřeno). |
+| 0x02  | Adaptace                | Spustí proceduru adaptace. |
+| 0x03  | Protočení               | Spustí proceduru protočení. (Obdoba procedury Adaptace, ale hlavice je po ukončení na původní pozici.) |
+| 0x04  | Nastav disconnect pozici| Nastaví pozici na niž termohlavice přejde v případě přerušení komunikace se serverem. |
+| 0x05  | Nastav příkon motoru    | Nastav příkon motoru. Požadovaný příkon je předán skrz `Parametr` a může nabývat hodnot od 0 do 100%. Základní hodnota je 50% |
+| 0xFF  | Odadaptace              | Vrátí zařízení do původního nastavení. |
 
 ## Zjednodušená implementace potvrzování
 Protože zařízení ve výchozím stavu vyžaduje potvrzení některých zpráv 
