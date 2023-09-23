@@ -321,7 +321,7 @@ The following paragraphs describe the part of the message containing data. All o
 
 ### Acknowledging a message from the server
 
-"Reception from server" acknowledgement message is sent by the device whenever configuration or command message is received from the server.
+"Reception from server" acknowledgement message is sent by the device whenever configuration or command message is received from the server and requires acknowledgement.
 This message serves as an acknowledgement. For more information about sending a message from the server, see [here](#receiving-messages-from-the-server).
 
 In the header it is marked with the value 0x01 in the 7th byte (Message type).
@@ -793,7 +793,7 @@ messages to the device. An uplink is any message sent from a device to a server.
 
 Network server must always wait for the device to initiate the communication. Therefore, it is possible that the delivery of a message from the server might take a long time.
 
-If the device successfully receives the message, it sends an acknowledgement to the server.
+If the device successfully receives the message and acknowledgement is required, it sends an acknowledgement to the server.
   The format of the confirmation message is described [here](#message-acknowledgment).
 
 There is no point for the LoRa network to send an acknowledgement messages from the server to the device, even if the device [requests it](#header),
@@ -808,7 +808,7 @@ the device is acknowledging.
 
 #### Implementation of sending messages to devices in LoRa network
 
-We can implement sending messages to devices in the LoRa network in several ways. The simplest way is "marking messages". In this implementation, the server sends the downlink and marks it as "sent". After it receives the first uplink since the downlink was sent, it changes the status of the sent downlink to "will be acknowledged in the next message". The following uplink message should contain acknowledgment. Arrival of acknowledgment means that the downlink message has been successfully delivered.
+We can implement sending messages to devices in the LoRa network in several ways. The simplest way is "marking messages". In this implementation, the server sends the downlink and marks it as "sent". After it receives the first uplink since the downlink was sent, it changes the status of the sent downlink to "will be acknowledged in the next message". The following uplink message should contain acknowledgment (if requested). Arrival of acknowledgment means that the downlink message has been successfully delivered.
 
 ![LoraMessageMarker](Lora_MessageMarker.png)
 
@@ -837,9 +837,16 @@ is not needed.
 
 Unused.
 
-#### 2nd byte
+#### 2nd byte - parameters
 
-Unused.
+This byte contains a bit mask that currently contains only the downlink message acknowledgement settings. Byte structure:
+
+| Position   | Description                              |
+|------------|------------------------------------------|
+| 0th byte   | Request for acknowledgement of message reception by the device |
+| 0-7th byte | Not used - always 0x00                   |
+
+If the 0th is set to 1 the device sends an receipt acknowledgement of the current message.
 
 #### 3rd byte
 
