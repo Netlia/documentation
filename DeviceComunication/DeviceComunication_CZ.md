@@ -336,7 +336,7 @@ hlavičkou která je [popsaná výše](#hlavička).
 
 ### Potvrzení zprávy ze serveru
 
-Potvrzení zprávy ze serveru zařízení odešle vždy po přijetí konfigurace nebo příkazu ze serveru.
+Potvrzení zprávy ze serveru zařízení odešle vždy po přijetí konfigurace nebo příkazu ze serveru, který vyžaduje potvrzení.
 Tato zpráva slouží jako potvrzení. Více o odesílání zprávy ze serveru najdete [zde](#přijmání-zpráv-ze-serveru).
 
 V hlavičce je označen hodnotou 0x01 v 7.bytu (Typ zprávy).
@@ -829,7 +829,7 @@ zprávy na zařízení. Uplink je jakákoliv zpráva odesílaná ze zařízení 
 Network server vždy musí čekat na zahájení komunikace ze zařízení. Může se tudíž
 stát, že zpráva ze serveru je doručena po dlouhé době.
 
-Pokud zařízení úspěšně přijme zprávu, odešle na server
+Pokud zařízení úspěšně přijme zprávu a je požadováno potvrzení, odešle na server
 potvrzení. Formát potvrzovací zprávy je popsán [zde](#potvrzení-zprávy).
 
 Potvrzovací zprávy ze serveru na zařízení nemá u LoRa síťě význam odesílat, ikdyž si ji zařízení [vyžádá](#hlavička), jelikož o potvrzení se stará LoRa síť automaticky (u zpráv vyžadujících potvrzení).
@@ -849,7 +849,7 @@ zařízení potvrzuje.
 Implementaci odesílání zpráv na zařízení v LoRa síti můžeme provést
 několika způsoby. Nejjednoduším způsobem je "označování zpráv". V této
 implementaci server odešle downlink a označí ho jako
-"odeslaný". Poté, co přijme první uplink od odeslání downlinku, stav odeslaného downlinku změní na "bude potvrzen v příští zprávě". V další zprávě by měl přijít uplink s potvrzením. Pokud toto potvrzení dorazí, downlinková zpráva byla úspěšně odeslána.
+"odeslaný". Poté, co přijme první uplink od odeslání downlinku, stav odeslaného downlinku změní na "bude potvrzen v příští zprávě". V další zprávě by měl přijít uplink s potvrzením (pokud bylo vyžádáno). Pokud toto potvrzení dorazí, downlinková zpráva byla úspěšně odeslána.
 
 ![LoraMessageMarker](Lora_MessageMarker.png)
 
@@ -884,9 +884,16 @@ není potřeba.
 
 Nepoužitý.
 
-#### 2.byte
+#### 2.byte - parametry
 
-Nepoužitý.
+Tento byte obsahuje bitovou masku, která aktuálně obsahuje pouze nastavení potvrzení downlinkové zprávy. Bit na 0-té pozici určuje, zda má být zpráva potvrzena (1 - vyžadováno potvrzení; 0 - bez potvrzení). Složení bytu:
+
+| Pozice  | Význam                                      |
+|---------|---------------------------------------------|
+| 0.bit   | Žádost o potvrzení přijetí zprávy zařízením |
+| 1-7.bit | Nepoužité                                   |
+
+Pokud je 0.bit nastaven na 1 tak zařízení odešle potvrzení o přijetí aktuální zprávy.
 
 #### 3.byte
 
@@ -1192,7 +1199,7 @@ Jsou definovány tyto příkazy:
 | 0x02  | Adaptace                | Spustí proceduru adaptace. |
 | 0x03  | Protočení               | Spustí proceduru protočení. (Obdoba procedury Adaptace, ale hlavice je po ukončení na původní pozici.) |
 | 0x04  | Nastav disconnect pozici| Nastaví pozici na niž termohlavice přejde v případě přerušení komunikace se serverem. |
-| 0x05  | Nastav příkon motoru    | Nastav příkon motoru. Požadovaný příkon je předán skrz `Parametr` a může nabývat hodnot od 0 do 100%. Základní hodnota je 50% |
+| 0x05  | Nastav příkon motoru    | Nastav příkon motoru. Požadovaný příkon je předán skrz `Parametr` a může nabývat hodnot od 0 do 100%. Základní hodnota je 50%. Není doporučeno tento parametr měnit. |
 | 0xFF  | Odadaptace              | Vrátí zařízení do původního nastavení. |
 
 ## Zjednodušená implementace potvrzování
