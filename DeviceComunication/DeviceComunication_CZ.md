@@ -886,7 +886,7 @@ Nepoužitý.
 
 #### 2.byte - parametry
 
-Tento byte obsahuje bitovou masku, která aktuálně obsahuje pouze nastavení potvrzení downlinkové zprávy. Složení bytu:
+Tento byte obsahuje bitovou masku, která aktuálně obsahuje pouze nastavení potvrzení downlinkové zprávy. Bit na 0-té pozici určuje, zda má být zpráva potvrzena (1 - vyžadováno potvrzení; 0 - bez potvrzení). Složení bytu:
 
 | Pozice  | Význam                                      |
 |---------|---------------------------------------------|
@@ -1199,7 +1199,7 @@ Jsou definovány tyto příkazy:
 | 0x02  | Adaptace                | Spustí proceduru adaptace. |
 | 0x03  | Protočení               | Spustí proceduru protočení. (Obdoba procedury Adaptace, ale hlavice je po ukončení na původní pozici.) |
 | 0x04  | Nastav disconnect pozici| Nastaví pozici na niž termohlavice přejde v případě přerušení komunikace se serverem. |
-| 0x05  | Nastav příkon motoru    | Nastav příkon motoru. Požadovaný příkon je předán skrz `Parametr` a může nabývat hodnot od 0 do 100%. Základní hodnota je 50% |
+| 0x05  | Nastav příkon motoru    | Nastav příkon motoru. Požadovaný příkon je předán skrz `Parametr` a může nabývat hodnot od 0 do 100%. Základní hodnota je 50%. Není doporučeno tento parametr měnit. |
 | 0xFF  | Odadaptace              | Vrátí zařízení do původního nastavení. |
 
 ## Zjednodušená implementace potvrzování

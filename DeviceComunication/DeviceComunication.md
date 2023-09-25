@@ -839,12 +839,12 @@ Unused.
 
 #### 2nd byte - parameters
 
-This byte contains a bit mask that currently contains only the downlink message acknowledgement settings. Byte structure:
+This byte contains a bit mask that currently contains only the downlink message acknowledgement settings. The bit at position 0 determines whether the message should be acknowledged (1 - acknowledgement required; 0 - no acknowledgement). Byte structure:
 
 | Position   | Description                              |
 |------------|------------------------------------------|
-| 0th byte   | Request for acknowledgement of message reception by the device |
-| 0-7th byte | Not used - always 0x00                   |
+| 0th bit    | Request for acknowledgement of message reception by the device |
+| 0-7th bit  | Not used - always 0x00                   |
 
 If the 0th is set to 1 the device sends an receipt acknowledgement of the current message.
 
@@ -1154,7 +1154,7 @@ Following commands are defined:
 | 0x02  | Adaptation              | Starts the adaptation procedure. |
 | 0x03  | Rotation                | Starts the rotation procedure. (Similar to adaptation, but the valve returns to the original position) |
 | 0x04  | Set disconnect position | Sets position the device transitions to in case of communication severance. |
-| 0x05  | Set motor power         | Sets the motor power. The required position is passed via `Parameter` and ranges from 0 to 100%. Default value is 50% |
+| 0x05  | Set motor power         | Sets the motor power. The required position is passed via `Parameter` and ranges from 0 to 100%. Default value is 50%. It is not recommended to change this parameter. |
 | 0xFF  | Unadaptation            | Restores the device to state before adaptation. |
 
 
