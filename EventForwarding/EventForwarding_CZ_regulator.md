@@ -114,6 +114,33 @@ Ukázka zaslané události:
 }
 ```
 
+### EventType user-requested-temperature-change
+
+Událost je odeslána když uživatel klikne na tlačítko na termostatu -
+uživatel tímto zmáčknutím vyžaduje snížení nebo zvýšení teploty.
+
+Pokud 'temperature-regulator' nebosahuje fyzické zařízení 'termostat' tak se událost neodesílá.
+
+Dodatečné předávané parametry:
+
+| Parametr                   | Typ    | Povinný | Popis                                                                                   |
+|:---------------------------|:-------|:--------|:----------------------------------------------------------------------------------------|
+| requestedTemperatureChange | string | ano     | Může nabývat hodnot - increase, decrease. V budoucnu může být rozšířeno o další hodnoty |
+
+Ukázka zaslané události:
+
+```yaml
+{
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "deviceType": "temperature-regulator",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2023-08-25T13:26:19.147Z",
+    "eventType": "user-requested-temperature-change",
+    "requestedTemperatureChange": "increase"
+}
+```
+
 ### EventType physical-device-replaced
 
 Událost je odeslána při náhradě fyzického zařízení - informuje o tom, že původní fyzické zařízení s `replacedPhysicalDeviceId` bylo nahrazeno novým fyzickým zařízením s `replacementPhysicalDeviceId`. Může nastat např. po výměně fyzického zařízení které je v poruše za nové.
