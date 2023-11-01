@@ -13,6 +13,7 @@ Každou minutu měří teplotu a vlhkost. Po X měření (ve výchozím stavu 10
 | [error](#eventtype-error)                                                 | Chyba.                                                                     |
 | [physical-device-replaced](#eventtype-physical-device-replaced)           | Nastává při náhradě fyzického zařízení.                                    |
 | [device-created](#eventtype-device-created)                               | Informuje o vytvoření zařízení.                                            |
+| [user-requested-temperature-change](#user-requested-temperature-change)   | Informuje o požadavku na změnu teploty od uživatele.                       |
 
 ### EventType measured-humidity-temperature
 
