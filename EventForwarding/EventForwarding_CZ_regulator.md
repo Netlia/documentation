@@ -134,11 +134,12 @@ Ukázka zaslané události:
 {
     "protocolVersion": 1,
     "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "physicalDeviceId": "abc123", 
     "deviceType": "temperature-regulator",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "eventTime": "2023-08-25T13:26:19.147Z",
     "eventType": "user-requested-temperature-change",
-    "requestedTemperatureChange": "increase"
+    "requestedTemperatureChange": "increase",
 }
 ```
 
