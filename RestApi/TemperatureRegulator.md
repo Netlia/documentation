@@ -4,7 +4,7 @@ Dokument popisuje API pro komunikaci se zařízením temperature regulator. Swag
 dostupný [zde](https://public-api.netlia.com/swagger/temperature-regulator/index.html). Přístupové údaje ke swaggeru je
 možné získat od zástupce Netlia.
 
-# Zabezpečení
+## Zabezpečení
 
 Komunikace je zabezpečna bearer tokenem ve formátu JWT. Token se posílá ve standartním headeru s klíčem Authorization.
 Příklad headeru:
@@ -15,11 +15,27 @@ Příklad headeru:
 
 Token je možné získat u zástupce Netlia.
 
-# Chybové odpovědi
+## Chybové odpovědi
 
-* Chyby 5xx jsou způsobené chybou serveru a neměly by nikdy nastat. Pokud server vratí tuto chybu, měl by být informován
-  zástupce Netlia.
-* Chyby 4xx jsou vráceny, pokud klient provedl neplatný/nevalidní request.
+### Chyby 5xx
+
+Chyby 5xx jsou způsobené chybou serveru a neměly by nastavávat. Obvykle jsou způsobeny dočasným výpadkem serveru nebo
+chyboy v kódu
+Pokud se klientovi vrátí tato chyba, měl by zkusit zopakovat request. Jak správně zopakovat request je popsáno níže(TODO
+odkaz).
+
+Pokud chyba přetrvává tak by měl být kontaktován zástupce firmy Netlia.
+
+### Chyby 4xx
+
+Chyby 4xx jsou vráceny, pokud klient provedl neplatný/nevalidní request. Nejčastější chyby na které klient narazí jsou:
+
+* 400 Bad Request - Tělo requestu nobsahuje validní formát.
+* 404 Not Found - Url je naplatná a neodpovídá žádnému endpointu.
+* 422 Unprocessable Content - Request obsahuje validní formát, ale nemohl být proveden. Například pokud klient požaduje
+  vytvoření zařízení, které již existuje.
+
+### Tělo chybových odpovědí
 
 Všechny chybové stavové kódy (4xx a 5xx) obsahují
 standardní [problem details](https://datatracker.ietf.org/doc/html/rfc7807) body, které má následující formát:
@@ -40,16 +56,17 @@ standardní [problem details](https://datatracker.ietf.org/doc/html/rfc7807) bod
 }
 ```
 
-* Type - odkazuje na podrobné vysvětlení erroru. Pokud Netlia nemá žádné specifické detaily k danému erroru, tak
+* Type - odkazuje na podrobné vysvětlení erroru. Pokud server nemá žádné specifické detaily k danému erroru, tak
   obsahuje pouze odkaz na vysvětlení http kódu.
-* Title - obsahuje textový popis chyby. V případě obecných chyb popis odpovídá popisu stavového kódu. V případě
+* Title - obsahuje textový popis chyby. V případě, že server nemá více informací tak odpovídá popisu stavového kódu. V
+  případě
   specifických chyb obsahuje konkrétní informace (příklad v ukázce).
 * Status - duplikuje stavový kód odpovědi. Toto pole je v body obsaženo pouze pro zjedodušení práce partnera (např.
   pokud loguje body a neloguje vrácený http kód).
 * TraceId - slouží k jednoznačné identifikaci konkrétní chyby (typicky použito při nahlášení chybného chování
   partnerem).
 * ErrorId - číselný identifikátor typu chyby. Každý druh chyby má svůj identifikátor, který může být použit partnerem
-  při programovém zpracování chyby. Pro obecné chyby ErrorId odpovídá http statusu.
+  při programovém zpracování chyby.
 * Errors - je nepovinné pole, které obsahují pouze odpovědi vracející více než jednu chybu. Obsahuje slovník, kde klíčem
   je řetězec, který logicky spojuje pole chyb, které následuje za ním. Viz. příklad č. 3.
 
@@ -58,7 +75,7 @@ ErrorId.**
 
 Příklady chybových responses:
 
-1. Server vrátil chybu 500. Pro vyřešení problému kontaktujte zástupce Netlia.
+1. Server vrátil chybu 500. Pro vyřešení problému zkuste retry nebo kontaktujte zástupce Netlia.
 
 ```json
 {
@@ -76,7 +93,7 @@ Příklady chybových responses:
 {
   "type": "https://httpstatuses.io/400",
   "title": "Device not found",
-  "status": 404,
+  "status": 422,
   "errorId": 1,
   "traceId": "00-eab978ed39bb58b120c99c08ef42a6a2-aca7bff9ea0a470c-00"
 }
@@ -103,12 +120,55 @@ Příklady chybových responses:
 }
 ```
 
-## Popis endpointů
+4. Server vrátil chybu 404. Klient se snaží zavolat neexistující URL.
 
-Většina endpointů přijímajících data v těle requestu vyžaduje položku `requestId`. Jedná se o jednoznačný identifikátor
-requestu, který generuje partner (jedná se o UUID) a slouží pro zajištění idempotence, čímž je docíleno toho, že akce je
-provedena jen jednou pokud dojde k opakovanému zavolání v určitém časovém intervalu. Při opakovaném požadavku se
-stejným `requestId` je vrácen HTTP status 2xx který je nerozlišitelný od úspěšného provedení operace.
+```json
+{
+  "type": "https://httpstatuses.io/404",
+  "title": "Url is incorrect. Page not found.",
+  "status": 404,
+  "errorId": 404,
+  "traceId": "00-eab978ed39bb58b120c99c08ef42a6a2-aca7bff9ea0a470c-00"
+}
+```
+
+## RequestId a opakované volání endpointů
+
+Mnoho problémů s nefungujícím API může být jednodušše vyřešeno opakovaným zavoláním requestu. Endpointy ale často
+nemohou být volány opakovaně jelikož to může vést k nežádoucím výsledkům - typicky uváděným problémem je dvojité
+vytvoření
+platby clientem.
+
+GET volání tímto problémem v našem API netrpí jelikož vždy pouze získávají data a nikdy je nemění. Problém nastává u
+volání, které mění stav systému.
+
+Abychom takovým problémům předešli tak naše API implementuje koncept `requestId` který zajišťje, že request může být
+opakován
+ale bude proveden pouze jednou. Všechny endpointy, které implementují tento koncept používají HTTP metodu PUT nebo
+DELETE.
+
+### Jak funguje requestId
+
+Každý request, který mění stav systému musí obsahovat v těle requestu položku `requestId`. Jedná se o jednoznačný
+identifikátor.
+Pokud klient odešle request s `requestId` který již byl použit v nedávné době (24h), tak server nezpracovává request
+znovu ale pouze
+vrátí výsledek předchozího volání.
+
+Vyjímkou jsou stavové kódy 5xx. Pokud server vrátí 5xx a klient volání zopakuje se stejným `requestId` tak se server
+pokusí
+request zpracovat znovu a vrátí výsledek.
+
+Pokud klient provede více konkurentních requestů se stejným `requestId` tak server zpracuje pouze jeden z nich a
+pro ostatní vrátí stavový kód `409 Conflict`.
+
+### Implementace retry na staraně klienta
+
+Pokud server vrátí stavový kód `4xx` tak je chyba u klienta a nemá význam request opakovat.
+
+V případě, že nastane jakákoliv jiná chyba, tak by měl klient request zopakovat a neměnit `requestId`.
+
+## Popis endpointů
 
 ### PUT api/temperature-regulator/{deviceId}/mode
 
