@@ -19,10 +19,8 @@ Token je možné získat u zástupce Netlia.
 
 ### Chyby 5xx
 
-Chyby 5xx jsou způsobené chybou serveru a neměly by nastavávat. Obvykle jsou způsobeny dočasným výpadkem serveru nebo
-chyboy v kódu
-Pokud se klientovi vrátí tato chyba, měl by zkusit zopakovat request. Jak správně zopakovat request je popsáno níže(TODO
-odkaz).
+Chyby 5xx jsou způsobené chybou serveru a neměly by nastavávat. Obvykle jsou způsobeny dočasným výpadkem serveru, nebo chybou v kódu.
+Pokud se klientovi vrátí tato chyba, měl by zkusit zopakovat request. Jak správně zopakovat request je popsáno [níže](#requestid-a-opakované-volání-endpointů).
 
 Pokud chyba přetrvává tak by měl být kontaktován zástupce firmy Netlia.
 
@@ -58,15 +56,12 @@ standardní [problem details](https://datatracker.ietf.org/doc/html/rfc7807) bod
 
 * Type - odkazuje na podrobné vysvětlení erroru. Pokud server nemá žádné specifické detaily k danému erroru, tak
   obsahuje pouze odkaz na vysvětlení http kódu.
-* Title - obsahuje textový popis chyby. V případě, že server nemá více informací tak odpovídá popisu stavového kódu. V
-  případě
-  specifických chyb obsahuje konkrétní informace (příklad v ukázce).
+* Title - obsahuje textový popis chyby. V případě, že server nemá více informací je zde uveden popis stavového kódu. V  případě  specifických chyb obsahuje konkrétní informace (příklad v ukázce).
 * Status - duplikuje stavový kód odpovědi. Toto pole je v body obsaženo pouze pro zjedodušení práce partnera (např.
   pokud loguje body a neloguje vrácený http kód).
 * TraceId - slouží k jednoznačné identifikaci konkrétní chyby (typicky použito při nahlášení chybného chování
   partnerem).
-* ErrorId - číselný identifikátor typu chyby. Každý druh chyby má svůj identifikátor, který může být použit partnerem
-  při programovém zpracování chyby.
+* ErrorId - číselný identifikátor typu chyby. Každý druh chyby má svůj identifikátor, který může být použit partnerem při programovém zpracování chyby.
 * Errors - je nepovinné pole, které obsahují pouze odpovědi vracející více než jednu chybu. Obsahuje slovník, kde klíčem
   je řetězec, který logicky spojuje pole chyb, které následuje za ním. Viz. příklad č. 3.
 
@@ -75,7 +70,7 @@ ErrorId.**
 
 Příklady chybových responses:
 
-1. Server vrátil chybu 500. Pro vyřešení problému zkuste retry nebo kontaktujte zástupce Netlia.
+1. Server vrátil chybu 500. Pro vyřešení problému zkuste retry, nebo kontaktujte zástupce Netlia.
 
 ```json
 {
@@ -134,24 +129,20 @@ Příklady chybových responses:
 
 ## RequestId a opakované volání endpointů
 
-Mnoho problémů s nefungujícím API může být jednodušše vyřešeno opakovaným zavoláním requestu. Endpointy ale často
-nemohou být volány opakovaně jelikož to může vést k nežádoucím výsledkům - typicky uváděným problémem je dvojité
-vytvoření
-platby clientem.
+Mnoho problémů s nefungujícím API může být jednoduše vyřešeno opakovaným zavoláním requestu. Endpointy ale často
+nemohou být volány opakovaně, jelikož to může vést k nežádoucím výsledkům - typicky uváděným problémem je dvojité vytvoření platby klientem.
 
-GET volání tímto problémem v našem API netrpí jelikož vždy pouze získávají data a nikdy je nemění. Problém nastává u
+GET volání tímto problémem v našem API netrpí, jelikož vždy pouze získávají data a nikdy je nemění. Problém nastává u
 volání, které mění stav systému.
 
-Abychom takovým problémům předešli tak naše API implementuje koncept `requestId` který zajišťje, že request může být
-opakován
-ale bude proveden pouze jednou. Všechny endpointy, které implementují tento koncept používají HTTP metodu PUT nebo
+Abychom takovým problémům předešli, tak naše API implementuje koncept `requestId`, který zajišťje, že request může být opakován ale bude proveden pouze jednou. Všechny endpointy, které implementují tento koncept používají HTTP metodu PUT nebo
 DELETE.
 
 ### Jak funguje requestId
 
 Každý request, který mění stav systému musí obsahovat v těle requestu položku `requestId`. Jedná se o jednoznačný
 identifikátor.
-Pokud klient odešle request s `requestId` který již byl použit v nedávné době (24h), tak server nezpracovává request
+Pokud klient odešle request s `requestId`, který již byl použit v nedávné době (24h), tak server nezpracovává request
 znovu ale pouze
 vrátí výsledek předchozího volání.
 
@@ -159,12 +150,12 @@ Vyjímkou jsou stavové kódy 5xx. Pokud server vrátí 5xx a klient volání zo
 pokusí
 request zpracovat znovu a vrátí výsledek.
 
-Pokud klient provede více konkurentních requestů se stejným `requestId` tak server zpracuje pouze jeden z nich a
+Pokud klient provede více konkurentních requestů se stejným `requestId`, tak server zpracuje pouze jeden z nich a
 pro ostatní vrátí stavový kód `409 Conflict`.
 
 ### Implementace retry na staraně klienta
 
-Pokud server vrátí stavový kód `4xx` tak je chyba u klienta a nemá význam request opakovat.
+Pokud server vrátí stavový kód `4xx`, tak je chyba u klienta a nemá význam request opakovat.
 
 V případě, že nastane jakákoliv jiná chyba, tak by měl klient request zopakovat a neměnit `requestId`.
 
