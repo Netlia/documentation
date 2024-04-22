@@ -178,7 +178,7 @@ Cílový mód zařízení může nabývat těchto hodnot:
 
 | Hodnota | Název                      |
 |---------|----------------------------|
-| winter  | Základní regulace teploty. |
+| basic   | Základní regulace teploty. |
 | summer  | Letní režim.               |
 
 Ukázka requestu:
@@ -186,7 +186,7 @@ Ukázka requestu:
 ```yaml
 {
     "requestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc",
-    "mode": "winter"
+    "mode": "basic"
 }
 ```
 
@@ -204,7 +204,7 @@ Ukázka response:
 
 ```yaml
 {
-    "mode": "winter"
+    "mode": "basic"
 }
 ```
 
