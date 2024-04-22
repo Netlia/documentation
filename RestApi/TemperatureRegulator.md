@@ -163,7 +163,9 @@ V případě, že nastane jakákoliv jiná chyba, tak by měl klient request zop
 
 ### PUT api/temperature-regulator/{deviceId}/mode
 
-Změna módu teplotního regulátoru.
+Změna módu teplotního regulátoru. V zimním módu zařízení udržuje cílovou teplotu podle nastavení. 
+V letním režimu zařízení nereguluje teplotu a provádí udržovací operace jako 
+je šetření baterie a protočení hlavice jednou za čas aby se zamezilo zatuhnutí hlavice.
 
 Předávané parametry:
 
@@ -176,7 +178,7 @@ Cílový mód zařízení může nabývat těchto hodnot:
 
 | Hodnota | Název                      |
 |---------|----------------------------|
-| basic   | Základní regulace teploty. |
+| winter  | Základní regulace teploty. |
 | summer  | Letní režim.               |
 
 Ukázka requestu:
@@ -184,7 +186,7 @@ Ukázka requestu:
 ```yaml
 {
     "requestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc",
-    "mode": "basic"
+    "mode": "winter"
 }
 ```
 
@@ -202,14 +204,14 @@ Ukázka response:
 
 ```yaml
 {
-    "mode": "basic"
+    "mode": "winter"
 }
 ```
 
 ### PUT api/temperature-regulator/{deviceId}/temperature
 
 Nastavení cílové teploty pro regulaci.
-Podporováno pouze, pokud je mód regulátoru nastaven na `basic`.
+Pokud je zařízení v režimu `summer` tak se nic neprovede a vrátí se uspěšná odpověď.
 
 Předávané parametry:
 
@@ -236,7 +238,7 @@ Ukázka response:
 ### PUT api/temperature-regulator/temperature
 
 Nastavení cílové teploty pro regulaci na více zařízeních.
-Podporováno pouze, pokud je mód všech regulátorů nastaven na `basic`.
+Pokud je zařízení v režimu `summer` tak se nic neprovede a vrátí se uspěšná odpověď.
 
 Předávané parametry:
 
