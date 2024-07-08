@@ -42,7 +42,7 @@ Partner can specify additional configuration by adding an HTTP headers (key and 
 System expects 200-299 HTTP status in the response, which is used by the partner to acknowledge receiving the event. Any other response is interpreted as a nondelivery.
 
 ### Event non-delivery handling
- If the event transfer fails, the system attempts to transfer the event 10 more times with 5s delay after each attempt. The event is then dropped.
+ If the event transfer fails, the system attempts to transfer the event 3 more times. The event is then dropped.
 
 # Communication protocol
 Data are always sent as a separate event. Events have a common parameter section.

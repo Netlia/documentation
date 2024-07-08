@@ -45,7 +45,7 @@ Partner může specifikovat další konfiguraci přidáním HTTP hlavičy (klí�
 Systém očekává v odpovědi HTTP status 200-299, kterým partner potvrdí přijetí události. Jiná odpověď je vyhodnocena jako nedoručení.
 
 ### Chování v případě nedoručení události
- V případě, že se nepodaří událost předat, systém pokus 10x opakuje s 5s prodlevami. Následně je událost zahozena.
+ V případě, že se nepodaří událost předat, systém pokus 3x opakuje a následně je událost zahozena.
 
 # Komunikační protokol
 Data jsou odesílána vždy jako samostatné události. Události mají společnou část parametrů.
