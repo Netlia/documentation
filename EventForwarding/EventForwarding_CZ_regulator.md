@@ -81,11 +81,11 @@ Ukázka zaslané události:
         [
             {
                 physicalDeviceId: "abc123"
-                position: 25,
+                newPosition: 25,
             },
             {
                 physicalDeviceId: "bcd123"
-                position: 30,
+                newPosition: 30,
             }
         ]
     }
