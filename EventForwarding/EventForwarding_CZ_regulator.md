@@ -63,7 +63,7 @@ objekt `position` má formát:
 | Parametr    | Typ   | Povinný | Popis                 |
 |:-----------------------|:-------------------------|:--------|:----------------------|
 | physicalDeviceId | string   | ano     | id fyzického zařízení  |
-| position | int (0-100)   | ano     | aktuální pozice (změněná nebo nezměněná). Hodonta je udávaná v procentech 0-100 kde 0 značí, že hlavice je zavřená a do radiátoru neteče horká voda    |
+| newPosition | int (0-100)   | ano     | nová pozice. Hodonta je udávaná v procentech 0-100 kde 0 značí, že hlavice je zavřená a do radiátoru neteče horká voda    |
 
 
 Ukázka zaslané události:
