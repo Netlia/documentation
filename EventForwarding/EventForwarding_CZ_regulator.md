@@ -14,6 +14,7 @@ Každou minutu měří teplotu a vlhkost. Po X měření provede výpočet prům
 | [physical-device-replaced](#eventtype-physical-device-replaced)           | Nastává při náhradě fyzického zařízení.                                    |
 | [device-created](#eventtype-device-created)                               | Informuje o vytvoření zařízení.                                            |
 | [user-requested-temperature-change](#eventtype-user-requested-temperature-change)   | Informuje o požadavku na změnu teploty od uživatele.                       |
+| [radiator-valve-changed-position](#eventtype-radiator-valve-changed-position)   | Informuje o změně polohy hlavice                       |
 
 ### EventType measured-humidity-temperature
 
@@ -38,6 +39,59 @@ Ukázka zaslané události:
     "eventType": "measured-humidity-temperature",
     "temperature": 25.5,
     "humidity": 27.5
+}
+```
+
+### EventType radiator-valve-changed-position
+
+Nastává při změně polohy jedné nebo více hlavic přiřazených k regulátoru (hlavice v jedné místnosti).
+
+Dodatečné předávané parametry:
+
+| Parametr    | Typ   | Povinný | Popis                 |
+|:-----------------------|:-------------------------|:--------|:----------------------|
+| positionInformation | positionInformation   | ano     | informace o pozicích hlavice   |
+
+objekt `positionInformation` vždy obsahuje informaci o všech hlavicích přiřazených k regulátoru (hlavice v jedné místnosti) a má následující formát:
+
+| Parametr    | Typ   | Povinný | Popis                 |
+|:-----------------------|:-------------------------|:--------|:----------------------|
+| positions | position[]   | ano     | informace o pozicích hlavice   |
+
+objekt `position` má formát:
+
+| Parametr    | Typ   | Povinný | Popis                 |
+|:-----------------------|:-------------------------|:--------|:----------------------|
+| physicalDeviceId | string   | ano     | id fyzického zařízení  |
+| position | int (0-100)   | ano     | aktuální pozice (změněná nebo nezměněná). Hodonta je udávaná v procentech 0-100 kde 0 značí, že hlavice je zavřená a do radiátoru neteče horká voda    |
+| changed | bool   | ano     | informace zda se pozice hlavice změnila   |
+
+
+Ukázka zaslané události:
+
+```yaml
+{
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "deviceType": "temperature-regulator",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2023-08-25T13:26:19.147Z",
+    "eventType": "radiator-valve-changed-position",
+    "positionInformation": {
+        "positions":
+        [
+            {
+                physicalDeviceId: "abc123"
+                position: 25,
+                changed: true,
+            },
+            {
+                physicalDeviceId: "bcd123"
+                position: 30,
+                changed: false,
+            }
+        ]
+    }
 }
 ```
 
