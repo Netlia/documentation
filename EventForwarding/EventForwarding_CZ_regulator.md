@@ -52,7 +52,7 @@ Dodatečné předávané parametry:
 |:-----------------------|:-------------------------|:--------|:----------------------|
 | positionInformation | positionInformation   | ano     | informace o pozicích hlavice   |
 
-objekt `positionInformation` vždy obsahuje informaci o všech hlavicích přiřazených k regulátoru (hlavice v jedné místnosti) a má následující formát:
+objekt `positionInformation` obsahuje informaci o jedné nebo více změnách pozice a má následující formát:
 
 | Parametr    | Typ   | Povinný | Popis                 |
 |:-----------------------|:-------------------------|:--------|:----------------------|
@@ -64,7 +64,6 @@ objekt `position` má formát:
 |:-----------------------|:-------------------------|:--------|:----------------------|
 | physicalDeviceId | string   | ano     | id fyzického zařízení  |
 | position | int (0-100)   | ano     | aktuální pozice (změněná nebo nezměněná). Hodonta je udávaná v procentech 0-100 kde 0 značí, že hlavice je zavřená a do radiátoru neteče horká voda    |
-| changed | bool   | ano     | informace zda se pozice hlavice změnila   |
 
 
 Ukázka zaslané události:
@@ -83,12 +82,10 @@ Ukázka zaslané události:
             {
                 physicalDeviceId: "abc123"
                 position: 25,
-                changed: true,
             },
             {
                 physicalDeviceId: "bcd123"
                 position: 30,
-                changed: false,
             }
         ]
     }
