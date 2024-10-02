@@ -42,7 +42,7 @@ Ukázka zaslané události:
 }
 ```
 
-### EventType radiator-valve-changed-position
+### EventType thermo-head-changed-position
 
 Nastává při změně polohy jedné nebo více hlavic přiřazených k regulátoru (hlavice v jedné místnosti).
 
@@ -241,6 +241,7 @@ Definice PhysicalDevice:
 | Parametr                    | Typ      | Povinný | Popis                                                              |
 |:----------------------------|:---------|:--------|:-------------------------------------------------------------------|
 | physicalDeviceId             | string | ano     | Id fyzického zařízení.     |
+| physicalDeviceType             | string | ano     | Typ fyzického zařízení. Může nabívat hodnot - thermo-head a thermometer   |
 
 
 Mohou existovat zařízení u kterých bude `physicalDevices.Data` obsahovat prázdné pole.
@@ -260,13 +261,16 @@ Ukázka zaslané události:
         "data":
         [
             {
-                "physicalDeviceId": "abc123"
+                "physicalDeviceId": "abc123",
+                "physicalDeviceType": "thermo-head"
             },
             {
-                "physicalDeviceId": "abc456"
+                "physicalDeviceId": "abc456",
+                "physicalDeviceType": "thermo-head"
             },
             {
-                "physicalDeviceId": "abc789"
+                "physicalDeviceId": "abc789",
+                "physicalDeviceType": "thermometer"
             }
         ]
     },
