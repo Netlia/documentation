@@ -252,7 +252,7 @@ Objekt targetTemperature:
 | Parametr          | Typ    | Povinný | Popis                   |
 |:------------------|:-------|:--------|:------------------------|
 | deviceId          | string | ano     | Identifikátor zařízení. |
-| targetTemperature | float  | ano     | Cílová teplota.         |
+| targetTemperature | float  | ano ale může být null     | Cílová teplota. Pokud je null tak regulátor přestane regulovat teplotu a nechá všechny hlavice otevřené tak jak aktuálně jsou.        |
 
 Ukázka requestu:
 
@@ -261,11 +261,11 @@ Ukázka requestu:
     "requestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc",
     "targetTemperatures": [
       {
-        "targetTemperature": 21.5,
+        "targetTemperature": 21.5, // may be null
         "deviceId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2247fc"     
       },
       {
-        "targetTemperature": 21.5,
+        "targetTemperature": 21.5, // may be null
         "deviceId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2547fc"
       }
       // ...
