@@ -159,6 +159,16 @@ Pokud server vrátí stavový kód `4xx`, tak je chyba u klienta a nemá význam
 
 V případě, že nastane jakákoliv jiná chyba, tak by měl klient request zopakovat a neměnit `requestId`.
 
+
+## Čas
+
+### UTC
+Pokud endpointy pracujíc s UTC časem tak vždy přijmají pouze hodnotu definovanou
+specifikací [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) končící symbolem _Z_ (časová zóna zulu).
+**Čas končící zónou +00:00 je považován za chybný.** 
+
+
+
 ## Popis endpointů
 
 ### PUT api/temperature-regulator/{deviceId}/mode
@@ -210,22 +220,33 @@ Ukázka response:
 
 ### PUT api/temperature-regulator/{deviceId}/temperature
 
-Nastavení cílové teploty pro regulaci.
-Pokud je zařízení v režimu `summer` tak se nic neprovede a vrátí se uspěšná odpověď.
+**Nastavení cílové teploty pro regulaci.** 
+
+Pokud je parametr `reachTargetTemperatureByThisTime` vynechán, tak se zařízení pokusí dosáhnout cílové teploty co nejdříve.
+
+Pokud je předán parametr `reachTargetTemperatureByThisTime`
+tak systém automaticky vyhodnotí ideální čas kdy začít s předehříváním aby byla cílová teplota dosažena v zadaném čse.
+O začátku a konci předehřívání je partner informován událostí pre-heating-started a pre-heating-ended.
+
+* Pokud zařízení aktuálně provádí předehřívání místnosti tak nepříjmá
+požadavky na okamžitou změnu teploty (bez parameteru `reachTargetTemperatureByThisTime`) a vrací chybu.
+* Pokud je zařízení v režimu `summer` tak se nic neprovede a vrátí se uspěšná odpověď.
 
 Předávané parametry:
 
-| Parametr          | Typ    | Povinný | Popis                               |
-|:------------------|:-------|:--------|:------------------------------------|
-| requestId         | string | ano     | Jednoznačný identifikátor requestu. |
-| targetTemperature | float  | ano     | Cílová teplota.                     |
+| Parametr                         | Typ              | Povinný | Popis                                  |
+|:---------------------------------|:-----------------|:--------|:---------------------------------------|
+| requestId                        | string (UUID)    | ano     | Jednoznačný identifikátor requestu.    |
+| targetTemperature                | float            | ano     | Cílová teplota.                        |
+| reachTargetTemperatureByThisTime | string (UTC čas) | ne      | Čas kdy má být cílová teplota dosažena |
 
 Ukázka requestu:
 
 ```yaml
 {
     "requestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc",
-    "targetTemperature": 21.5
+    "targetTemperature": 21.5,
+    "reachTargetTemperatureByThisTime": "2024-10-09T13:44:54Z" // nesmí končít +00:00 viz popis času na začátku dokumentu
 }
 ```
 
@@ -238,7 +259,7 @@ Ukázka response:
 ### PUT api/temperature-regulator/temperature
 
 Nastavení cílové teploty pro regulaci na více zařízeních.
-Pokud je zařízení v režimu `summer` tak se nic neprovede a vrátí se uspěšná odpověď.
+Pro podrobný popis parametrů viz. (PUT api/temperature-regulator/{deviceId}/temperature)[https://github.com/Netlia/documentation/blob/main/RestApi/TemperatureRegulator.md#put-apitemperature-regulatordeviceidtemperature].
 
 Předávané parametry:
 
@@ -253,6 +274,7 @@ Objekt targetTemperature:
 |:------------------|:-------|:--------|:------------------------|
 | deviceId          | string | ano     | Identifikátor zařízení. |
 | targetTemperature | float  | ano   | Cílová teplota.       |
+| reachTargetTemperatureByThisTime | string (UTC čas) | ne      | Čas kdy má být cílová teplota dosažena |
 
 Ukázka requestu:
 
