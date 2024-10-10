@@ -18,7 +18,7 @@ Každou minutu měří teplotu a vlhkost. Po X měření provede výpočet prům
 | [physical-device-replaced](#eventtype-physical-device-replaced)                   | Nastává při náhradě fyzického zařízení.              |
 | [device-created](#eventtype-device-created)                                       | Informuje o vytvoření zařízení.                      |
 | [user-requested-temperature-change](#eventtype-user-requested-temperature-change) | Informuje o požadavku na změnu teploty od uživatele. |
-| [radiator-valve-changed-position](#eventtype-radiator-valve-changed-position)     | Informuje o změně polohy hlavice                     |
+| [thermo-head-changed-position](#eventtype-thermo-head-changed-position)     | Informuje o změně polohy hlavice                     |
 | [pre-heating-started](#eventtype-pre-heating-started)                             | Informuje o začátku předehřívání                     |
 | [pre-heating-ended](#eventtype-pre-heating-ended)                                 | Informuje o konci předehřívání                       |
 
@@ -109,7 +109,7 @@ Ukázka zaslané události:
     "deviceType": "temperature-regulator",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "eventTime": "2024-10-09T14:12:38.91Z",
-    "eventType": "radiator-valve-changed-position",
+    "eventType": "thermo-head-changed-position",
     "positionInformation": {
         "positions":
         [
