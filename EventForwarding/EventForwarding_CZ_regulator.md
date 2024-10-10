@@ -12,7 +12,7 @@ Každou minutu měří teplotu a vlhkost. Po X měření provede výpočet prům
 | EventType                                                                         | Popis                                                |
 |:----------------------------------------------------------------------------------|:-----------------------------------------------------|
 | [measured-humidity-temperature](#eventtype-measured-humidity-temperature)         | Naměřené veličiny.                                   |
-| [battery-alert](#eventtype-battery-alert)                                         | Upozornění na nízký stav baterie.                    |
+| [battery-alert](#eventtype-battery-alert)                                         | Upozornění na změnu stavu baterie.                    |
 | [warning](#eventtype-warning)                                                     | Upozornění.                                          |
 | [error](#eventtype-error)                                                         | Chyba.                                               |
 | [physical-device-replaced](#eventtype-physical-device-replaced)                   | Nastává při náhradě fyzického zařízení.              |
