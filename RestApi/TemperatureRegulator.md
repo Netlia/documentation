@@ -19,8 +19,10 @@ Token je možné získat u zástupce Netlia.
 
 ### Chyby 5xx
 
-Chyby 5xx jsou způsobené chybou serveru a neměly by nastavávat. Obvykle jsou způsobeny dočasným výpadkem serveru, nebo chybou v kódu.
-Pokud se klientovi vrátí tato chyba, měl by zkusit zopakovat request. Jak správně zopakovat request je popsáno [níže](#requestid-a-opakované-volání-endpointů).
+Chyby 5xx jsou způsobené chybou serveru a neměly by nastavávat. Obvykle jsou způsobeny dočasným výpadkem serveru, nebo
+chybou v kódu.
+Pokud se klientovi vrátí tato chyba, měl by zkusit zopakovat request. Jak správně zopakovat request je
+popsáno [níže](#requestid-a-opakované-volání-endpointů).
 
 Pokud chyba přetrvává tak by měl být kontaktován zástupce firmy Netlia.
 
@@ -56,12 +58,14 @@ standardní [problem details](https://datatracker.ietf.org/doc/html/rfc7807) bod
 
 * Type - odkazuje na podrobné vysvětlení erroru. Pokud server nemá žádné specifické detaily k danému erroru, tak
   obsahuje pouze odkaz na vysvětlení http kódu.
-* Title - obsahuje textový popis chyby. V případě, že server nemá více informací je zde uveden popis stavového kódu. V  případě  specifických chyb obsahuje konkrétní informace (příklad v ukázce).
+* Title - obsahuje textový popis chyby. V případě, že server nemá více informací je zde uveden popis stavového kódu. V
+  případě specifických chyb obsahuje konkrétní informace (příklad v ukázce).
 * Status - duplikuje stavový kód odpovědi. Toto pole je v body obsaženo pouze pro zjedodušení práce partnera (např.
   pokud loguje body a neloguje vrácený http kód).
 * TraceId - slouží k jednoznačné identifikaci konkrétní chyby (typicky použito při nahlášení chybného chování
   partnerem).
-* ErrorId - číselný identifikátor typu chyby. Každý druh chyby má svůj identifikátor, který může být použit partnerem při programovém zpracování chyby.
+* ErrorId - číselný identifikátor typu chyby. Každý druh chyby má svůj identifikátor, který může být použit partnerem
+  při programovém zpracování chyby.
 * Errors - je nepovinné pole, které obsahují pouze odpovědi vracející více než jednu chybu. Obsahuje slovník, kde klíčem
   je řetězec, který logicky spojuje pole chyb, které následuje za ním. Viz. příklad č. 3.
 
@@ -130,12 +134,15 @@ Příklady chybových responses:
 ## RequestId a opakované volání endpointů
 
 Mnoho problémů s nefungujícím API může být jednoduše vyřešeno opakovaným zavoláním requestu. Endpointy ale často
-nemohou být volány opakovaně, jelikož to může vést k nežádoucím výsledkům - typicky uváděným problémem je dvojité vytvoření platby klientem.
+nemohou být volány opakovaně, jelikož to může vést k nežádoucím výsledkům - typicky uváděným problémem je dvojité
+vytvoření platby klientem.
 
 GET volání tímto problémem v našem API netrpí, jelikož vždy pouze získávají data a nikdy je nemění. Problém nastává u
 volání, které mění stav systému.
 
-Abychom takovým problémům předešli, tak naše API implementuje koncept `requestId`, který zajišťje, že request může být opakován ale bude proveden pouze jednou. Všechny endpointy, které implementují tento koncept používají HTTP metodu PUT nebo
+Abychom takovým problémům předešli, tak naše API implementuje koncept `requestId`, který zajišťje, že request může být
+opakován ale bude proveden pouze jednou. Všechny endpointy, které implementují tento koncept používají HTTP metodu PUT
+nebo
 DELETE.
 
 ### Jak funguje requestId
@@ -159,22 +166,50 @@ Pokud server vrátí stavový kód `4xx`, tak je chyba u klienta a nemá význam
 
 V případě, že nastane jakákoliv jiná chyba, tak by měl klient request zopakovat a neměnit `requestId`.
 
-
 ## Čas
 
 ### UTC
-Pokud endpointy pracujíc s UTC časem tak vždy přijmají pouze hodnotu definovanou
-specifikací [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) končící symbolem _Z_ (časová zóna zulu).
-**Čas končící zónou +00:00 je považován za chybný.** 
 
+Formát:
 
+`2024-10-09T14:12:38.91Z`
+
+Formát je definován specifikací [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) a končící symbolem `Z` (časová zóna zulu).
+> Čas končící zónou +00:00 je považován za chybný.
+
+### ZonedDateTime
+
+Formát:
+```yaml
+{
+  ianaTimeZone: "Europe/Prague",
+  localDateTime: "2024-10-21T17:50:15"
+}
+```
+`ianaTimeZone` může nabívat hodnoty zmíněné [zde](https://nodatime.org/TimeZones) ve sloupci Zone ID. 
+`localDateTime` lokální čas uživatele tak jak ho vidí na hodinách ve formátu [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601).
+
+Ačkoliv preferujeme práci s UTC časem, v některých situacích se nevyhneme práci s lokálním časem. 
+Příkladem této situace je plánování změny teploty na konkrétní čas. 
+Řekněme, že do hotelu má přijít host zítra v 2024-10-21T17:44:05.95. 
+Pokud bychom tento čas přijali na API ve formátu UTC, tak bychom si uložili čas 2024-10-21T19:44:05.95Z. 
+Pokud se ale mezi dnešním a zítřejším dnem posune čas kvůli změně letního nebo zimního času, tak bychom měli problém, 
+protože začneme topit v jiný čas, než kdy host přijede.
+
+Mohli bychom si nechat přes API poslat UTC čas a časovou zónu, ale to nám nijak neulehčí práci s časem a zároveň by to přeneslo zátěž na klienta. 
+Například - klient přijede do hotelu v 2:30 ráno. Ve 3 hodin se ale čas posouvá zpět na 2 hodiny. Čas 2:30 tedy bude existovat dvakrát a může 
+být namapován na dva odlišné časy v UTC. Který čas by měl klient odeslat?
+
+Z tohoto důvodu jsme se rozhodli přijímat čas ve formátu `ZonedDateTime`.
+
+Pokud se chcete dozvědět více, tak doporučujeme [tento blog post](https://codeblog.jonskeet.uk/2022/10/30/handling-times-for-an-ev-charger/).
 
 ## Popis endpointů
 
 ### PUT api/temperature-regulator/{deviceId}/mode
 
-Změna módu teplotního regulátoru. V zimním módu zařízení udržuje cílovou teplotu podle nastavení. 
-V letním režimu zařízení nereguluje teplotu a provádí udržovací operace jako 
+Změna módu teplotního regulátoru. V zimním módu zařízení udržuje cílovou teplotu podle nastavení.
+V letním režimu zařízení nereguluje teplotu a provádí udržovací operace jako
 je šetření baterie a protočení hlavice jednou za čas aby se zamezilo zatuhnutí hlavice.
 
 Předávané parametry:
@@ -220,17 +255,9 @@ Ukázka response:
 
 ### PUT api/temperature-regulator/{deviceId}/temperature
 
-**Nastavení cílové teploty pro regulaci.** 
-
-Pokud je parametr `reachTargetTemperatureByThisTime` vynechán, tak se zařízení pokusí dosáhnout cílové teploty co nejdříve.
-
-Pokud je předán parametr `reachTargetTemperatureByThisTime`
-tak systém automaticky vyhodnotí ideální čas kdy začít s předehříváním aby byla cílová teplota dosažena v zadaném čse.
-O začátku a konci předehřívání je partner informován událostí pre-heating-started a pre-heating-ended.
-
-* Pokud zařízení aktuálně provádí předehřívání místnosti tak nepříjmá
-požadavky na okamžitou změnu teploty (bez parameteru `reachTargetTemperatureByThisTime`) a vrací chybu.
+Okamžité nastavení cílové teploty pro regulaci na více zařízeních.
 * Pokud je zařízení v režimu `summer` tak se nic neprovede a vrátí se uspěšná odpověď.
+* Pokud aktuálně na zařízení probíhá předehřívání (pre-heating), tak se vrátí chyba. 
 
 Předávané parametry:
 
@@ -238,15 +265,13 @@ Předávané parametry:
 |:---------------------------------|:-----------------|:--------|:---------------------------------------|
 | requestId                        | string (UUID)    | ano     | Jednoznačný identifikátor requestu.    |
 | targetTemperature                | float            | ano     | Cílová teplota.                        |
-| reachTargetTemperatureByThisTime | string (UTC čas) | ne      | Čas kdy má být cílová teplota dosažena |
 
 Ukázka requestu:
 
 ```yaml
 {
     "requestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc",
-    "targetTemperature": 21.5,
-    "reachTargetTemperatureByThisTime": "2024-10-09T13:44:54Z" // nesmí končít +00:00 viz popis času na začátku dokumentu
+    "targetTemperature": 21.5
 }
 ```
 
@@ -256,10 +281,85 @@ Ukázka response:
 200 OK, žádné informace v body.
 ```
 
+### PUT api/temperature-regulator/schedule-temperature
+
+Naplánuje změnu cílové teploty na jednom nebo více zařízeních. **Vysvětlení algoritmu následuje až po příkladu.**
+
+Předávané parametry:
+
+| Parametr           | Typ                         | Povinný | Popis                     |
+|:-------------------|:----------------------------|:--------|:--------------------------|
+| targetTemperatures | ScheduleTargetTemperature[] | ano     | Nastavení cílových teplot |
+
+Object ScheduleTargetTemperature:
+
+| Parametr                         | Typ              | Povinný | Popis                                                     |
+|:---------------------------------|:-----------------|:--------|:----------------------------------------------------------|
+| scheduleId                       | string (UUID)    | ano     | Jedinečný identifikátor naplánovaného vytápění            |
+| deviceId                         | string (UUID)    | ano     | Identifikátor zařízení                                    |
+| targetTemperatures               | float            | ano     | Cílová teplota, které má být dosaženo                     |
+| reachTargetTemperatureByThisTime | ZonedDateTime    | ano     | Čas, do kterého má být cílové teploty dosaženo            |
+| heatingStyle                     | HeatingStyleType | ano     | Styl vytápění může nabívat hodnot `pre-heating` a `immediate` |
+
+`ZonedDateTime` objekt je vysvětlen [zde](https://github.com/Netlia/documentation/blob/main/RestApi/TemperatureRegulator.md#%C4%8Das).
+
+Příklad:
+
+```yaml
+{
+  "targetTemperatures": [
+    {
+      "deviceId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+      "targetTemperature": 22.5,
+      "reachTargetTemperatureByThisTime": {
+        "ianaTimeZone": "Europe/Prague",
+        "localDateTime": "2024-10-21T14:30:00"
+      },
+      "heatingStyle": "pre-heating",
+      "scheduleId": "c0a80121-5ef8-492f-b3a1-56c65f0dcf19"
+    }
+  ]
+}
+```
+#### Poznámky
+
+* Teplotu je možné plánovat jako "immediate" nebo "pre-heating". Viz příklad níže.
+* Konflikty jsou řešeny pravidlem: naplánovaná teplota s nejvyšším časem má přednost. Pokud mají dvě naplánované
+  teploty stejný čas, má přednost ta, která byla přidána později.
+* `scheduleId` slouží jako identifikátor naplánovaného vytápění. Pokud je předán stejný `scheduleId`, tak se zahodí.
+* Není možné naplánovat teplotu na čas, který již uběhl.
+* Posuny času jsou automaticky vyřešeny.
+
+**Příklad naplánování teploty s algoritmem immediate:**
+
+Požadavek "nastav teplotu v 15:00 na 25 pomocí immediate algoritmu" způsobí následující: do 15:00 se používá předchozí plán.
+V 15:00 se změní cílová teplota na 25 stupňů a algoritmus se pokusí dostat místnost na tuto teplotu a dále ji udržet co nejblíže 25 °C.
+
+**Příklad naplánování teploty s algoritmem pre-heating:**
+
+Požadavek "nastav teplotu v 15:00 na 25 pomocí pre-heating algoritmu" způsobí následující: algoritmus automaticky vyhodnotí, kdy je potřeba
+začít topit, aby v místnosti bylo v 15:00 25 °C. V tento čas začne topit. V 15:00 nebo při dosažení 25 °C přepne algoritmus na
+stabilizační, který se snaží udržet 25 °C.
+
+> V průběhu předehřívání místnosti není možné měnit teplotu pomocí PUT `api/temperature-regulator/temperature`.
+
+**Příklad řešení konfliktu naplánovaných teplot:**
+
+Řekněme, že máme dva příkazy - "nastav teplotu v 15:00 na 25 pomocí pre-heating algoritmu" a
+"nastav teplotu v 14:55 na 20 pomocí immediate algoritmu".
+
+Předpokládejme, že předehřívání začne někdy ve 13 hodin. Pokud předehřívání neskončí před 14:55 (kvůli dosažení cílové teploty), tak se
+předehřívání zvolí jako prioritní, jelikož má vyšší čas ukončení než druhý příkaz. Druhý příkaz se nikdy neprovede. Pokud
+předehřívání skončí před 14:55, tak se považuje za ukončené a provede se i druhý příkaz.
+
+Stejným způsobem se chovají i dva záznamy, které mají konflikt v době předehřívání.
+
+
 ### PUT api/temperature-regulator/temperature
 
 Nastavení cílové teploty pro regulaci na více zařízeních.
-Pro podrobný popis parametrů viz. (PUT api/temperature-regulator/{deviceId}/temperature)[https://github.com/Netlia/documentation/blob/main/RestApi/TemperatureRegulator.md#put-apitemperature-regulatordeviceidtemperature].
+Pro podrobný popis parametrů viz. (PUT
+api/temperature-regulator/{deviceId}/temperature)[https://github.com/Netlia/documentation/blob/main/RestApi/TemperatureRegulator.md#put-apitemperature-regulatordeviceidtemperature].
 
 Předávané parametry:
 
@@ -270,11 +370,10 @@ Předávané parametry:
 
 Objekt targetTemperature:
 
-| Parametr          | Typ    | Povinný | Popis                   |
-|:------------------|:-------|:--------|:------------------------|
-| deviceId          | string | ano     | Identifikátor zařízení. |
-| targetTemperature | float  | ano   | Cílová teplota.       |
-| reachTargetTemperatureByThisTime | string (UTC čas) | ne      | Čas kdy má být cílová teplota dosažena |
+| Parametr                         | Typ              | Povinný | Popis                                  |
+|:---------------------------------|:-----------------|:--------|:---------------------------------------|
+| deviceId                         | string           | ano     | Identifikátor zařízení.                |
+| targetTemperature                | float            | ano     | Cílová teplota.                        |
 
 Ukázka requestu:
 

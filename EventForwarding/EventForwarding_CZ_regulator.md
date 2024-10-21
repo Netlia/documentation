@@ -12,15 +12,14 @@ Každou minutu měří teplotu a vlhkost. Po X měření provede výpočet prům
 | EventType                                                                         | Popis                                                |
 |:----------------------------------------------------------------------------------|:-----------------------------------------------------|
 | [measured-humidity-temperature](#eventtype-measured-humidity-temperature)         | Naměřené veličiny.                                   |
-| [battery-alert](#eventtype-battery-alert)                                         | Upozornění na změnu stavu baterie.                    |
+| [battery-alert](#eventtype-battery-alert)                                         | Upozornění na změnu stavu baterie.                   |
 | [warning](#eventtype-warning)                                                     | Upozornění.                                          |
 | [error](#eventtype-error)                                                         | Chyba.                                               |
 | [physical-device-replaced](#eventtype-physical-device-replaced)                   | Nastává při náhradě fyzického zařízení.              |
 | [device-created](#eventtype-device-created)                                       | Informuje o vytvoření zařízení.                      |
 | [user-requested-temperature-change](#eventtype-user-requested-temperature-change) | Informuje o požadavku na změnu teploty od uživatele. |
-| [thermo-head-changed-position](#eventtype-thermo-head-changed-position)     | Informuje o změně polohy hlavice                     |
-| [pre-heating-started](#eventtype-pre-heating-started)                             | Informuje o začátku předehřívání                     |
-| [pre-heating-ended](#eventtype-pre-heating-ended)                                 | Informuje o konci předehřívání                       |
+| [thermo-head-changed-position](#eventtype-thermo-head-changed-position)           | Informuje o změně polohy hlavice                     |
+| [target-temperature-changed](#eventtype-target-temperature-changed)               | Informuje o změně cílové teploty a stavu ohřívání    |
 
 ## Základní parametery
 
@@ -35,7 +34,7 @@ Většina zasílaných událostí obsahuje společné parametery kterými jsou:
 | eventTime       | string (UTC čas) | ano     | Čas kdy nastala událost                               |
 | eventType       | string           | ano     | Typ události                                          |
 
-* eventTime je odesílán v UTC čase ve standartním formátu ISO 8601 - `yyyy-MM-ddTHH:mm:ssZ`.
+* eventTime je odesílán v UTC čase ve formátu ISO 8601 - `yyyy-MM-ddTHH:mm:ssZ`.
 * deviceId a eventId je odesíláno jako UUID ve formátu `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`.
 
 Ukázka základních parametrů:
@@ -321,18 +320,18 @@ Ukázka zaslané události:
 }
 ```
 
-### EventType pre-heating-started
+### EventType target-temperature-changed
 
-Událost je odeslána při spuštění předehřívání teploty v místnosti.
-Předehřívání se spustí pouze pokud je naplánována změna teploty na budoucí
-datum
-pomocí [endpointu pro změnu teploty](https://github.com/Netlia/documentation/blob/main/RestApi/TemperatureRegulator.md#put-apitemperature-regulatordeviceidtemperature).
+Událost je odslána při změně cílové teploty a také při změně situace topení (např. ukončení předehřívání místnosti).
+Cílová teplota se může změnit z několika důvodů - požadavek na změnu teploty, předehřívání místnosti,
+změna teploty kvůli plánu atd.
 
 Dodatečné předávané parametry:
 
-| Parametr          | Typ   | Povinný | Popis                                          |
-|:------------------|:------|:--------|:-----------------------------------------------|
-| targetTemperature | float | ano     | Teplota které se snaží předehřívání dosáhnout. |
+| Parametr          | Typ    | Povinný | Popis                                                                                       |
+|:------------------|:-------|:--------|:--------------------------------------------------------------------------------------------|
+| targetTemperature | float  | ano     | Teplota které se aplikace snaží nově dosáhnout/udržovat.                                    |
+| changeReason      | string | ano     | Může nabývat hodnot - pre-heating-started, pre-heating-stopped, target-temperature-changed. |
 
 Ukázka zaslané události:
 
@@ -343,27 +342,8 @@ Ukázka zaslané události:
     "deviceType": "temperature-regulator",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "eventTime": "2024-10-09T14:12:38.91Z",
-    "eventType": "pre-heating-started",
+    "eventType": "heating-state-changed",
     "targetTemperature": 25.5,
-}
-```
-
-### EventType pre-heating-ended
-
-Událost je odeslána při ukončení předehřívání teploty v místnosti.
-Předehřívání se spustí a ukončí pouze pokud je naplánována změna teploty na budoucí
-datum
-pomocí [endpointu pro změnu teploty](https://github.com/Netlia/documentation/blob/main/RestApi/TemperatureRegulator.md#put-apitemperature-regulatordeviceidtemperature).
-
-Ukázka zaslané události:
-
-```yaml
-{
-    "protocolVersion": 1,
-    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "deviceType": "temperature-regulator",
-    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2024-10-09T14:12:38.91Z",
-    "eventType": "pre-heating-ended",
+    "changeReason": "pre-heating-started"
 }
 ```
