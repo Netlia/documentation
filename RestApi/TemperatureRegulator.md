@@ -153,7 +153,7 @@ DELETE.
 
 ### Jak funguje requestId
 
-Většina requestů, který mění stav systému musí obsahovat v těle requestu položku `requestId`. Jedná se o jednoznačný
+Většina requestů, který mění stav systému obsahují v těle requestu položku `requestId`. Jedná se o jednoznačný
 identifikátor.
 Pokud klient odešle request s `requestId`, který již byl použit v nedávné době (24h), tak server nezpracovává request
 znovu ale pouze
@@ -190,13 +190,15 @@ Formát:
 
 ```yaml
 {
-  ianaTimeZone: "Europe/Prague",
-  localDateTime: "2024-10-21T17:50:15"
+  zonedDateTime : {
+    ianaTimeZone: "Europe/Prague",
+    localDateTime: "2024-10-21T17:50:15"
+  }
 }
 ```
 
-`ianaTimeZone` může nabívat hodnoty zmíněné [zde](https://nodatime.org/TimeZones) ve sloupci Zone ID.
-`localDateTime` lokální čas uživatele tak jak ho vidí na hodinách ve
+* `ianaTimeZone` může nabívat hodnoty zmíněné [zde](https://nodatime.org/TimeZones) ve sloupci Zone ID.
+* `localDateTime` lokální čas uživatele tak jak ho vidí na hodinách ve
 formátu [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601).
 
 Ačkoliv preferujeme práci s UTC časem, v některých situacích se nevyhneme práci s lokálním časem.
