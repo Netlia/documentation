@@ -19,7 +19,7 @@ Každou minutu měří teplotu a vlhkost. Po X měření provede výpočet prům
 | [device-created](#eventtype-device-created)                                       | Informuje o vytvoření zařízení.                      |
 | [user-requested-temperature-change](#eventtype-user-requested-temperature-change) | Informuje o požadavku na změnu teploty od uživatele. |
 | [thermo-head-changed-position](#eventtype-thermo-head-changed-position)           | Informuje o změně polohy hlavice                     |
-| [target-temperature-changed](#eventtype-target-temperature-changed)               | Informuje o změně cílové teploty a stavu ohřívání    |
+| [heating-state-changed](#eventtype-heating-state-changed)               | Informuje o změně cílové teploty a stavu ohřívání    |
 
 ## Základní parametery
 
@@ -320,9 +320,9 @@ Ukázka zaslané události:
 }
 ```
 
-### EventType target-temperature-changed
+### EventType heating-state-changed
 
-Událost je odslána při změně cílové teploty a také při změně situace topení (např. ukončení předehřívání místnosti).
+Událost je odslána při změně cílové teploty a také při změně situace topení (např. ukončení předehřívání).
 Cílová teplota se může změnit z několika důvodů - požadavek na změnu teploty, předehřívání místnosti,
 změna teploty kvůli plánu atd.
 
@@ -331,7 +331,7 @@ Dodatečné předávané parametry:
 | Parametr          | Typ    | Povinný | Popis                                                                                       |
 |:------------------|:-------|:--------|:--------------------------------------------------------------------------------------------|
 | targetTemperature | float  | ano     | Teplota které se aplikace snaží nově dosáhnout/udržovat.                                    |
-| changeReason      | string | ano     | Může nabývat hodnot - pre-heating-started, pre-heating-stopped, target-temperature-changed. |
+| changeReason      | string | ano     | Může nabývat hodnot - `pre-heating-started`, `pre-heating-stopped`, `target-temperature-changed`. |
 
 Ukázka zaslané události:
 

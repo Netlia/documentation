@@ -293,13 +293,13 @@ Předávané parametry:
 
 Object ScheduleTargetTemperature:
 
-| Parametr                         | Typ              | Povinný | Popis                                                     |
-|:---------------------------------|:-----------------|:--------|:----------------------------------------------------------|
-| scheduleId                       | string (UUID)    | ano     | Jedinečný identifikátor naplánovaného vytápění            |
-| deviceId                         | string (UUID)    | ano     | Identifikátor zařízení                                    |
-| targetTemperatures               | float            | ano     | Cílová teplota, které má být dosaženo                     |
-| reachTargetTemperatureByThisTime | ZonedDateTime    | ano     | Čas, do kterého má být cílové teploty dosaženo            |
-| heatingStyle                     | HeatingStyleType | ano     | Styl vytápění může nabívat hodnot `pre-heating` a `immediate` |
+| Parametr                         | Typ            | Povinný | Popis                                                                                          |
+|:---------------------------------|:---------------|:--------|:-----------------------------------------------------------------------------------------------|
+| scheduleId                       | string (UUID)  | ano     | Jedinečný identifikátor naplánovaného vytápění                                                 |
+| deviceId                         | string (UUID)  | ano     | Identifikátor zařízení                                                                         |
+| targetTemperatures               | float          | ano     | Cílová teplota, které má být dosaženo                                                          |
+| reachTargetTemperatureByThisTime | ZonedDateTime  | ano     | Čas, do kterého má být cílové teploty dosaženo                                                 |
+| regulationType                   | RegulationType | ano     | Typ vytápění. Může nabívat hodnot `standard-with-pre-heating` a `standard-without-pre-heating` |
 
 `ZonedDateTime` objekt je vysvětlen [zde](https://github.com/Netlia/documentation/blob/main/RestApi/TemperatureRegulator.md#%C4%8Das).
 
@@ -315,7 +315,7 @@ Příklad:
         "ianaTimeZone": "Europe/Prague",
         "localDateTime": "2024-10-21T14:30:00"
       },
-      "heatingStyle": "pre-heating",
+      "regulationType": "standard-with-pre-heating",
       "scheduleId": "c0a80121-5ef8-492f-b3a1-56c65f0dcf19"
     }
   ]
@@ -323,30 +323,39 @@ Příklad:
 ```
 #### Poznámky
 
-* Teplotu je možné plánovat jako "immediate" nebo "pre-heating". Viz příklad níže.
+* Teplotu je možné plánovat jako "standard-without-pre-heating" nebo "standard-with-pre-heating". Viz příklad níže.
+* Pokud je cílem naplánované teploty snížit teplotu tak je nutné použít nastavení "standard-without-pre-heating".
 * Konflikty jsou řešeny pravidlem: naplánovaná teplota s nejvyšším časem má přednost. Pokud mají dvě naplánované
   teploty stejný čas, má přednost ta, která byla přidána později.
 * `scheduleId` slouží jako identifikátor naplánovaného vytápění. Pokud je předán stejný `scheduleId`, tak se zahodí.
 * Není možné naplánovat teplotu na čas, který již uběhl.
 * Posuny času jsou automaticky vyřešeny.
 
-**Příklad naplánování teploty s algoritmem immediate:**
+**Příklad naplánování teploty s algoritmem `standard-without-pre-heating`:**
 
-Požadavek "nastav teplotu v 15:00 na 25 pomocí immediate algoritmu" způsobí následující: do 15:00 se používá předchozí plán.
+Požadavek "nastav teplotu v 15:00 na 25 pomocí `standard-without-pre-heating` algoritmu" způsobí následující: do 15:00 se používá předchozí plán.
 V 15:00 se změní cílová teplota na 25 stupňů a algoritmus se pokusí dostat místnost na tuto teplotu a dále ji udržet co nejblíže 25 °C.
 
-**Příklad naplánování teploty s algoritmem pre-heating:**
+**Příklad naplánování teploty s algoritmem `standard-with-pre-heating`:**
 
-Požadavek "nastav teplotu v 15:00 na 25 pomocí pre-heating algoritmu" způsobí následující: algoritmus automaticky vyhodnotí, kdy je potřeba
+Požadavek "nastav teplotu v 15:00 na 25 pomocí `standard-with-pre-heating` algoritmu" způsobí následující: algoritmus automaticky vyhodnotí, kdy je potřeba
 začít topit, aby v místnosti bylo v 15:00 25 °C. V tento čas začne topit. V 15:00 nebo při dosažení 25 °C přepne algoritmus na
 stabilizační, který se snaží udržet 25 °C.
 
 > V průběhu předehřívání místnosti není možné měnit teplotu pomocí PUT `api/temperature-regulator/temperature`.
 
+**Příklad příchodu a odchodu hosta z/do hotelu:**
+
+Řekněme, že host má check-in v 11:00 a check-out v 17:00. Pro tuto situaci by měl systém naplánovat dva záznamy:
+1. nastav teplotu v 11:00 na 22 pomocí algoritmu **standard-with-pre-heating**
+2. nastav teplotu v 17:00 na 18 pomocí algoritmu **standard-without-pre-heating**
+
+Tyto příkazy zajistí, že host bude mít při příchodu do hotelu teplotu 22 stupňů, a při odchodu se topení vypne.
+
 **Příklad řešení konfliktu naplánovaných teplot:**
 
-Řekněme, že máme dva příkazy - "nastav teplotu v 15:00 na 25 pomocí pre-heating algoritmu" a
-"nastav teplotu v 14:55 na 20 pomocí immediate algoritmu".
+Řekněme, že máme dva příkazy - "nastav teplotu v 15:00 na 25 pomocí `standard-with-pre-heating algoritmu`" a
+"nastav teplotu v 14:55 na 20 pomocí `standard-without-pre-heating` algoritmu".
 
 Předpokládejme, že předehřívání začne někdy ve 13 hodin. Pokud předehřívání neskončí před 14:55 (kvůli dosažení cílové teploty), tak se
 předehřívání zvolí jako prioritní, jelikož má vyšší čas ukončení než druhý příkaz. Druhý příkaz se nikdy neprovede. Pokud
