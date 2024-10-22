@@ -7,17 +7,11 @@ a vlhkostí okolního prostředí.
 Každou minutu měří teplotu a vlhkost. Po X měření provede výpočet průměrné hodnoty a odešle událost
 `measured-humidity-temperature`.
 
-| EventType                                                                         | Popis                                                |
-|:----------------------------------------------------------------------------------|:-----------------------------------------------------|
-| [measured-humidity-temperature](#eventtype-measured-humidity-temperature)         | Naměřené veličiny.                                   |
-| [battery-alert](#eventtype-battery-alert)                                         | Upozornění na změnu stavu baterie.                   |
-| [warning](#eventtype-warning)                                                     | Upozornění.                                          |
-| [error](#eventtype-error)                                                         | Chyba.                                               |
-| [physical-device-replaced](#eventtype-physical-device-replaced)                   | Nastává při náhradě fyzického zařízení.              |
-| [device-created](#eventtype-device-created)                                       | Informuje o vytvoření zařízení.                      |
-| [user-requested-temperature-change](#eventtype-user-requested-temperature-change) | Informuje o požadavku na změnu teploty od uživatele. |
-| [thermo-head-changed-position](#eventtype-thermo-head-changed-position)           | Informuje o změně polohy hlavice                     |
-| [heating-state-changed](#eventtype-heating-state-changed)               | Informuje o změně cílové teploty a stavu ohřívání    |
+## Obsah
+
+Obsah zobrazíte následujícím způsobem:
+
+![content](../images/table-of-contents.webp "Content")
 
 ## Čas
 

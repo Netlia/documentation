@@ -4,6 +4,12 @@ Dokument popisuje API pro komunikaci se zařízením temperature regulator. Swag
 dostupný [zde](https://public-api.netlia.com/swagger/temperature-regulator/index.html). Přístupové údaje ke swaggeru je
 možné získat od zástupce Netlia.
 
+## Obsah
+
+Obsah zobrazíte následujícím způsobem:
+
+![content](../images/table-of-contents.webp "Content")
+
 ## Zabezpečení
 
 Komunikace je zabezpečna bearer tokenem ve formátu JWT. Token se posílá ve standartním headeru s klíčem Authorization.
