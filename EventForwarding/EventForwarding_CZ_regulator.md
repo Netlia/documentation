@@ -23,7 +23,7 @@ Formát:
 
 `2024-10-09T14:12:38.91Z`
 
-Formát je definován specifikací [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) a končící symbolem `Z` (časová zóna zulu).
+Formát je definován specifikací [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601). `Z` na konci označuje ZULU časové pásmo (+00:00).
 
 ### UUID
 
