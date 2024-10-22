@@ -13,9 +13,11 @@ Obsah zobrazíte následujícím způsobem:
 
 ![content](../images/table-of-contents.webp "Content")
 
-## Čas
+## Základní datové typy
 
-### UTC
+### Čas
+
+#### UTC
 
 Formát:
 
@@ -23,7 +25,7 @@ Formát:
 
 Formát je definován specifikací [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) a končící symbolem `Z` (časová zóna zulu).
 
-## UUID
+### UUID
 
 Formát:
 
@@ -59,7 +61,7 @@ Ukázka základních parametrů:
 
 ### EventType measured-humidity-temperature
 
-Nastává při odeslání naměřené hodnoty.
+Informuje o změření teploty a vlhkosti.
 
 Dodatečné předávané parametry:
 
