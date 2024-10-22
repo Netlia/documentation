@@ -153,7 +153,7 @@ DELETE.
 
 ### Jak funguje requestId
 
-Každý request, který mění stav systému musí obsahovat v těle requestu položku `requestId`. Jedná se o jednoznačný
+Většina requestů, který mění stav systému musí obsahovat v těle requestu položku `requestId`. Jedná se o jednoznačný
 identifikátor.
 Pokud klient odešle request s `requestId`, který již byl použit v nedávné době (24h), tak server nezpracovává request
 znovu ale pouze
