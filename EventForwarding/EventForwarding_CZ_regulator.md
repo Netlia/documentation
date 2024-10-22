@@ -29,6 +29,13 @@ Formát:
 
 Formát je definován specifikací [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) a končící symbolem `Z` (časová zóna zulu).
 
+## UUID
+
+Formát:
+
+`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
+
+
 ## Základní parametery
 
 Většina zasílaných událostí obsahuje společné parametery kterými jsou:
@@ -41,9 +48,6 @@ Většina zasílaných událostí obsahuje společné parametery kterými jsou:
 | eventId         | string (UUID)    | ano     | Id události - slouží primárně k zajištění idempotence |
 | eventTime       | string (UTC čas) | ano     | Čas kdy nastala událost                               |
 | eventType       | string           | ano     | Typ události                                          |
-
-* eventTime je odesílán v UTC čase ve formátu ISO 8601 - `yyyy-MM-ddTHH:mm:ssZ`.
-* deviceId a eventId je odesíláno jako UUID ve formátu `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`.
 
 Ukázka základních parametrů:
 
