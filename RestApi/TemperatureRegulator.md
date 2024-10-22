@@ -274,35 +274,6 @@ Ukázka response:
 }
 ```
 
-### PUT api/temperature-regulator/{deviceId}/temperature
-
-Okamžité nastavení cílové teploty pro regulaci na více zařízeních.
-
-* Pokud je zařízení v režimu `summer` tak se nic neprovede a vrátí se uspěšná odpověď.
-* Pokud aktuálně na zařízení probíhá předehřívání (pre-heating), tak se vrátí chyba.
-
-Předávané parametry:
-
-| Parametr          | Typ           | Povinný | Popis                               |
-|:------------------|:--------------|:--------|:------------------------------------|
-| requestId         | string (UUID) | ano     | Jednoznačný identifikátor requestu. |
-| targetTemperature | float         | ano     | Cílová teplota.                     |
-
-Ukázka requestu:
-
-```yaml
-{
-    "requestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc",
-    "targetTemperature": 21.5
-}
-```
-
-Ukázka response:
-
-```
-200 OK, žádné informace v body.
-```
-
 ### PUT api/temperature-regulator/schedule-temperature
 
 Naplánuje změnu cílové teploty na jednom nebo více zařízeních. **Vysvětlení algoritmu následuje až po příkladu.**
@@ -394,11 +365,40 @@ předehřívání skončí před 14:55, tak se považuje za ukončené a provede
 
 Stejným způsobem se chovají i dva záznamy, které mají konflikt v době předehřívání.
 
+### PUT api/temperature-regulator/{deviceId}/temperature
+
+Okamžité nastavení cílové teploty pro regulaci na více zařízeních.
+
+* Pokud je zařízení v režimu `summer` tak se nic neprovede a vrátí se uspěšná odpověď.
+* Pokud aktuálně na zařízení probíhá předehřívání (pre-heating), tak se vrátí chyba.
+
+Předávané parametry:
+
+| Parametr          | Typ           | Povinný | Popis                               |
+|:------------------|:--------------|:--------|:------------------------------------|
+| requestId         | string (UUID) | ano     | Jednoznačný identifikátor requestu. |
+| targetTemperature | float         | ano     | Cílová teplota.                     |
+
+Ukázka requestu:
+
+```yaml
+{
+    "requestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc",
+    "targetTemperature": 21.5
+}
+```
+
+Ukázka response:
+
+```
+200 OK, žádné informace v body.
+```
+
 ### PUT api/temperature-regulator/temperature
 
 Nastavení cílové teploty pro regulaci na více zařízeních.
-Pro podrobný popis parametrů viz. (PUT
-api/temperature-regulator/{deviceId}/temperature)[https://github.com/Netlia/documentation/blob/main/RestApi/TemperatureRegulator.md#put-apitemperature-regulatordeviceidtemperature].
+Pro podrobný popis parametrů viz. [PUT
+api/temperature-regulator/{deviceId}/temperature](https://github.com/Netlia/documentation/blob/main/RestApi/TemperatureRegulator.md#put-apitemperature-regulatordeviceidtemperature).
 
 Předávané parametry:
 
