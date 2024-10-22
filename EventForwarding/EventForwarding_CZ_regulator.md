@@ -7,8 +7,6 @@ a vlhkostí okolního prostředí.
 Každou minutu měří teplotu a vlhkost. Po X měření provede výpočet průměrné hodnoty a odešle událost
 `measured-humidity-temperature`.
 
-> DeviceType: temperature-regulator
-
 | EventType                                                                         | Popis                                                |
 |:----------------------------------------------------------------------------------|:-----------------------------------------------------|
 | [measured-humidity-temperature](#eventtype-measured-humidity-temperature)         | Naměřené veličiny.                                   |
@@ -20,6 +18,16 @@ Každou minutu měří teplotu a vlhkost. Po X měření provede výpočet prům
 | [user-requested-temperature-change](#eventtype-user-requested-temperature-change) | Informuje o požadavku na změnu teploty od uživatele. |
 | [thermo-head-changed-position](#eventtype-thermo-head-changed-position)           | Informuje o změně polohy hlavice                     |
 | [heating-state-changed](#eventtype-heating-state-changed)               | Informuje o změně cílové teploty a stavu ohřívání    |
+
+## Čas
+
+### UTC
+
+Formát:
+
+`2024-10-09T14:12:38.91Z`
+
+Formát je definován specifikací [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) a končící symbolem `Z` (časová zóna zulu).
 
 ## Základní parametery
 
@@ -49,6 +57,7 @@ Ukázka základních parametrů:
     "eventType": "type-of-event",
 }
 ```
+## Eventy
 
 ### EventType measured-humidity-temperature
 
