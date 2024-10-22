@@ -174,35 +174,42 @@ Formát:
 
 `2024-10-09T14:12:38.91Z`
 
-Formát je definován specifikací [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) a končící symbolem `Z` (časová zóna zulu).
+Formát je definován specifikací [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) a končící symbolem `Z` (časová zóna
+zulu).
 > Čas končící zónou +00:00 je považován za chybný.
 
 ### ZonedDateTime
 
 Formát:
+
 ```yaml
 {
   ianaTimeZone: "Europe/Prague",
   localDateTime: "2024-10-21T17:50:15"
 }
 ```
-`ianaTimeZone` může nabívat hodnoty zmíněné [zde](https://nodatime.org/TimeZones) ve sloupci Zone ID. 
-`localDateTime` lokální čas uživatele tak jak ho vidí na hodinách ve formátu [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601).
 
-Ačkoliv preferujeme práci s UTC časem, v některých situacích se nevyhneme práci s lokálním časem. 
-Příkladem této situace je plánování změny teploty na konkrétní čas. 
-Řekněme, že do hotelu má přijít host zítra v 2024-10-21T17:44:05.95. 
-Pokud bychom tento čas přijali na API ve formátu UTC, tak bychom si uložili čas 2024-10-21T19:44:05.95Z. 
-Pokud se ale mezi dnešním a zítřejším dnem posune čas kvůli změně letního nebo zimního času, tak bychom měli problém, 
+`ianaTimeZone` může nabívat hodnoty zmíněné [zde](https://nodatime.org/TimeZones) ve sloupci Zone ID.
+`localDateTime` lokální čas uživatele tak jak ho vidí na hodinách ve
+formátu [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601).
+
+Ačkoliv preferujeme práci s UTC časem, v některých situacích se nevyhneme práci s lokálním časem.
+Příkladem této situace je plánování změny teploty na konkrétní čas.
+Řekněme, že do hotelu má přijít host zítra v 2024-10-21T17:44:05.95.
+Pokud bychom tento čas přijali na API ve formátu UTC, tak bychom si uložili čas 2024-10-21T19:44:05.95Z.
+Pokud se ale mezi dnešním a zítřejším dnem posune čas kvůli změně letního nebo zimního času, tak bychom měli problém,
 protože začneme topit v jiný čas, než kdy host přijede.
 
-Mohli bychom si nechat přes API poslat UTC čas a časovou zónu, ale to nám nijak neulehčí práci s časem a zároveň by to přeneslo zátěž na klienta. 
-Například - klient přijede do hotelu v 2:30 ráno. Ve 3 hodin se ale čas posouvá zpět na 2 hodiny. Čas 2:30 tedy bude existovat dvakrát a může 
+Mohli bychom si nechat přes API poslat UTC čas a časovou zónu, ale to nám nijak neulehčí práci s časem a zároveň by to
+přeneslo zátěž na klienta.
+Například - klient přijede do hotelu v 2:30 ráno. Ve 3 hodiny se ale čas posouvá zpět na 2 hodiny. Čas 2:30 tedy bude
+existovat dvakrát a může
 být namapován na dva odlišné časy v UTC. Který čas by měl klient odeslat?
 
 Z tohoto důvodu jsme se rozhodli přijímat čas ve formátu `ZonedDateTime`.
 
-Pokud se chcete dozvědět více, tak doporučujeme [tento blog post](https://codeblog.jonskeet.uk/2022/10/30/handling-times-for-an-ev-charger/).
+Pokud se chcete dozvědět více, tak
+doporučujeme [tento blog post](https://codeblog.jonskeet.uk/2022/10/30/handling-times-for-an-ev-charger/).
 
 ## Popis endpointů
 
@@ -256,15 +263,16 @@ Ukázka response:
 ### PUT api/temperature-regulator/{deviceId}/temperature
 
 Okamžité nastavení cílové teploty pro regulaci na více zařízeních.
+
 * Pokud je zařízení v režimu `summer` tak se nic neprovede a vrátí se uspěšná odpověď.
-* Pokud aktuálně na zařízení probíhá předehřívání (pre-heating), tak se vrátí chyba. 
+* Pokud aktuálně na zařízení probíhá předehřívání (pre-heating), tak se vrátí chyba.
 
 Předávané parametry:
 
-| Parametr                         | Typ              | Povinný | Popis                                  |
-|:---------------------------------|:-----------------|:--------|:---------------------------------------|
-| requestId                        | string (UUID)    | ano     | Jednoznačný identifikátor requestu.    |
-| targetTemperature                | float            | ano     | Cílová teplota.                        |
+| Parametr          | Typ           | Povinný | Popis                               |
+|:------------------|:--------------|:--------|:------------------------------------|
+| requestId         | string (UUID) | ano     | Jednoznačný identifikátor requestu. |
+| targetTemperature | float         | ano     | Cílová teplota.                     |
 
 Ukázka requestu:
 
@@ -297,11 +305,12 @@ Object ScheduleTargetTemperature:
 |:---------------------------------|:---------------|:--------|:-----------------------------------------------------------------------------------------------|
 | scheduleId                       | string (UUID)  | ano     | Jedinečný identifikátor naplánovaného vytápění                                                 |
 | deviceId                         | string (UUID)  | ano     | Identifikátor zařízení                                                                         |
-| targetTemperatures               | float          | ano     | Cílová teplota, které má být dosaženo                                                          |
+| targetTemperature                | float          | ano     | Cílová teplota, které má být dosaženo                                                          |
 | reachTargetTemperatureByThisTime | ZonedDateTime  | ano     | Čas, do kterého má být cílové teploty dosaženo                                                 |
 | regulationType                   | RegulationType | ano     | Typ vytápění. Může nabívat hodnot `standard-with-pre-heating` a `standard-without-pre-heating` |
 
-`ZonedDateTime` objekt je vysvětlen [zde](https://github.com/Netlia/documentation/blob/main/RestApi/TemperatureRegulator.md#%C4%8Das).
+`ZonedDateTime` objekt je
+vysvětlen [zde](https://github.com/Netlia/documentation/blob/main/RestApi/TemperatureRegulator.md#%C4%8Das).
 
 Příklad:
 
@@ -321,6 +330,7 @@ Příklad:
   ]
 }
 ```
+
 #### Poznámky
 
 * Teplotu je možné plánovat jako "standard-without-pre-heating" nebo "standard-with-pre-heating". Viz příklad níže.
@@ -333,13 +343,17 @@ Příklad:
 
 **Příklad naplánování teploty s algoritmem `standard-without-pre-heating`:**
 
-Požadavek "nastav teplotu v 15:00 na 25 pomocí `standard-without-pre-heating` algoritmu" způsobí následující: do 15:00 se používá předchozí plán.
-V 15:00 se změní cílová teplota na 25 stupňů a algoritmus se pokusí dostat místnost na tuto teplotu a dále ji udržet co nejblíže 25 °C.
+Požadavek "nastav teplotu v 15:00 na 25 pomocí `standard-without-pre-heating` algoritmu" způsobí následující: do 15:00
+se používá předchozí plán.
+V 15:00 se změní cílová teplota na 25 stupňů a algoritmus se pokusí dostat místnost na tuto teplotu a dále ji udržet co
+nejblíže 25 °C.
 
 **Příklad naplánování teploty s algoritmem `standard-with-pre-heating`:**
 
-Požadavek "nastav teplotu v 15:00 na 25 pomocí `standard-with-pre-heating` algoritmu" způsobí následující: algoritmus automaticky vyhodnotí, kdy je potřeba
-začít topit, aby v místnosti bylo v 15:00 25 °C. V tento čas začne topit. V 15:00 nebo při dosažení 25 °C přepne algoritmus na
+Požadavek "nastav teplotu v 15:00 na 25 pomocí `standard-with-pre-heating` algoritmu" způsobí následující: algoritmus
+automaticky vyhodnotí, kdy je potřeba
+začít topit, aby v místnosti bylo v 15:00 25 °C. V tento čas začne topit. V 15:00 nebo při dosažení 25 °C přepne
+algoritmus na
 stabilizační, který se snaží udržet 25 °C.
 
 > V průběhu předehřívání místnosti není možné měnit teplotu pomocí PUT `api/temperature-regulator/temperature`.
@@ -347,6 +361,7 @@ stabilizační, který se snaží udržet 25 °C.
 **Příklad příchodu a odchodu hosta z/do hotelu:**
 
 Řekněme, že host má check-in v 11:00 a check-out v 17:00. Pro tuto situaci by měl systém naplánovat dva záznamy:
+
 1. nastav teplotu v 11:00 na 22 pomocí algoritmu **standard-with-pre-heating**
 2. nastav teplotu v 17:00 na 18 pomocí algoritmu **standard-without-pre-heating**
 
@@ -357,12 +372,13 @@ Tyto příkazy zajistí, že host bude mít při příchodu do hotelu teplotu 22
 Řekněme, že máme dva příkazy - "nastav teplotu v 15:00 na 25 pomocí `standard-with-pre-heating algoritmu`" a
 "nastav teplotu v 14:55 na 20 pomocí `standard-without-pre-heating` algoritmu".
 
-Předpokládejme, že předehřívání začne někdy ve 13 hodin. Pokud předehřívání neskončí před 14:55 (kvůli dosažení cílové teploty), tak se
-předehřívání zvolí jako prioritní, jelikož má vyšší čas ukončení než druhý příkaz. Druhý příkaz se nikdy neprovede. Pokud
+Předpokládejme, že předehřívání začne někdy ve 13 hodin. Pokud předehřívání neskončí před 14:55 (kvůli dosažení cílové
+teploty), tak se
+předehřívání zvolí jako prioritní, jelikož má vyšší čas ukončení než druhý příkaz. Druhý příkaz se nikdy neprovede.
+Pokud
 předehřívání skončí před 14:55, tak se považuje za ukončené a provede se i druhý příkaz.
 
 Stejným způsobem se chovají i dva záznamy, které mají konflikt v době předehřívání.
-
 
 ### PUT api/temperature-regulator/temperature
 
@@ -379,10 +395,10 @@ Předávané parametry:
 
 Objekt targetTemperature:
 
-| Parametr                         | Typ              | Povinný | Popis                                  |
-|:---------------------------------|:-----------------|:--------|:---------------------------------------|
-| deviceId                         | string           | ano     | Identifikátor zařízení.                |
-| targetTemperature                | float            | ano     | Cílová teplota.                        |
+| Parametr          | Typ    | Povinný | Popis                   |
+|:------------------|:-------|:--------|:------------------------|
+| deviceId          | string | ano     | Identifikátor zařízení. |
+| targetTemperature | float  | ano     | Cílová teplota.         |
 
 Ukázka requestu:
 
