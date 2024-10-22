@@ -172,19 +172,19 @@ Pokud server vrátí stavový kód `4xx`, tak je chyba u klienta a nemá význam
 
 V případě, že nastane jakákoliv jiná chyba, tak by měl klient request zopakovat a neměnit `requestId`.
 
-## Čas
+## Základní datové typy
 
-### UTC
+### Čas
+
+#### UTC
 
 Formát:
 
 `2024-10-09T14:12:38.91Z`
 
-Formát je definován specifikací [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) a končící symbolem `Z` (časová zóna
-zulu).
-> Čas končící zónou +00:00 je považován za chybný.
+Formát je definován specifikací [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601). `Z` na konci označuje ZULU časové pásmo (+00:00).
 
-### ZonedDateTime
+#### ZonedDateTime
 
 Formát:
 
@@ -216,6 +216,12 @@ Z tohoto důvodu jsme se rozhodli přijímat čas ve formátu `ZonedDateTime`.
 
 Pokud se chcete dozvědět více, tak
 doporučujeme [tento blog post](https://codeblog.jonskeet.uk/2022/10/30/handling-times-for-an-ev-charger/).
+
+### UUID
+
+Formát:
+
+`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
 
 ## Popis endpointů
 
