@@ -185,6 +185,10 @@ Ukázka zaslané události:
 }
 ```
 
+Aktuálně podporované warningType:
+- replacedBatteryNotFull
+  - localizedWarningDescription: "Vložena částečně vybitá baterie."
+
 ### EventType error
 
 Upozornění na stav zařízení vyžadující okamžité řešení z důvodu neschopnosti jeho dalšího fungování které bude nutné
@@ -210,6 +214,10 @@ Ukázka zaslané události:
     "localizedErrorDescription": "Popis zaslané chyby."
 }
 ```
+
+Aktuálně podporované errorType:
+- replacedBatteryStatusLow
+  - localizedWarningDescription: "Vložena vybitá baterie."
 
 ### EventType user-requested-temperature-change
 
