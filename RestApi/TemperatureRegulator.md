@@ -451,6 +451,36 @@ Ukázka response:
 }
 ```
 
+### PUT api/device/{deviceId}/replace-physical-device
+
+Vymění physical device za jiný. Physical device musí existovat a musí být nepřiřazený k jinému zařízení.
+Obvykle zákazník dostane od firmy Netlia zásobu kterou může použít k výměně.
+
+Předávané parametry:
+
+| Parametr           | Typ                 | Povinný | Popis                                    |
+|:-------------------|:--------------------|:--------|:-----------------------------------------|
+| requestId          | string              | ano     | Jednoznačný identifikátor requestu.      |
+| physicalDeviceIdToReplace | uuid | ano     | Zařízení které bude vyměněné. |
+| replacementPhysicalDeviceId | uuid | ano     | Zařízení které ho nahradí. |
+
+Ukázka requestu:
+
+```yaml
+{
+  "requestId": "3cafc61e-2c27-49af-bbc6-9b13a699981e",
+  "physicalDeviceIdToReplace": "string",
+  "replacementPhysicalDeviceId": "string"
+}
+```
+
+Ukázka response:
+
+```
+200 OK, žádné informace v body.
+```
+
+<!--
 ### PUT api/temperature-regulator/{deviceId}/factory-reset
 
 Zruší zařízení, což umožní znovu spárovat jednotlivé fyzické komponenty. Dojde k odstranění provozních dat.
@@ -471,7 +501,7 @@ Ukázka response:
 }
 ```
 
-<!--
+
 ### PUT api/temperature-regulator/
 
 Vytvoří požadavek na zavedení nového zařízení do systému. Po úspěšném vytvoření zařízení je partner informován eventem `device-created` - viz. dokumentace k předávání událostí.
