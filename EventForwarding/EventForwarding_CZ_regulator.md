@@ -286,7 +286,7 @@ Dodatečné předávané parametry:
 |:----------------|:----------------|:--------|:--------------------------------------------------------------|
 | physicalDevices | PhysicalDevices | ano     | Fyzická zařízení / komponenty ze kterých je zařízení složeno. |
 | note      | string          | ne      | Poznámka zadaná člověkem který zařízení instaloval.               |
-| roomId      | string (uuid)          | ano      | Identifikátor místnosti ve kterém se zařízení nachází. Informace o místnostech by měla dodat netlia ještě před instalací.                |
+| roomId      | string (uuid)          | ano      | Identifikátor místnosti ve které se zařízení nachází. Informace o místnostech by měla dodat netlia ještě před instalací.                |
 
 Objekt PhysicalDevices je definován následujícím způsobem:
 | Parametr | Typ | Povinný | Popis |
