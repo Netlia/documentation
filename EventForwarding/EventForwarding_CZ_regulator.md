@@ -364,3 +364,51 @@ Ukázka zaslané události:
     "changeReason": "pre-heating-started"
 }
 ```
+
+### EventType physical-device-assigned
+Událost je odeslána při přiřazení fyzického zařízení k již existujícímu zařízení. Například, když je k regulátoru teploty přiřazena nová termostatická hlavice nebo teploměr.
+
+Dodatečné předávané parametry:
+
+| Parametr          | Typ    | Povinný | Popis                                                                                       |
+|:------------------|:-------|:--------|:--------------------------------------------------------------------------------------------|
+| assignedPhysicalDeviceId|	string|	ano|	Id přiřazeného fyzického zařízení. |
+| physicalDeviceType|	string (enum)|	ano|	Typ přiřazeného fyzického zařízení. Může nabývat hodnot - thermo-head a thermometer|
+
+Ukázka zaslané události:
+
+```yaml
+{
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "deviceType": "temperature-regulator",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2024-10-09T14:12:38.91Z",
+    "eventType": "physical-device-assigned-to-device",
+    "assignedPhysicalDeviceId": "def456",
+    "physicalDeviceType": "thermo-head"
+}
+```
+
+### EventType physical-device-detached
+Událost je odeslána při odpojení fyzického zařízení od zařízení. Například, když je od regulátoru teploty odpojena termostatická hlavice nebo teploměr. Důvodem odpojení může být například porucha zařízení, vyjmutí z důvodu údržby nebo trvalé odebrání zařízení.
+
+Dodatečné předávané parametry:
+
+| Parametr          | Typ    | Povinný | Popis                                                                                       |
+|:------------------|:-------|:--------|:--------------------------------------------------------------------------------------------|
+|detachedPhysicalDeviceId|	string|	ano|	Id odpojeného fyzického zařízení.|
+
+Ukázka zaslané události:
+
+```yaml
+{
+    "protocolVersion": 1,
+    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+    "deviceType": "temperature-regulator",
+    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+    "eventTime": "2024-10-09T14:12:38.91Z",
+    "eventType": "physical-device-detached-from-device",
+    "detachedPhysicalDeviceId": "def456"
+}
+```
