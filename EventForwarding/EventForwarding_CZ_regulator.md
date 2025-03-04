@@ -275,17 +275,18 @@ Ukázka zaslané události:
 }
 ```
 
-### EventType device-created
+### EventType temperature-regulator-created
 
-Událost informuje o vytvoření zařízení. Součástí jsou informace o fyzických zařízeních ze kterých je složeno a dodatečné
-informace specifické pro partnera (lze využít např. pro informaci o umístění zařízení).
+Událost informuje o vytvoření temperature-regulatoru. Součástí jsou informace o fyzických zařízeních ze kterých je složeno a dodatečné
+informace specifické pro partnera.
 
 Dodatečné předávané parametry:
 
 | Parametr        | Typ             | Povinný | Popis                                                         |
 |:----------------|:----------------|:--------|:--------------------------------------------------------------|
 | physicalDevices | PhysicalDevices | ano     | Fyzická zařízení / komponenty ze kterých je zařízení složeno. |
-| customData      | object          | ne      | Objekt s informacemi specifickými dle partnera.               |
+| note      | string          | ne      | Poznámka zadaná člověkem který zařízení instaloval.               |
+| roomId      | string (uuid)          | ano      | Identifikátor místnosti ve které se zařízení nachází. Informace o místnostech by měla dodat netlia ještě před instalací.                |
 
 Objekt PhysicalDevices je definován následujícím způsobem:
 | Parametr | Typ | Povinný | Popis |
@@ -299,8 +300,6 @@ Definice PhysicalDevice:
 | physicalDeviceId   | string | ano     | Id fyzického zařízení.                                                  |
 | physicalDeviceType | string | ano     | Typ fyzického zařízení. Může nabívat hodnot - thermo-head a thermometer |
 
-Mohou existovat zařízení u kterých bude `physicalDevices.Data` obsahovat prázdné pole.
-
 Ukázka zaslané události:
 
 ```yaml
@@ -311,6 +310,7 @@ Ukázka zaslané události:
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "eventTime": "2024-10-09T14:12:38.91Z",
     "eventType": "device-created",
+    "note": string
     "physicalDevices":
     {
         "data":
@@ -329,11 +329,8 @@ Ukázka zaslané události:
             }
         ]
     },
-    "customData":
-        {
-            "sample-key-1": "sample-value-1",
-            "sample-key-2": 123 
-        }
+    "note": "Místnost je vyhřívána převážně z okolních místností",
+    "roomId": "d65f1ffb-aa60-4eff-9666-78a93a048b17",
 }
 ```
 
