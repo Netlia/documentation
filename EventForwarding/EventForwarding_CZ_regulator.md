@@ -362,14 +362,14 @@ Ukázka zaslané události:
 }
 ```
 
-### EventType physical-device-assigned
+### EventType physical-device-attached
 Událost je odeslána při přiřazení fyzického zařízení k již existujícímu zařízení. Například, když je k regulátoru teploty přiřazena nová termostatická hlavice nebo teploměr.
 
 Dodatečné předávané parametry:
 
 | Parametr          | Typ    | Povinný | Popis                                                                                       |
 |:------------------|:-------|:--------|:--------------------------------------------------------------------------------------------|
-| assignedPhysicalDeviceId|	string|	ano|	Id přiřazeného fyzického zařízení. |
+| attachedPhysicalDeviceId|	string|	ano|	Id přiřazeného fyzického zařízení. |
 | physicalDeviceType|	string (enum)|	ano|	Typ přiřazeného fyzického zařízení. Může nabývat hodnot - thermo-head a thermometer|
 
 Ukázka zaslané události:
@@ -381,8 +381,8 @@ Ukázka zaslané události:
     "deviceType": "temperature-regulator",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "eventTime": "2024-10-09T14:12:38.91Z",
-    "eventType": "physical-device-assigned-to-device",
-    "assignedPhysicalDeviceId": "def456",
+    "eventType": "physical-device-attached-to-device",
+    "attachedPhysicalDeviceId": "def456",
     "physicalDeviceType": "thermo-head"
 }
 ```
