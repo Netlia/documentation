@@ -310,7 +310,6 @@ Ukázka zaslané události:
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "eventTime": "2024-10-09T14:12:38.91Z",
     "eventType": "device-created",
-    "note": string
     "physicalDevices":
     {
         "data":
@@ -369,7 +368,7 @@ Dodatečné předávané parametry:
 
 | Parametr          | Typ    | Povinný | Popis                                                                                       |
 |:------------------|:-------|:--------|:--------------------------------------------------------------------------------------------|
-| attachedPhysicalDeviceId|	string|	ano|	Id přiřazeného fyzického zařízení. |
+| physicalDeviceId|	string|	ano|	Id přiřazeného fyzického zařízení. |
 | physicalDeviceType|	string (enum)|	ano|	Typ přiřazeného fyzického zařízení. Může nabývat hodnot - thermo-head a thermometer|
 
 Ukázka zaslané události:
@@ -382,7 +381,7 @@ Ukázka zaslané události:
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "eventTime": "2024-10-09T14:12:38.91Z",
     "eventType": "physical-device-attached-to-device",
-    "attachedPhysicalDeviceId": "def456",
+    "physicalDeviceId": "def456",
     "physicalDeviceType": "thermo-head"
 }
 ```
@@ -394,7 +393,7 @@ Dodatečné předávané parametry:
 
 | Parametr          | Typ    | Povinný | Popis                                                                                       |
 |:------------------|:-------|:--------|:--------------------------------------------------------------------------------------------|
-|detachedPhysicalDeviceId|	string|	ano|	Id odpojeného fyzického zařízení.|
+|physicalDeviceId|	string|	ano|	Id odpojeného fyzického zařízení.|
 
 Ukázka zaslané události:
 
@@ -406,6 +405,6 @@ Ukázka zaslané události:
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "eventTime": "2024-10-09T14:12:38.91Z",
     "eventType": "physical-device-detached-from-device",
-    "detachedPhysicalDeviceId": "def456"
+    "physicalDeviceId": "def456"
 }
 ```
