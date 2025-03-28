@@ -23,14 +23,14 @@ Formát:
 
 `2024-10-09T14:12:38.91Z`
 
-Formát je definován specifikací [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601). `Z` na konci označuje ZULU časové pásmo (+00:00).
+Formát je definován specifikací [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601). `Z` na konci označuje ZULU časové
+pásmo (+00:00).
 
 ### UUID
 
 Formát:
 
 `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
-
 
 ## Základní parametery
 
@@ -57,6 +57,7 @@ Ukázka základních parametrů:
     "eventType": "type-of-event",
 }
 ```
+
 ## Eventy
 
 ### EventType measured-humidity-temperature
@@ -159,65 +160,82 @@ Ukázka zaslané události:
 }
 ```
 
-### EventType warning
+### EventType device-failure
 
-Upozornění na stav zařízení nevyžadující okamžité řešení. Příkladem může být horší kvalita signálu, zhoršené mechanické
-vlastnosti ventilu (tuhnutí), apod...
+Upozornění na chybu, která nastala na zařízení. Příkladem může být vložení vybité baterie nebo HW chyba na zařízení.
 
-| Parametr                    | Typ    | Povinný | Popis                                             |
-|:----------------------------|:-------|:--------|:--------------------------------------------------|
-| warningType                 | string | ano     | Označení upozornění, unikátní v rámci deviceType. |
-| localizedWarningDescription | string | ano     | Vysvětlení příčiny upozornění.                    |
+| Parametr                    | Typ                             | Povinný | Popis                                                                                           |
+|:----------------------------|:--------------------------------|:--------|:------------------------------------------------------------------------------------------------|
+| physicalDeviceId            | string                          | ne      | ID fyzického zařízení, na kterém chyba nastala. Pokud je `null`, chyba se týká celého zařízení. |
+| failureType                 | string (výčet níže)             | ano     | Typ selhání. Výčet možných typů je uveden níže.                                                 |
+| severity                    | string (`warning` nebo `error`) | ano     | Označení závažnosti. Vysvětleno níže.                                                           |
+| localizedWarningDescription | string                          | ano     | Popis selhání v jazyce vybraném partnerem.                                                      |
+| IsResolvableByPartner       | bool                            | ano     | Značí, zda je možné chybu vyřešit z partnerské aplikace. Podrobné vysvětlení níže.              |
 
-Ukázka zaslané události:
+**`error`** - Značí chyby, které by měly být vyřešeny co nejrychleji, jelikož mohou způsobit nefunkčnost zařízení.
+**`warning`** - Značí chyby, o kterých je dobré vědět, ale není nutně potřeba hned něco dělat.
 
-```yaml
-{
-    "protocolVersion": 1,
-    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "physicalDeviceId": "abc123", // může být null
-    "deviceType": "temperature-regulator",
-    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2024-10-09T14:12:38.91Z",
-    "eventType": "warning",
-    "warningType": "some-warning",
-    "localizedWarningDescription": "Popis zaslaného upozornění."
-}
-```
+**`IsResolvableByPartner`** - Značí, zda je možné chybu vyřešit z partnerské aplikace. Pokud je `true`, měl by mít
+uživatel možnost chybu vyřešit, například stisknutím tlačítka (např. křížku) ve vaší aplikaci. Pokud je `false`, tak
+problém buď nejde vůbec vyřešit (je potřeba výměna zařízení), nebo je nutné provést nějakou akci se zařízením (např.
+vyměnit baterii). Pokud naše aplikace zjistí, že byl problém vyřešen (např. výměnou baterie), odesílá event
+`failure-resolved`.
+V některých případech je možné, že selhání může vyřešit jak uživatel, tak naše aplikace.
 
-Aktuálně podporované warningType:
-- replacedBatteryNotFull
-  - localizedWarningDescription: "Vložena částečně vybitá baterie."
+Pro vyřešení selhání je možné použít endpoint **PUT api/device-failure/resolve**.
 
-### EventType error
+Aktuálně podporované typy selhání (`failureType`), jejich závažnost (`severity`) a příznak `IsResolvableByPartner`:
 
-Upozornění na stav zařízení vyžadující okamžité řešení z důvodu neschopnosti jeho dalšího fungování které bude nutné
-pravděpodobně řešit jeho výměnou. Příkladem může být hardwarový problém.
-
-| Parametr                  | Typ    | Povinný | Popis                                        |
-|:--------------------------|:-------|:--------|:---------------------------------------------|
-| errorType                 | string | ano     | Označení chyby, unikátní v rámci deviceType. |
-| localizedErrorDescription | string | ano     | Vysvětlení příčiny chyby.                    |
+| failureType                             | severity  | IsResolvableByPartner                                                    | Popis                                                                               |
+|:----------------------------------------|:----------|:-------------------------------------------------------------------------|:------------------------------------------------------------------------------------|
+| `inserted-discharged-battery`           | `error`   | `true` (může jít o false positive, proto umožňujeme vyřešení uživatelem) | Do zařízení byla vložena vybitá baterie.                                            |
+| `inserted-partially-discharged-battery` | `warning` | `true` (může jít o false positive, proto umožňujeme vyřešení uživatelem) | Do zařízení byla vložena jen částečně nabitá baterie.                               |
+| `generic-physical-device-error`         | `error`   | `false`                                                                  | Obecná chyba informující, že fyzické zařízení je nefunkční a je potřeba ho vyměnit. |
 
 Ukázka zaslané události:
 
 ```yaml
 {
-    "protocolVersion": 1,
-    "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
-    "physicalDeviceId": "abc123", // může být null
-    "deviceType": "temperature-regulator",
-    "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
-    "eventTime": "2024-10-09T14:12:38.91Z",
-    "eventType": "error",
-    "errorType": "some-error",
-    "localizedErrorDescription": "Popis zaslané chyby."
+  "protocolVersion": 1,
+  "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+  "deviceType": "temperature-regulator",
+  "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+  "eventTime": "2024-10-09T14:12:38.91Z",
+  "physicalDeviceId": "abc123", // může být null
+  "eventType": "device-failure",
+  "failureType": "generic-physical-device-error",
+  "severity": "error",
+  "localizedWarningDescription": "Došlo k závadě na zařízení, proveďte prosím jeho výměnu.",
+  "IsResolvableByPartner": false
 }
 ```
 
-Aktuálně podporované errorType:
-- replacedBatteryStatusLow
-  - localizedWarningDescription: "Vložena vybitá baterie."
+### EventType device-failure-resolved
+
+Doporučujeme nejdříve prostudovat event typu `device-failure`, jelikož je úzce spjatý s logikou tohoto eventu.
+
+Událost je odeslána, když naše aplikace detekuje vyřešení selhání. Pokud je selhání vyřešeno partnerem pomocí endpointu
+**PUT api/device-failure/resolve**, tento event se neodesílá.
+
+| Parametr         | Typ                                      | Povinný | Popis                                                                                                 |
+|:-----------------|:-----------------------------------------|:--------|:------------------------------------------------------------------------------------------------------|
+| physicalDeviceId | string                                   | ne      | ID fyzického zařízení, na kterém chyba nastala. Pokud je `null`, byla vyřešena chyba celého zařízení. |
+| failureType      | string (výčet u eventu `device-failure`) | ano     | Typ selhání.                                                                                          |
+
+Ukázka zaslané události:
+
+```yaml
+{
+  "protocolVersion": 1,
+  "deviceId": "d65f1ffb-aa60-4eff-9666-78a93a048b16",
+  "deviceType": "temperature-regulator",
+  "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
+  "eventTime": "2024-10-09T14:12:38.91Z",
+  "physicalDeviceId": "abc123", // může být null
+  "eventType": "device-failure-resolved",
+  "failureType": "inserted-discharged-battery"
+}
+```
 
 ### EventType user-requested-temperature-change
 
@@ -277,16 +295,17 @@ Ukázka zaslané události:
 
 ### EventType temperature-regulator-created
 
-Událost informuje o vytvoření temperature-regulatoru. Součástí jsou informace o fyzických zařízeních ze kterých je složeno a dodatečné
+Událost informuje o vytvoření temperature-regulatoru. Součástí jsou informace o fyzických zařízeních ze kterých je
+složeno a dodatečné
 informace specifické pro partnera.
 
 Dodatečné předávané parametry:
 
-| Parametr        | Typ             | Povinný | Popis                                                         |
-|:----------------|:----------------|:--------|:--------------------------------------------------------------|
-| physicalDevices | PhysicalDevices | ano     | Fyzická zařízení / komponenty ze kterých je zařízení složeno. |
-| note      | string          | ne      | Poznámka zadaná člověkem který zařízení instaloval.               |
-| roomId      | string (uuid)          | ano      | Identifikátor místnosti ve které se zařízení nachází. Informace o místnostech by měla dodat netlia ještě před instalací.                |
+| Parametr        | Typ             | Povinný | Popis                                                                                                                    |
+|:----------------|:----------------|:--------|:-------------------------------------------------------------------------------------------------------------------------|
+| physicalDevices | PhysicalDevices | ano     | Fyzická zařízení / komponenty ze kterých je zařízení složeno.                                                            |
+| note            | string          | ne      | Poznámka zadaná člověkem který zařízení instaloval.                                                                      |
+| roomId          | string (uuid)   | ano     | Identifikátor místnosti ve které se zařízení nachází. Informace o místnostech by měla dodat netlia ještě před instalací. |
 
 Objekt PhysicalDevices je definován následujícím způsobem:
 | Parametr | Typ | Povinný | Popis |
@@ -309,7 +328,7 @@ Ukázka zaslané události:
     "deviceType": "temperature-regulator",
     "eventId": "c4056fc4-d433-4d2c-bb7f-23a691fd3dac",
     "eventTime": "2024-10-09T14:12:38.91Z",
-    "eventType": "device-created",
+    "eventType": "temperature-regulator-created",
     "physicalDevices":
     {
         "data":
@@ -341,9 +360,9 @@ změna teploty kvůli plánu atd.
 
 Dodatečné předávané parametry:
 
-| Parametr          | Typ    | Povinný | Popis                                                                                       |
-|:------------------|:-------|:--------|:--------------------------------------------------------------------------------------------|
-| targetTemperature | float  | ano     | Teplota které se aplikace snaží nově dosáhnout/udržovat.                                    |
+| Parametr          | Typ    | Povinný | Popis                                                                                             |
+|:------------------|:-------|:--------|:--------------------------------------------------------------------------------------------------|
+| targetTemperature | float  | ano     | Teplota které se aplikace snaží nově dosáhnout/udržovat.                                          |
 | changeReason      | string | ano     | Může nabývat hodnot - `pre-heating-started`, `pre-heating-stopped`, `target-temperature-changed`. |
 
 Ukázka zaslané události:
@@ -362,14 +381,16 @@ Ukázka zaslané události:
 ```
 
 ### EventType physical-device-attached
-Událost je odeslána při přiřazení fyzického zařízení k již existujícímu zařízení. Například, když je k regulátoru teploty přiřazena nová termostatická hlavice nebo teploměr.
+
+Událost je odeslána při přiřazení fyzického zařízení k již existujícímu zařízení. Například, když je k regulátoru
+teploty přiřazena nová termostatická hlavice nebo teploměr.
 
 Dodatečné předávané parametry:
 
-| Parametr          | Typ    | Povinný | Popis                                                                                       |
-|:------------------|:-------|:--------|:--------------------------------------------------------------------------------------------|
-| physicalDeviceId|	string|	ano|	Id přiřazeného fyzického zařízení. |
-| physicalDeviceType|	string (enum)|	ano|	Typ přiřazeného fyzického zařízení. Může nabývat hodnot - thermo-head a thermometer|
+| Parametr           | Typ            | Povinný | Popis                                                                                |
+|:-------------------|:---------------|:--------|:-------------------------------------------------------------------------------------|
+| physicalDeviceId   | 	string        | 	ano    | 	Id přiřazeného fyzického zařízení.                                                  |
+| physicalDeviceType | 	string (enum) | 	ano    | 	Typ přiřazeného fyzického zařízení. Může nabývat hodnot - thermo-head a thermometer |
 
 Ukázka zaslané události:
 
@@ -387,13 +408,16 @@ Ukázka zaslané události:
 ```
 
 ### EventType physical-device-detached
-Událost je odeslána při odpojení fyzického zařízení od zařízení. Například, když je od regulátoru teploty odpojena termostatická hlavice nebo teploměr. Důvodem odpojení může být například porucha zařízení, vyjmutí z důvodu údržby nebo trvalé odebrání zařízení.
+
+Událost je odeslána při odpojení fyzického zařízení od zařízení. Například, když je od regulátoru teploty odpojena
+termostatická hlavice nebo teploměr. Důvodem odpojení může být například porucha zařízení, vyjmutí z důvodu údržby nebo
+trvalé odebrání zařízení.
 
 Dodatečné předávané parametry:
 
-| Parametr          | Typ    | Povinný | Popis                                                                                       |
-|:------------------|:-------|:--------|:--------------------------------------------------------------------------------------------|
-|physicalDeviceId|	string|	ano|	Id odpojeného fyzického zařízení.|
+| Parametr         | Typ     | Povinný | Popis                              |
+|:-----------------|:--------|:--------|:-----------------------------------|
+| physicalDeviceId | 	string | 	ano    | 	Id odpojeného fyzického zařízení. |
 
 Ukázka zaslané události:
 

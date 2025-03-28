@@ -182,7 +182,8 @@ Formát:
 
 `2024-10-09T14:12:38.91Z`
 
-Formát je definován specifikací [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601). `Z` na konci označuje ZULU časové pásmo (+00:00).
+Formát je definován specifikací [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601). `Z` na konci označuje ZULU časové
+pásmo (+00:00).
 
 #### ZonedDateTime
 
@@ -199,7 +200,7 @@ Formát:
 
 * `ianaTimeZone` může nabívat hodnoty zmíněné [zde](https://nodatime.org/TimeZones) ve sloupci Zone ID.
 * `localDateTime` lokální čas uživatele tak jak ho vidí na hodinách ve
-formátu [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601).
+  formátu [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601).
 
 Ačkoliv preferujeme práci s UTC časem, v některých situacích se nevyhneme práci s lokálním časem.
 Příkladem této situace je plánování změny teploty na konkrétní čas.
@@ -458,11 +459,11 @@ Obvykle zákazník dostane od firmy Netlia zásobu kterou může použít k vým
 
 Předávané parametry:
 
-| Parametr           | Typ                 | Povinný | Popis                                    |
-|:-------------------|:--------------------|:--------|:-----------------------------------------|
-| requestId          | string              | ano     | Jednoznačný identifikátor requestu.      |
-| physicalDeviceIdToReplace | uuid | ano     | Zařízení které bude vyměněné. |
-| replacementPhysicalDeviceId | uuid | ano     | Zařízení které ho nahradí. |
+| Parametr                    | Typ    | Povinný | Popis                               |
+|:----------------------------|:-------|:--------|:------------------------------------|
+| requestId                   | string | ano     | Jednoznačný identifikátor requestu. |
+| physicalDeviceIdToReplace   | uuid   | ano     | Zařízení které bude vyměněné.       |
+| replacementPhysicalDeviceId | uuid   | ano     | Zařízení které ho nahradí.          |
 
 Ukázka requestu:
 
@@ -480,62 +481,17 @@ Ukázka response:
 200 OK, žádné informace v body.
 ```
 
-<!--
-### PUT api/temperature-regulator/{deviceId}/factory-reset
+### PUT api/device-failure/resolve
 
-Zruší zařízení, což umožní znovu spárovat jednotlivé fyzické komponenty. Dojde k odstranění provozních dat.
+Endpoint je úzce spjatý s logikou selhání. Doporučujeme nejdříve prostudovat event typu `device-failure`.
 
-Ukázka requestu:
-
-```yaml
-{
-    "requestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc"
-}
-```
-
-Ukázka response:
-
-```yaml
-{
-    "releasedPhysicalDeviceIds": ["abc123", "abc456", "abc789"]
-}
-```
-
-
-### PUT api/temperature-regulator/
-
-Vytvoří požadavek na zavedení nového zařízení do systému. Po úspěšném vytvoření zařízení je partner informován eventem `device-created` - viz. dokumentace k předávání událostí.
+Označí failure na zařízení jako resolved. Pokud je má failure nastaveno IsResolvableByPartner false, tak nemůže být
+resolvována tímto endpointem.
 
 Předávané parametry:
 
-| Parametr           | Typ         | Povinný | Popis                                                              |
-|:-------------------|:------------|:--------|:-------------------------------------------------------------------|
-| RequestId          | string      | ano     | Jednoznačný identifikátor requestu.                                |
-| DeviceType         | string      | ano     | Typ zařízení.                                                      |
-| PhysicalDeviceIds  | string[]    | ano     | Fyzická zařízení / komponenty ze kterých je zařízení složeno.      |
-| CustomData         | object      | ne      | Objekt s informacemi specifickými dle partnera.                    |
-
-Ukázka requestu:
-
-```yaml
-{
-    "RequestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc",
-    "DeviceType": "temperature-regulator",
-    "PhysicalDeviceIds": ["abc123", "abc456", "abc789"],
-    "CustomData":
-        {
-            "sample-key-1": "sample-value-1",
-            "sample-key-2": 123 
-        }
-}
-```
-
-Ukázka response: 
-
-```yaml
-{
-    "DeviceId": "7a3945e9-89c6-4464-9feb-6642c97035b2",
-    "PhysicalDeviceIds": ["abc123", "abc456", "abc789"]
-}
-```
--->
+| Parametr         | Typ                                                  | Povinný | Popis                                                                                                |
+|:-----------------|:-----------------------------------------------------|:--------|:-----------------------------------------------------------------------------------------------------|
+| failureType      | string (odpovídá hodnotám z eventu `device-failure`) | ano     | Typ chyby, která bude vyřešena.                                                                      |
+| physicalDeviceId | string                                               | ne      | ID fyzického zařízení. Pokud je řešena chyba celého zařízení, je potřeba nastavit hodnotu na `null`. |
+| deviceId         | UUID                                                 | ano     | ID zařízení.                                                                                         |
