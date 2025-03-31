@@ -167,9 +167,9 @@ Upozornění na chybu, která nastala na zařízení. Příkladem může být vl
 | Parametr                    | Typ                             | Povinný | Popis                                                                                           |
 |:----------------------------|:--------------------------------|:--------|:------------------------------------------------------------------------------------------------|
 | physicalDeviceId            | string                          | ne      | ID fyzického zařízení, na kterém chyba nastala. Pokud je `null`, chyba se týká celého zařízení. |
-| failureType                 | string (výčet níže)             | ano     | Typ selhání. Výčet možných typů je uveden níže.                                                 |
+| type                 | string (výčet níže)             | ano     | Typ selhání. Výčet možných typů je uveden níže.                                                 |
 | severity                    | string (`warning` nebo `error`) | ano     | Označení závažnosti. Vysvětleno níže.                                                           |
-| localizedWarningDescription | string                          | ano     | Popis selhání v jazyce vybraném partnerem.                                                      |
+| localizedDescription | string                          | ano     | Popis selhání v jazyce vybraném partnerem.                                                      |
 | IsResolvableByPartner       | bool                            | ano     | Značí, zda je možné chybu vyřešit z partnerské aplikace. Podrobné vysvětlení níže.              |
 
 **`error`** - Značí chyby, které by měly být vyřešeny co nejrychleji, jelikož mohou způsobit nefunkčnost zařízení.
