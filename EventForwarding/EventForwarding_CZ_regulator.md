@@ -170,7 +170,7 @@ Upozornění na chybu, která nastala na zařízení. Příkladem může být vl
 | type                 | string (výčet níže)             | ano     | Typ selhání. Výčet možných typů je uveden níže.                                                 |
 | severity                    | string (`warning` nebo `error`) | ano     | Označení závažnosti. Vysvětleno níže.                                                           |
 | localizedDescription | string                          | ano     | Popis selhání v jazyce vybraném partnerem.                                                      |
-| IsResolvableByPartner       | bool                            | ano     | Značí, zda je možné chybu vyřešit z partnerské aplikace. Podrobné vysvětlení níže.              |
+| isResolvableByPartner       | bool                            | ano     | Značí, zda je možné chybu vyřešit z partnerské aplikace. Podrobné vysvětlení níže.              |
 
 **`error`** - Značí chyby, které by měly být vyřešeny co nejrychleji, jelikož mohou způsobit nefunkčnost zařízení.
 **`warning`** - Značí chyby, o kterých je dobré vědět, ale není nutně potřeba hned něco dělat.
@@ -186,7 +186,7 @@ Pro vyřešení selhání je možné použít endpoint **PUT api/device-failure/
 
 Aktuálně podporované typy selhání (`failureType`), jejich závažnost (`severity`) a příznak `IsResolvableByPartner`:
 
-| failureType                             | severity  | IsResolvableByPartner                                                    | Popis                                                                               |
+| type                             | severity  | isResolvableByPartner                                                    | Popis                                                                               |
 |:----------------------------------------|:----------|:-------------------------------------------------------------------------|:------------------------------------------------------------------------------------|
 | `inserted-discharged-battery`           | `error`   | `true` (může jít o false positive, proto umožňujeme vyřešení uživatelem) | Do zařízení byla vložena vybitá baterie.                                            |
 | `inserted-partially-discharged-battery` | `warning` | `true` (může jít o false positive, proto umožňujeme vyřešení uživatelem) | Do zařízení byla vložena jen částečně nabitá baterie.                               |
@@ -203,10 +203,10 @@ Ukázka zaslané události:
   "eventTime": "2024-10-09T14:12:38.91Z",
   "physicalDeviceId": "abc123", // může být null
   "eventType": "device-failure",
-  "failureType": "generic-physical-device-error",
+  "type": "generic-physical-device-error",
   "severity": "error",
-  "localizedWarningDescription": "Došlo k závadě na zařízení, proveďte prosím jeho výměnu.",
-  "IsResolvableByPartner": false
+  "localizedDescription": "Došlo k závadě na zařízení, proveďte prosím jeho výměnu.",
+  "isResolvableByPartner": false
 }
 ```
 
