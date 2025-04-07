@@ -184,7 +184,7 @@ V některých případech je možné, že selhání může vyřešit jak uživat
 
 Pro vyřešení selhání je možné použít endpoint **PUT api/device-failure/resolve**.
 
-Aktuálně podporované typy selhání (`failureType`), jejich závažnost (`severity`) a příznak `IsResolvableByPartner`:
+Aktuálně podporované typy selhání (`type`), jejich závažnost (`severity`) a příznak `IsResolvableByPartner`:
 
 | type                             | severity  | isResolvableByPartner                                                    | Popis                                                                               |
 |:----------------------------------------|:----------|:-------------------------------------------------------------------------|:------------------------------------------------------------------------------------|
@@ -220,7 +220,7 @@ Událost je odeslána, když naše aplikace detekuje vyřešení selhání. Poku
 | Parametr         | Typ                                      | Povinný | Popis                                                                                                 |
 |:-----------------|:-----------------------------------------|:--------|:------------------------------------------------------------------------------------------------------|
 | physicalDeviceId | string                                   | ne      | ID fyzického zařízení, na kterém chyba nastala. Pokud je `null`, byla vyřešena chyba celého zařízení. |
-| failureType      | string (výčet u eventu `device-failure`) | ano     | Typ selhání.                                                                                          |
+| type      | string (výčet u eventu `device-failure`) | ano     | Typ selhání.                                                                                          |
 
 Ukázka zaslané události:
 
@@ -233,7 +233,7 @@ Ukázka zaslané události:
   "eventTime": "2024-10-09T14:12:38.91Z",
   "physicalDeviceId": "abc123", // může být null
   "eventType": "device-failure-resolved",
-  "failureType": "inserted-discharged-battery"
+  "type": "inserted-discharged-battery"
 }
 ```
 
