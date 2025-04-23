@@ -1,8 +1,6 @@
 # API
 
-Dokument popisuje API pro komunikaci se zařízením temperature regulator. Swagger k těmto endpointům je
-dostupný [zde](https://public-api.netlia.com/swagger/temperature-regulator/index.html). Přístupové údaje ke swaggeru je
-možné získat od zástupce Netlia.
+Dokument popisuje API pro komunikaci se zařízením temperature regulator.
 
 ## Obsah
 
