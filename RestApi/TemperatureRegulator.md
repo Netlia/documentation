@@ -94,7 +94,7 @@ Příklady chybových responses:
 
 ```json
 {
-  "type": "https://httpstatuses.io/400",
+  "type": "https://httpstatuses.io/422",
   "title": "Device not found",
   "status": 422,
   "errorId": 1,
