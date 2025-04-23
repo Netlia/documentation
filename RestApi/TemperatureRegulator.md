@@ -212,9 +212,6 @@ být namapován na dva odlišné časy v UTC. Který čas by měl klient odeslat
 
 Z tohoto důvodu jsme se rozhodli přijímat čas ve formátu `ZonedDateTime`.
 
-Pokud se chcete dozvědět více, tak
-doporučujeme [tento blog post](https://codeblog.jonskeet.uk/2022/10/30/handling-times-for-an-ev-charger/).
-
 ### UUID
 
 Formát:
