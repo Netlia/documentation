@@ -161,9 +161,6 @@ Vyjímkou jsou stavové kódy 5xx. Pokud server vrátí 5xx a klient volání zo
 pokusí
 request zpracovat znovu a vrátí výsledek.
 
-Pokud klient provede více konkurentních requestů se stejným `requestId`, tak server zpracuje pouze jeden z nich a
-pro ostatní vrátí stavový kód `409 Conflict`.
-
 ### Implementace retry na staraně klienta
 
 Pokud server vrátí stavový kód `4xx`, tak je chyba u klienta a nemá význam request opakovat.
