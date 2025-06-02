@@ -137,13 +137,18 @@ Ukázka zaslané události:
 
 ### EventType battery-alert
 
-Upozornění při změně stavu baterie. Aktuálně posílá hodnotou `"batteryStatus": "low"` v případě téměř vybité baterie
-nebo
-`"batteryStatus": "high"` v případě vložení nabité baterie. V budoucnu může být rozšířeno o další hodnoty.
+Upozornění při změně stavu baterie.
 
 | Parametr      | Typ    | Povinný | Popis                      |
 |:--------------|:-------|:--------|:---------------------------|
 | batteryStatus | string | ano     | Informace o stavu baterie. |
+
+Aktuálně posílá následující hodnotoy batteryStatus:
+- `high` v případě vložení nabité baterie
+- `low` v případě téměř vybité baterie
+- `dead` v případě vybité baterie, zařízení již nekomunikuje
+
+V budoucnu může být rozšířeno o další hodnoty.
 
 Ukázka zaslané události:
 
