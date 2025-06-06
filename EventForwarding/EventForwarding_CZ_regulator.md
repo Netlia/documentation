@@ -368,7 +368,7 @@ Dodatečné předávané parametry:
 | Parametr          | Typ    | Povinný | Popis                                                                                             |
 |:------------------|:-------|:--------|:--------------------------------------------------------------------------------------------------|
 | targetTemperature | float  | ano     | Teplota které se aplikace snaží nově dosáhnout/udržovat.                                          |
-| changeReason      | string | ano     | Může nabývat hodnot - `pre-heating-started`, `pre-heating-stopped`, `target-temperature-changed`, `diagnostic_started`, `diagnostic_stopped`. |
+| changeReason      | string | ano     | Může nabývat hodnot - `pre-heating-started`, `pre-heating-stopped`, `target-temperature-changed`, `diagnostic-started`, `diagnostic-stopped`. |
 
 Ukázka zaslané události:
 
