@@ -509,7 +509,7 @@ Ukázka response:
 ### PUT api/temperature-regulator/{deviceId:guid}/start-diagnostic
 
 Spustí diagnostiku na zařízení. Zařízení v diganostickém režimu otevře všechny hlavice na určitý čas.
-O začátku a konci diagnostiky je partner informován pomocí eventů.
+O začátku a konci diagnostiky je partner informován pomocí eventu `heating-state-changed`.
 
 Předávané parametry:
 
