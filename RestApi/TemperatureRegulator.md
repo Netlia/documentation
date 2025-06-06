@@ -484,6 +484,52 @@ Předávané parametry:
 
 | Parametr         | Typ                                                  | Povinný | Popis                                                                                                |
 |:-----------------|:-----------------------------------------------------|:--------|:-----------------------------------------------------------------------------------------------------|
+| requestId                   | string | ano     | Jednoznačný identifikátor requestu. |
 | failureType      | string (odpovídá hodnotám z eventu `device-failure`) | ano     | Typ chyby, která bude vyřešena.                                                                      |
 | physicalDeviceId | string                                               | ne      | ID fyzického zařízení. Pokud je řešena chyba celého zařízení, je potřeba nastavit hodnotu na `null`. |
 | deviceId         | UUID                                                 | ano     | ID zařízení.                                                                                         |
+
+Ukázka requestu:
+
+```yaml
+{
+  "requestId": "3cafc61e-2c27-49af-bbc6-9b13a699981e",
+  "physicalDeviceId": "string",
+  "deviceId": "4cafc61e-2c27-49af-bbc6-9b13a699981e",
+  "failureType":"generic_physical_device_error",
+}
+```
+
+Ukázka response:
+
+```
+200 OK, žádné informace v body.
+```
+
+### PUT api/temperature-regulator/{deviceId:guid}/start-diagnostic
+
+Spustí diagnostiku na zařízení. Zařízení v diganostickém režimu otevře všechny hlavice na určitý čas.
+O začátku a konci diagnostiky je partner informován pomocí eventů.
+
+Předávané parametry:
+
+| Parametr         | Typ                                                  | Povinný | Popis                                                                                                |
+|:-----------------|:-----------------------------------------------------|:--------|:-----------------------------------------------------------------------------------------------------|
+| requestId                   | string | ano     | Jednoznačný identifikátor requestu. |
+| deviceId         | UUID                                                 | ano     | ID zařízení.                                                                                         |
+
+
+Ukázka requestu:
+
+```yaml
+{
+  "requestId": "3cafc61e-2c27-49af-bbc6-9b13a699981e",
+  "deviceId": "4cafc61e-2c27-49af-bbc6-9b13a699981e",
+}
+```
+
+Ukázka response:
+
+```
+200 OK, žádné informace v body.
+```
