@@ -533,3 +533,59 @@ Ukázka response:
 ```
 200 OK, žádné informace v body.
 ```
+
+### PUT api/temperature-regulator/{deviceId}/temperature-regulator-user-settings
+
+Nastavení pro akce které může provádět uživatel. 
+Umožňuje změnit maximální nastavitelnou 
+teplotu, kroky pro zvýšení/snížení teploty a teplotu pro střední tlačítko.
+
+> Střední tlačítko je použito pouze pokud má zákazník k dispoziti zařízení "termostat"
+
+Předávané parametry:
+
+| Parametr                | Typ   | Povinný | Popis                                                        |
+|:------------------------|:------|:--------|:-------------------------------------------------------------|
+| requestId               | string | ano     | Jednoznačný identifikátor requestu. |
+| maxTemperature          | float | ne      | Maximální teplota kterou může uživatel nastavit              |
+| decreaseTemperatureStep | float | ano     | Krok pro snížení teploty                                     |
+| increaseTemperatureStep | float | ano     | Krok pro zvýšení teploty                                     |
+| middleButtonTemperature | float | ano     | Teplota pro střední tlačítko                                 |
+
+Ukázka requestu:
+
+```yaml
+{
+  "MaxUserSettableTemperature": 30.0,
+  "UserRequestDecreaseTemperatureStep": 0.5,
+  "UserRequestIncreaseTemperatureStep": 0.5,
+  "UserRequestMiddleButtonTemperature": 20.0,
+  "requestId": "3cafc61e-2c27-49af-bbc6-9b13a699981e",
+}
+```
+
+Ukázka response:
+
+```
+200 OK, žádné informace v body.
+```
+
+**Poznámky:**
+* Endpoint vrátí chybu 400 pokud zařízení není teplotní regulátor
+* Všechny teplotní hodnoty musí být v platném rozsahu podle validačních pravidel
+
+### GET api/temperature-regulator/{deviceId}/temperature-regulator-user-settings
+
+Získání nastavení pro akce které může provádět uživatel. 
+Vrací maximální nastavitelnou teplotu, kroky pro zvýšení/snížení teploty a teplotu pro střední tlačítko.
+
+Ukázka response:
+
+```yaml
+{
+  "maxTemperature": 30.0,
+  "decreaseTemperatureStep": 0.5,
+  "increaseTemperatureStep": 0.5,
+  "middleButtonTemperature": 20.0
+}
+```
