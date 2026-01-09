@@ -533,3 +533,104 @@ Ukázka response:
 ```
 200 OK, žádné informace v body.
 ```
+
+### PUT api/temperature-regulator/{deviceId}/temperature-regulator-user-settings
+
+Nastavení pro akce které může provádět uživatel. 
+Umožňuje změnit maximální nastavitelnou 
+teplotu, kroky pro zvýšení/snížení teploty a teplotu pro střední tlačítko.
+
+> Střední tlačítko je použito pouze pokud má zákazník k dispoziti zařízení "termostat"
+
+Předávané parametry:
+
+| Parametr                | Typ   | Povinný | Popis                                                        |
+|:------------------------|:------|:--------|:-------------------------------------------------------------|
+| requestId               | string | ano     | Jednoznačný identifikátor requestu. |
+| maxTemperature          | float | ne      | Maximální teplota kterou může uživatel nastavit              |
+| decreaseTemperatureStep | float | ano     | Krok pro snížení teploty                                     |
+| increaseTemperatureStep | float | ano     | Krok pro zvýšení teploty                                     |
+| middleButtonTemperature | float | ano     | Teplota pro střední tlačítko                                 |
+
+Ukázka requestu:
+
+```yaml
+{
+  "MaxUserSettableTemperature": 30.0,
+  "UserRequestDecreaseTemperatureStep": 0.5,
+  "UserRequestIncreaseTemperatureStep": 0.5,
+  "UserRequestMiddleButtonTemperature": 20.0,
+  "requestId": "3cafc61e-2c27-49af-bbc6-9b13a699981e",
+}
+```
+
+Ukázka response:
+
+```
+200 OK, žádné informace v body.
+```
+
+**Poznámky:**
+* Endpoint vrátí chybu 400 pokud zařízení není teplotní regulátor
+* Všechny teplotní hodnoty musí být v platném rozsahu podle validačních pravidel
+
+### GET api/temperature-regulator/{deviceId}/temperature-regulator-user-settings
+
+Získání nastavení pro akce které může provádět uživatel. 
+Vrací maximální nastavitelnou teplotu, kroky pro zvýšení/snížení teploty a teplotu pro střední tlačítko.
+
+Ukázka response:
+
+```yaml
+{
+  "maxTemperature": 30.0,
+  "decreaseTemperatureStep": 0.5,
+  "increaseTemperatureStep": 0.5,
+  "middleButtonTemperature": 20.0
+}
+```
+
+### PUT api/temperature-regulator/{deviceId}/change-temperature-by-command
+
+Změna cílové teploty na základě zadaného typu změny (zvýšení, snížení, nebo střední hodnota).
+Nová teplota bude vypočítána na základě konfigurovaných kroků zařízení.
+
+* Pokud je zařízení v režimu `summer` tak se nic neprovede a vrátí se uspěšná odpověď.
+* Pokud aktuálně na zařízení probíhá předehřívání (pre-heating), tak se vrátí chyba.
+
+Předávané parametry:
+
+| Parametr   | Typ                              | Povinný | Popis                                           |
+|:-----------|:---------------------------------|:--------|:------------------------------------------------|
+| deviceId   | string (UUID)                    | ano     | Identifikátor zařízení (v URL).                |
+| requestId  | string (UUID)                    | ano     | Jednoznačný identifikátor requestu.            |
+| changeType | RequestedTemperatureChangeType   | ano     | Typ změny teploty.                              |
+
+Typ změny teploty může nabývat těchto hodnot:
+
+| Hodnota  | Název                                    |
+|----------|------------------------------------------|
+| increase | Zvýšení teploty o konfigurovaný krok     |
+| decrease | Snížení teploty o konfigurovaný krok     |
+| middle   | Nastavení na středí hodnotu              |
+
+Ukázka requestu:
+
+```yaml
+{
+    "requestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc",
+    "changeType": "increase"
+}
+```
+
+Ukázka response:
+
+```
+200 OK, žádné informace v body.
+```
+
+**Poznámky:**
+* Nová teplota je vypočítána automaticky na základě aktuální teploty a konfigurovaných kroků zařízení
+* Pro zvýšení/snížení se používají hodnoty `increaseTemperatureStep` a `decreaseTemperatureStep` z nastavení zařízení
+* Pro střední hodnotu se používá `middleButtonTemperature` z nastavení zařízení
+* Endpoint respektuje maximální povolenou teplotu nastavenou v `maxTemperature`
