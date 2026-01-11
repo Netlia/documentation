@@ -325,7 +325,7 @@ Ukázka zaslané události:
         ]
     },
     "note": "Místnost je vyhřívána převážně z okolních místností",
-    "roomId": "d65f1ffb-aa60-4eff-9666-78a93a048b17",
+    "roomId": "d65f1ffb-aa60-4eff-9666-78a93a048b17"
 }
 ```
 
@@ -335,12 +335,16 @@ Událost je odslána při změně cílové teploty a také při změně situace 
 Cílová teplota se může změnit z několika důvodů - požadavek na změnu teploty, předehřívání místnosti,
 změna teploty kvůli plánu atd.
 
+V případě, že požadavek byl volán přes API z aplikace partnera, je v parametru sourceRequestId uvedeno requestId tohoto volání a parametr sourceRequestType má hodnotu `by-admin-app`. Pokud změna vznikla na základě stisku tlačítka na termostatu, obsahuje parametr sourceRequestType hodnotu `by-user`.
+
 Dodatečné předávané parametry:
 
 | Parametr          | Typ    | Povinný | Popis                                                                                             |
 |:------------------|:-------|:--------|:--------------------------------------------------------------------------------------------------|
 | targetTemperature | float  | ano     | Teplota které se aplikace snaží nově dosáhnout/udržovat.                                          |
-| changeReason      | string | ano     | Může nabývat hodnot - `pre-heating-started`, `pre-heating-stopped`, `target-temperature-changed`, `diagnostic-started`, `diagnostic-stopped`. |
+| changeReason      | string (enum) | ano     | Může nabývat hodnot - `pre-heating-started`, `pre-heating-stopped`, `target-temperature-changed`, `diagnostic-started`, `diagnostic-stopped`. |
+| sourceRequestType | string (enum) | ne      | Může nabývat hodnot - `by-user`, `by-admin-app`. |
+| sourceRequestId   | string (uuid) | ne      | RequestID požadavku, pokud byl volán z API.                                                |
 
 Ukázka zaslané události:
 
@@ -353,7 +357,9 @@ Ukázka zaslané události:
     "eventTime": "2024-10-09T14:12:38.91Z",
     "eventType": "heating-state-changed",
     "targetTemperature": 25.5,
-    "changeReason": "pre-heating-started"
+    "changeReason": "heating-state-changed",
+    "sourceRequestType": "by-admin-app",
+    "sourceRequestId": "30a86332-7a75-4e55-8217-1b69c1d6b301"
 }
 ```
 
