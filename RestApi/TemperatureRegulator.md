@@ -51,7 +51,7 @@ standardní [problem details](https://datatracker.ietf.org/doc/html/rfc7807) bod
   "status": int,
   "traceId": string,
   "errorId": int,
-  "description": string,
+  "detail": string,
   "errors": {
     string: [string, string, ...],
     string: [string, string, ...],
