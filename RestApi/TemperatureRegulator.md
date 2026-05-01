@@ -34,10 +34,9 @@ Pokud chyba přetrvává tak by měl být kontaktován zástupce firmy Netlia.
 
 Chyby 4xx jsou vráceny, pokud klient provedl neplatný/nevalidní request. Nejčastější chyby na které klient narazí jsou:
 
-* 400 Bad Request - Tělo requestu nobsahuje validní formát.
+* 400 Bad Request - uživatelem způsobená chyba. Něco je špatně v requestu, detaily jsou v těle chyby.
 * 404 Not Found - Url je naplatná a neodpovídá žádnému endpointu.
-* 422 Unprocessable Content - Request obsahuje validní formát, ale nemohl být proveden. Například pokud klient požaduje
-  vytvoření zařízení, které již existuje.
+* 401 Unauthorized - uživatel není přihlášen
 
 ### Tělo chybových odpovědí
 
