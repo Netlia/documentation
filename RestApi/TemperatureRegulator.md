@@ -91,7 +91,7 @@ Příklady chybových responses:
 }
 ```
 
-2. Server vrátil 404. Klient se v tomto případě snaží pracovat s neexistujícím device.
+2. Server vrátil 400. Klient se v tomto případě snaží pracovat s neexistujícím device.
 
 ```json
 {
