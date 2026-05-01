@@ -1,4 +1,4 @@
-# API
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/df9acbae-26a7-4f26-80ae-8f04f2813ca0" /># API
 
 Dokument popisuje API pro komunikaci se zařízením temperature regulator.
 
@@ -51,6 +51,7 @@ standardní [problem details](https://datatracker.ietf.org/doc/html/rfc7807) bod
   "status": int,
   "traceId": string,
   "errorId": int,
+  "description": string,
   "errors": {
     string: [string, string, ...],
     string: [string, string, ...],
@@ -62,8 +63,8 @@ standardní [problem details](https://datatracker.ietf.org/doc/html/rfc7807) bod
 
 * Type - odkazuje na podrobné vysvětlení erroru. Pokud server nemá žádné specifické detaily k danému erroru, tak
   obsahuje pouze odkaz na vysvětlení http kódu.
-* Title - obsahuje textový popis chyby. V případě, že server nemá více informací je zde uveden popis stavového kódu. V
-  případě specifických chyb obsahuje konkrétní informace (příklad v ukázce).
+* Title - obsahuje textový popis http kódu
+* Detail -  obsahuje konkrétní informace o chybě. Pokud server nemá více informací tak obsahuje pouze to co Title (příklad v ukázce).
 * Status - duplikuje stavový kód odpovědi. Toto pole je v body obsaženo pouze pro zjedodušení práce partnera (např.
   pokud loguje body a neloguje vrácený http kód).
 * TraceId - slouží k jednoznačné identifikaci konkrétní chyby (typicky použito při nahlášení chybného chování
@@ -84,6 +85,7 @@ Příklady chybových responses:
 {
   "type": "https://httpstatuses.io/500",
   "title": "Internal Server Error",
+  "detail": "Internal Server Error",
   "status": 500,
   "errorId": 500,
   "traceId": "00-1ecf9c21495b20af2e8aac4c71653a57-7c4329e49f308038-00"
@@ -96,6 +98,7 @@ Příklady chybových responses:
 {
   "type": "https://httpstatuses.io/422",
   "title": "Device not found",
+  "detail": "Internal Server Error",
   "status": 422,
   "errorId": 1,
   "traceId": "00-eab978ed39bb58b120c99c08ef42a6a2-aca7bff9ea0a470c-00"
@@ -116,7 +119,8 @@ Příklady chybových responses:
     ]
   },
   "type": "https://httpstatuses.io/400",
-  "title": "One or more validation errors occurred.",
+  "title": "Bad request",
+  "detail": "One or more validation errors occurred.",
   "status": 400,
   "errorId": 400,
   "traceId": "00-3f89119d4e33d8d706194838c4b8dc50-558f2c77a8cf08c5-00"
@@ -128,7 +132,8 @@ Příklady chybových responses:
 ```json
 {
   "type": "https://httpstatuses.io/404",
-  "title": "Url is incorrect. Page not found.",
+  "title": "Not Found",
+  "detail": "Url is incorrect. Page not found.",
   "status": 404,
   "errorId": 404,
   "traceId": "00-eab978ed39bb58b120c99c08ef42a6a2-aca7bff9ea0a470c-00"
