@@ -95,10 +95,10 @@ Příklady chybových responses:
 
 ```json
 {
-  "type": "https://httpstatuses.io/422",
-  "title": "Device not found",
-  "detail": "Internal Server Error",
-  "status": 422,
+  "type": "https://httpstatuses.io/400",
+  "title": "Bad request",
+  "detail": "Device not found",
+  "status": 400,
   "errorId": 1,
   "traceId": "00-eab978ed39bb58b120c99c08ef42a6a2-aca7bff9ea0a470c-00"
 }
