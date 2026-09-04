@@ -32,11 +32,16 @@ Pokud chyba přetrvává tak by měl být kontaktován zástupce firmy Netlia.
 
 ### Chyby 4xx
 
-Chyby 4xx jsou vráceny, pokud klient provedl neplatný/nevalidní request. Nejčastější chyby na které klient narazí jsou:
+Chyby 4xx obvykle znamenají, že požadavek není možné zpracovat bez změny na straně klienta. Nejčastější chyby na které
+klient narazí jsou:
 
 * 400 Bad Request - uživatelem způsobená chyba. Něco je špatně v requestu, detaily jsou v těle chyby.
 * 404 Not Found - Url je naplatná a neodpovídá žádnému endpointu.
-* 401 Unauthorized - uživatel není přihlášen
+* 401 Unauthorized - klient není přihlášen nebo poslal neplatné přihlašovací údaje.
+* 403 Forbidden - klient je přihlášen, ale nemá oprávnění k provedení operace.
+
+Některé chyby 4xx je možné opakovat později. Typicky jde o `408 Request Timeout` nebo `429 Too Many Requests`. U `429`
+je potřeba respektovat hlavičku `Retry-After`, pokud ji odpověď obsahuje.
 
 ### Tělo chybových odpovědí
 
@@ -48,8 +53,9 @@ standardní [problem details](https://datatracker.ietf.org/doc/html/rfc7807) bod
   "type": string,
   "title": string,
   "status": int,
-  "traceId": string,
-  "errorId": int,
+  "instance": string,
+  "traceId": string, // nepovinné
+  "errorCode": int,
   "detail": string,
   "errors": {
     string: [string, string, ...],
@@ -66,15 +72,17 @@ standardní [problem details](https://datatracker.ietf.org/doc/html/rfc7807) bod
 * Detail -  obsahuje konkrétní informace o chybě. Pokud server nemá více informací tak obsahuje pouze to co Title (příklad v ukázce).
 * Status - duplikuje stavový kód odpovědi. Toto pole je v body obsaženo pouze pro zjedodušení práce partnera (např.
   pokud loguje body a neloguje vrácený http kód).
-* TraceId - slouží k jednoznačné identifikaci konkrétní chyby (typicky použito při nahlášení chybného chování
-  partnerem).
-* ErrorId - číselný identifikátor typu chyby. Každý druh chyby má svůj identifikátor, který může být použit partnerem
+* Instance - cesta API endpointu, na kterém chyba nastala.
+* TraceId - nepovinné pole přidávané některými chybami generovanými přímo ASP.NET Core, například validačními chybami.
+  Pokud je přítomné, slouží k jednoznačné identifikaci konkrétního požadavku při hlášení chybného chování partnerem.
+* ErrorCode - číselný identifikátor typu chyby. Každý druh chyby má svůj identifikátor, který může být použit partnerem
   při programovém zpracování chyby.
-* Errors - je nepovinné pole, které obsahují pouze odpovědi vracející více než jednu chybu. Obsahuje slovník, kde klíčem
-  je řetězec, který logicky spojuje pole chyb, které následuje za ním. Viz. příklad č. 3.
+* Errors - je nepovinné pole používané u chyb validace requestu. Obsahuje slovník, kde klíčem je název nebo cesta
+  nevalidního pole a hodnotou je pole jedné nebo více validačních chyb. Pole může být přítomné i v případě jediné chyby.
+  Viz. příklad č. 3.
 
 > **Pokud zpracováváte konkrétní chybu na klientovi, nespoléhejte na hodnotu v Title. Namísto toho vždy použijte
-ErrorId.**
+ErrorCode.**
 
 Příklady chybových responses:
 
@@ -82,30 +90,31 @@ Příklady chybových responses:
 
 ```json
 {
-  "type": "https://httpstatuses.io/500",
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.6.1",
   "title": "Internal Server Error",
-  "detail": "Internal Server Error",
+  "detail": "Error occured on server. Please try again.",
   "status": 500,
-  "errorId": 500,
-  "traceId": "00-1ecf9c21495b20af2e8aac4c71653a57-7c4329e49f308038-00"
+  "instance": "/api/temperature-regulator/f47ac10b-58cc-4372-a567-0e02b2c3d479/temperature",
+  "errorCode": 500
 }
 ```
 
-2. Server vrátil 400. Klient se v tomto případě snaží pracovat s neexistujícím device.
+2. Server vrátil 400. Klient se v tomto případě snaží pracovat s neexistujícím zařízením. `errorCode` je generován
+   deterministicky z typu chyby, takže stejné chyby mají stejný kód bez ohledu na konkrétní ID zařízení.
 
 ```json
 {
-  "type": "https://httpstatuses.io/400",
-  "title": "Bad request",
-  "detail": "Device not found",
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+  "title": "Bad Request",
+  "detail": "Entity DomainEntities.Devices.TemperatureRegulator with id f47ac10b-58cc-4372-a567-0e02b2c3d479 not found",
   "status": 400,
-  "errorId": 1,
-  "traceId": "00-eab978ed39bb58b120c99c08ef42a6a2-aca7bff9ea0a470c-00"
+  "instance": "/api/temperature-regulator/f47ac10b-58cc-4372-a567-0e02b2c3d479/temperature",
+  "errorCode": 9359050045030061342
 }
 ```
 
-3. Server vrátil chybu 400. Klient se snaží odeslat nevalidní JSON (errorId s hodnotou 400 je vrácen vždy když klient
-   odešle JSON, který není syntakticky správně):
+3. Server vrátil chybu 400. Klient se snaží odeslat nevalidní JSON (`errorCode` s hodnotou 400 je vrácen u chyb
+   parsování JSON a validace vstupního modelu):
 
 ```json
 {
@@ -117,11 +126,12 @@ Příklady chybových responses:
       "The newDevice field is required."
     ]
   },
-  "type": "https://httpstatuses.io/400",
-  "title": "Bad request",
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+  "title": "Bad Request",
   "detail": "One or more validation errors occurred.",
   "status": 400,
-  "errorId": 400,
+  "instance": "/api/device/example",
+  "errorCode": 400,
   "traceId": "00-3f89119d4e33d8d706194838c4b8dc50-558f2c77a8cf08c5-00"
 }
 ```
@@ -130,12 +140,12 @@ Příklady chybových responses:
 
 ```json
 {
-  "type": "https://httpstatuses.io/404",
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.5",
   "title": "Not Found",
   "detail": "Url is incorrect. Page not found.",
   "status": 404,
-  "errorId": 404,
-  "traceId": "00-eab978ed39bb58b120c99c08ef42a6a2-aca7bff9ea0a470c-00"
+  "instance": "/api/non-existing-endpoint",
+  "errorCode": 404
 }
 ```
 
@@ -167,9 +177,13 @@ request zpracovat znovu a vrátí výsledek.
 
 ### Implementace retry na staraně klienta
 
-Pokud server vrátí stavový kód `4xx`, tak je chyba u klienta a nemá význam request opakovat.
+Pokud server vrátí stavový kód `4xx`, je obvykle nutné request před opakováním opravit. Výjimkou mohou být dočasné
+chyby jako `408 Request Timeout` nebo `429 Too Many Requests`. U `429` respektujte hlavičku `Retry-After`, pokud je
+uvedena.
 
-V případě, že nastane jakákoliv jiná chyba, tak by měl klient request zopakovat a neměnit `requestId`.
+V případě chyby `5xx` nebo síťové chyby by měl klient request zopakovat se stejným `requestId`. Doporučujeme použít
+exponenciální prodlevu mezi pokusy a omezit maximální počet opakování. Přesměrování `3xx` se nemají bez rozlišení
+považovat za chyby určené k opakování.
 
 ## Základní datové typy
 
