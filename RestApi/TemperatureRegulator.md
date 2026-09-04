@@ -73,8 +73,7 @@ standardní [problem details](https://datatracker.ietf.org/doc/html/rfc7807) bod
 * Status - duplikuje stavový kód odpovědi. Toto pole je v body obsaženo pouze pro zjedodušení práce partnera (např.
   pokud loguje body a neloguje vrácený http kód).
 * Instance - cesta API endpointu, na kterém chyba nastala.
-* TraceId - nepovinné pole přidávané některými chybami generovanými přímo ASP.NET Core, například validačními chybami.
-  Pokud je přítomné, slouží k jednoznačné identifikaci konkrétního požadavku při hlášení chybného chování partnerem.
+* TraceId - Pokud je přítomné, slouží k jednoznačné identifikaci konkrétního požadavku při hlášení chybného chování partnerem.
 * ErrorCode - číselný identifikátor typu chyby. Každý druh chyby má svůj identifikátor, který může být použit partnerem
   při programovém zpracování chyby.
 * Errors - je nepovinné pole používané u chyb validace requestu. Obsahuje slovník, kde klíčem je název nebo cesta
