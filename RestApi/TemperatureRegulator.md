@@ -235,21 +235,22 @@ Předávané parametry:
 | Parametr  | Typ    | Povinný | Popis                               |
 |:----------|:-------|:--------|:------------------------------------|
 | requestId | string | ano     | Jednoznačný identifikátor requestu. |
-| mode      | int    | ano     | Cílový mód zařízení.                |
+| mode      | string | ano     | Cílový mód zařízení.                |
 
 Cílový mód zařízení může nabývat těchto hodnot:
 
-| Hodnota | Název                      |
-|---------|----------------------------|
-| basic   | Základní regulace teploty. |
-| summer  | Letní režim.               |
+| Hodnota                             | Název                                                          |
+|:------------------------------------|:---------------------------------------------------------------|
+| winter                              | Základní regulace teploty.                                     |
+| summer                              | Letní režim bez regulace a bez měření teploty.                 |
+| summer-with-temperature-measurement | Letní režim bez regulace, ve kterém se nadále měří teplota.    |
 
 Ukázka requestu:
 
 ```yaml
 {
     "requestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc",
-    "mode": "basic"
+    "mode": "winter"
 }
 ```
 
@@ -267,7 +268,7 @@ Ukázka response:
 
 ```yaml
 {
-    "mode": "basic"
+    "mode": "winter"
 }
 ```
 
@@ -338,7 +339,8 @@ začít topit, aby v místnosti bylo v 15:00 25 °C. V tento čas začne topit. 
 algoritmus na
 stabilizační, který se snaží udržet 25 °C.
 
-> V průběhu předehřívání místnosti není možné měnit teplotu pomocí PUT `api/temperature-regulator/temperature`.
+> Změna teploty pomocí PUT `api/temperature-regulator/temperature` v průběhu předehřívání aktivní předehřívání zruší
+> a nastaví požadovanou cílovou teplotu.
 
 **Příklad příchodu a odchodu hosta z/do hotelu:**
 
@@ -367,7 +369,8 @@ Stejným způsobem se chovají i dva záznamy, které mají konflikt v době př
 Okamžité nastavení cílové teploty pro regulaci na více zařízeních.
 
 * Pokud je zařízení v režimu `summer` tak se nic neprovede a vrátí se uspěšná odpověď.
-* Pokud aktuálně na zařízení probíhá předehřívání (pre-heating), tak se vrátí chyba.
+* Pokud aktuálně na zařízení probíhá předehřívání (pre-heating), předehřívání se zruší a nastaví se požadovaná cílová
+  teplota.
 
 Předávané parametry:
 
@@ -510,7 +513,7 @@ Ukázka response:
 200 OK, žádné informace v body.
 ```
 
-### PUT api/temperature-regulator/{deviceId:guid}/start-diagnostic
+### PUT api/temperature-regulator/start-diagnostic
 
 Spustí diagnostiku na zařízení. Zařízení v diganostickém režimu otevře všechny hlavice na určitý čas.
 O začátku a konci diagnostiky je partner informován pomocí eventu `heating-state-changed`.
