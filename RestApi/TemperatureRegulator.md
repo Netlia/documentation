@@ -1,4 +1,4 @@
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/df9acbae-26a7-4f26-80ae-8f04f2813ca0" /># API
+# API
 
 Dokument popisuje API pro komunikaci se zařízením temperature regulator.
 
