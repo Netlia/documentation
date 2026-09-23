@@ -360,8 +360,7 @@ Informuje o přiřazení jednoho nebo více fyzických zařízení k entitě. P�
 jedna událost všechna přiřazená fyzická zařízení. Při pozdějším přiřazení jednotlivého zařízení má stejný formát
 s jednou položkou v poli.
 
-Tato událost nahrazuje původní `temperature-regulator-created` i `physical-device-attached-to-device`.
-Neoznamuje vytvoření místnosti; k tomu slouží samostatné `room-created`.
+Vytvoření místnosti oznamuje samostatná událost `room-created`.
 
 Dodatečné předávané parametry:
 
@@ -376,8 +375,7 @@ Objekt `physicalDevice` má následující formát:
 | physicalDeviceId | string | ano | ID přiřazeného fyzického zařízení. |
 | physicalDeviceType | string | ano | Typ fyzického zařízení: `thermo-head` nebo `thermometer` pro instalaci topení v místnosti. |
 
-Termostat je pro účely tohoto kontraktu uváděn jako `thermometer`. `physicalDevices` je přímo pole,
-neobsahuje obalový objekt `data`. Parametry `note` a `legacyPhysicalDeviceId` se ve verzi 2 nepředávají.
+Termostat je pro účely tohoto kontraktu uváděn jako `thermometer`.
 
 Ukázka zaslané události:
 
@@ -534,23 +532,3 @@ Ukázka zaslané události:
     "name": "Zasedací místnost"
 }
 ```
-
-## Přechod z verze 1
-
-Přehled hlavních změn:
-
-| Verze 1 | Verze 2 |
-|:--------|:--------|
-| `protocolVersion: 1` | `protocolVersion: 2`. |
-| `deviceId` označuje regulátor. | `roomId` označuje místnost; u přiřazení, odpojení a výměny se používá `entityId` s `entityType`. |
-| `deviceType: "temperature-regulator"` | Parametr `deviceType` se v těle události nepředává. |
-| `measured-humidity-temperature` | `measured-humidity-temperature-in-a-room`. |
-| `temperature-regulator-created` | `physical-device-attached-to-entity` s více fyzickými zařízeními. |
-| `physical-device-attached-to-device` | `physical-device-attached-to-entity` s polem fyzických zařízení. |
-| `physical-device-detached-from-device` | `physical-device-detached-from-entity` s polem `physicalDeviceIds`. |
-| `physicalDevices.data` při vytvoření regulátoru | Přímé pole `physicalDevices` při přiřazení k entitě. |
-| `note`, `legacyPhysicalDeviceId` | Nepředávají se. |
-
-Názvy událostí `thermo-head-changed-position`, `battery-alert`, `device-failure`, `device-failure-resolved`,
-`physical-device-replaced`, `heating-state-changed`, `room-created` a `room-renamed` zůstávají zachovány.
-Jejich identifikační parametry a přesný obsah odpovídají výše uvedeným popisům verze 2.
