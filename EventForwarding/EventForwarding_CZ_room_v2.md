@@ -66,19 +66,22 @@ Ukázky událostí uvádějí vždy celý objekt včetně sdílených parametrů
 
 Typy událostí:
 
-| eventType | Význam |
-|:----------|:-------|
+| eventType | Význam                                               |
+|:----------|:-----------------------------------------------------|
 | [`room-created`](#eventtype-room-created) | Vytvoření místnosti včetně údajů o budově a podlaží. |
-| [`room-renamed`](#eventtype-room-renamed) | Změna názvu místnosti. |
-| [`device-installed`](#eventtype-device-installed) | Instalace zařízení. |
-| [`device-uninstalled`](#eventtype-device-uninstalled) | Odinstalace zařízení. |
-| [`device-replaced`](#eventtype-device-replaced) | Výměna zařízení. |
-| [`measured-temperature`](#eventtype-measured-temperature) | Naměřená teplota. |
-| [`thermo-head-changed-position`](#eventtype-thermo-head-changed-position) | Změna polohy termostatických hlavic. |
-| [`heating-state-changed`](#eventtype-heating-state-changed) | Změna cílové teploty nebo stavu topení. |
-| [`battery-alert`](#eventtype-battery-alert) | Změna stavu baterie zařízení. |
-| [`failure`](#eventtype-failure) | Problém entity nebo jejího zařízení. |
-| [`failure-resolved`](#eventtype-failure-resolved) | Vyřešení problému entity nebo jejího zařízení. |
+| [`room-renamed`](#eventtype-room-renamed) | Změna názvu místnosti.                               |
+| [`room-deleted`](#eventtype-room-deleted) | Smazání místnosti.                                   |
+| [`room-floor-changed`](#eventtype-room-floor-changed) | Přesun místnosti do jiného podlaží stejné budovy.    |
+| [`entity-note-changed`](#eventtype-entity-note-changed) | Změna poznámky entity                                |
+| [`device-installed`](#eventtype-device-installed) | Instalace zařízení.                                  |
+| [`device-uninstalled`](#eventtype-device-uninstalled) | Odinstalace zařízení.                                |
+| [`device-replaced`](#eventtype-device-replaced) | Výměna zařízení.                                     |
+| [`measured-temperature`](#eventtype-measured-temperature) | Naměřená teplota.                                    |
+| [`thermo-head-changed-position`](#eventtype-thermo-head-changed-position) | Změna polohy termostatických hlavic.                 |
+| [`heating-state-changed`](#eventtype-heating-state-changed) | Změna cílové teploty nebo stavu topení.              |
+| [`battery-alert`](#eventtype-battery-alert) | Změna stavu baterie zařízení.                        |
+| [`failure`](#eventtype-failure) | Problém entity nebo jejího zařízení.                 |
+| [`failure-resolved`](#eventtype-failure-resolved) | Vyřešení problému entity nebo jejího zařízení.       |
 
 ## Základní datové typy
 
@@ -151,15 +154,16 @@ v cílovém systému ještě neexistují, příjemce je vytvoří z předaných 
 
 Data obsahují:
 
-| Parametr | Typ | Povinný | Popis |
-|:---------|:----|:--------|:------|
+| Parametr | Typ | Povinný | Popis                                |
+|:---------|:----|:--------|:-------------------------------------|
 | roomId | string (UUID) | ano | ID místnosti, které se událost týká. |
-| name | string | ano | Název místnosti. |
-| partnerId | string (UUID) | ano | ID partnera, kterému budova patří. |
-| buildingId | string (UUID) | ano | ID budovy. |
-| buildingName | string | ano | Název budovy. |
-| floorId | string (UUID) | ano | ID podlaží. |
-| floorName | string | ano | Název podlaží. |
+| name | string | ano | Název místnosti.                     |
+| note | string | ano | Poznámka místnosti.                  |
+| partnerId | string (UUID) | ano | ID partnera, kterému budova patří.   |
+| buildingId | string (UUID) | ano | ID budovy.                           |
+| buildingName | string | ano | Název budovy.                        |
+| floorId | string (UUID) | ano | ID podlaží.                          |
+| floorName | string | ano | Název podlaží.                       |
 
 Ukázka zaslané události:
 
@@ -176,7 +180,8 @@ Ukázka zaslané události:
         "buildingName": "Administrativní budova",
         "floorId": "d77c48f1-f7f3-4a02-b075-69b989914463",
         "floorName": "1. patro",
-        "name": "Kancelář 101"
+        "name": "Kancelář 101",
+        "note": "Teploměr je umístěn za rohem"
     }
 }
 ```
@@ -203,6 +208,82 @@ Ukázka zaslané události:
     "data": {
         "roomId": "d65f1ffb-aa60-4eff-9666-78a93a048b17",
         "name": "Zasedací místnost"
+    }
+}
+```
+
+### EventType room-deleted
+
+Smazání místnosti. Místnost lze smazat pouze tehdy, pokud k ní není přiřazen žádný device.
+
+Data obsahují:
+
+| Parametr | Typ | Povinný | Popis |
+|:---------|:----|:--------|:------|
+| roomId | string (UUID) | ano | ID smazané místnosti. |
+
+```json
+{
+    "protocolVersion": 2,
+    "eventId": "c4056fc4-d433-4d2c-bb7f-000000000012",
+    "eventTime": "2026-09-25T14:12:38Z",
+    "eventType": "room-deleted",
+    "data": {
+        "roomId": "d65f1ffb-aa60-4eff-9666-78a93a048b17"
+    }
+}
+```
+
+### EventType room-floor-changed
+
+Informuje o přesunu místnosti do jiného podlaží **ve stejné budově**. K přesunu může dojít během instalace,
+pokud byl původní plán podlaží chybný a místnost byla nejprve zařazena do nesprávného podlaží.
+
+Cílové podlaží musí existovat a patřit do stejné budovy.
+
+Data obsahují:
+
+| Parametr | Typ | Povinný | Popis |
+|:---------|:----|:--------|:------|
+| roomId | string (UUID) | ano | ID přesunuté místnosti. |
+| floorId | string (UUID) | ano | ID cílového podlaží. |
+
+```json
+{
+    "protocolVersion": 2,
+    "eventId": "c4056fc4-d433-4d2c-bb7f-000000000013",
+    "eventTime": "2026-09-25T14:12:38Z",
+    "eventType": "room-floor-changed",
+    "data": {
+        "roomId": "d65f1ffb-aa60-4eff-9666-78a93a048b17",
+        "floorId": "c4056fc4-d433-4d2c-bb7f-000000000014"
+    }
+}
+```
+
+### EventType entity-note-changed
+
+Informovat o změně poznámky na entitě.
+
+Data obsahují:
+
+| Parametr | Typ    | Povinný | Popis                                            |
+|:---------|:-------|:--------|:-------------------------------------------------|
+| entity   | Entity | ano     | ID a typ entity, jejíž poznámka se změnila.      |
+| note     | string | ano     | Nová hodnota poznámky, případně prázdný řetězec. |
+
+```json
+{
+    "protocolVersion": 2,
+    "eventId": "c4056fc4-d433-4d2c-bb7f-000000000015",
+    "eventTime": "2026-09-25T14:12:38Z",
+    "eventType": "entity-note-changed",
+    "data": {
+        "entity": {
+            "id": "d65f1ffb-aa60-4eff-9666-78a93a048b17",
+            "type": "room"
+        },
+        "note": "Neobsazená místnost"
     }
 }
 ```
