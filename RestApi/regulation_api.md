@@ -1,4 +1,4 @@
-# API pro místnosti a zařízení
+# Netlia Regulation API
 
 Dokument popisuje partnerské REST API pro regulaci teploty v místnostech, plánování vytápění, ovládání termostatických hlavic a výměnu zařízení.
 Požadavky i odpovědi s daty používají JSON. Adresu serveru a přístupové údaje poskytne zástupce Netlia.

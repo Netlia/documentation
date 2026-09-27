@@ -2,7 +2,7 @@
 
 Tato dokumentace popisuje události týkající se měření a regulace teploty, stavu zařízení a správy místností.
 
-Související operace jsou popsány v [dokumentaci REST API](../RestApi/Room_v2.md).
+Související operace jsou popsány v [dokumentaci REST API](../RestApi/regulation_api.md).
 
 ## Obsah
 
