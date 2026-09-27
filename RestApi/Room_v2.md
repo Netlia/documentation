@@ -129,19 +129,6 @@ respektujte hlavičku `Retry-After`, pokud je uvedena.
 
 ## Základní datové typy
 
-### Identifikátory
-
-| Identifikátor | Typ | Význam |
-|:--------------|:----|:-------|
-| roomId | string (UUID) | ID místnosti, například z události `room-created`. |
-| entityId | string (UUID) | ID entity. Pro `entityType: "room"` jde o ID místnosti. |
-| deviceId | string (UUID) | ID zařízení nainstalovaného v budově, například z události `device-installed`. |
-| deviceIds | string (UUID)[] | Seznam ID zařízení, používaný endpointy pro hlavice. |
-| replacedDeviceId, replacementDeviceId | string (UUID) | ID vyměňovaného a náhradního zařízení. Odpovídají identifikátorům zařízení v událostech. |
-
-Místnost musí existovat a mít nakonfigurovanou regulaci teploty. Jinak její operace vrátí 400.
-Při hromadném nastavení se existence a konfigurace všech místností ověří před předáním změn ke zpracování.
-
 ### Čas
 
 #### UTC
