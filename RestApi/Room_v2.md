@@ -162,14 +162,24 @@ když její hodnota může být `null`.
 
 ## Popis endpointů
 
-U všech následujících endpointů posílejte hlavičku `Authorization`. U endpointů, které mění stav systému,
-posílejte navíc hlavičku `Idempotency-Key`.
+Každý endpoint uvádí hlavičky, které je nutné poslat. Všechny je vyžadují ve stejné podobě:
+`Authorization` s bearer tokenem, `Content-Type` pro JSON tělo a `Idempotency-Key` s novým UUID pro každý
+nový požadavek. Význam `Idempotency-Key` popisuje
+[Idempotency-Key a opakované volání endpointů](#idempotency-key-a-opakované-volání-endpointů).
 Změny mohou být zpracovávány asynchronně. Úspěšná odpověď neznamená, že již byla v místnosti dosažena požadovaná
 teplota nebo že zařízení již provedlo příkaz.
 
 ### POST api/room/schedule-temperature
 
 Naplánuje cílové teploty pro jednu nebo více místností, případně s předehříváním.
+
+Hlavičky požadavku:
+
+```http
+Authorization: Bearer <token>
+Content-Type: application/json
+Idempotency-Key: b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc
+```
 
 Předávané parametry v těle:
 
@@ -236,6 +246,14 @@ Záznamy přesně v tomto čase se neruší. Operace vybírá pouze záznamy se 
 použijte proto stejné `ianaTimeZone` jako při plánování. Již zpracovávané nebo dokončené záznamy se nemění.
 `roomId` v URL je UUID místnosti.
 
+Hlavičky požadavku:
+
+```http
+Authorization: Bearer <token>
+Content-Type: application/json
+Idempotency-Key: b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc
+```
+
 | Parametr | Typ | Povinný | Popis |
 |:---------|:----|:--------|:------|
 | abortAfterTime | ZonedDateTime | ano | Dolní časová hranice pro zrušení nezpracovaných změn. |
@@ -262,6 +280,14 @@ Ukázka response (`200 OK`):
 ### PUT api/room/temperature
 
 Předá okamžité změny cílové teploty pro více místností. Každá místnost může mít jinou cílovou teplotu.
+
+Hlavičky požadavku:
+
+```http
+Authorization: Bearer <token>
+Content-Type: application/json
+Idempotency-Key: b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc
+```
 
 | Parametr | Typ | Povinný | Popis |
 |:---------|:----|:--------|:------|
@@ -301,6 +327,14 @@ Vymění zařízení přiřazené k entitě. Aktuálně je podporována pouze en
 Náhradní zařízení musí být registrované v Netlia, dostupné pro instalaci a vhodného typu pro výměnu.
 Vyměňované zařízení musí patřit k uvedené místnosti.
 
+Hlavičky požadavku:
+
+```http
+Authorization: Bearer <token>
+Content-Type: application/json
+Idempotency-Key: b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc
+```
+
 | Parametr | Typ | Povinný | Popis |
 |:---------|:----|:--------|:------|
 | entityType | string | ano | Typ entity. Použijte `room`; hodnoty `riser` a `building-side` nyní nejsou podporovány. |
@@ -328,7 +362,14 @@ O výměně je partner informován událostí `device-replaced`.
 ### PUT api/thermo-heads/turn-off-regulation
 
 Vypne regulaci vybraných termostatických hlavic, případně do zadaného času. Před vypnutím lze nastavit jejich polohu.
-Vyžaduje hlavičky `Authorization` a `Idempotency-Key`.
+
+Hlavičky požadavku:
+
+```http
+Authorization: Bearer <token>
+Content-Type: application/json
+Idempotency-Key: b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc
+```
 
 | Parametr | Typ | Povinný | Popis |
 |:---------|:----|:--------|:------|
@@ -357,7 +398,15 @@ Všechna ID musí označovat existující hlavice. Duplicitní ID se zpracuje po
 
 ### PUT api/thermo-heads/turn-on-regulation
 
-Zapne regulaci vybraných termostatických hlavic. Vyžaduje hlavičky `Authorization` a `Idempotency-Key`.
+Zapne regulaci vybraných termostatických hlavic.
+
+Hlavičky požadavku:
+
+```http
+Authorization: Bearer <token>
+Content-Type: application/json
+Idempotency-Key: b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc
+```
 
 | Parametr | Typ | Povinný | Popis |
 |:---------|:----|:--------|:------|
