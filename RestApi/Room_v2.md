@@ -320,12 +320,11 @@ Ukázka response:
 Pokud některá místnost neexistuje nebo nemá nakonfigurovanou regulaci, požadavek je odmítnut před předáním změn.
 To neznamená, že zařízení provedou všechny změny současně.
 
-### PUT api/entity/{entityId}/replace-device
+### POST api/entity/replace-device
 
-Vymění zařízení přiřazené k entitě. Aktuálně je podporována pouze entita typu `room`;
-`entityId` v URL tedy musí být UUID místnosti.
+Vymění zařízení přiřazené k entitě. Entitu určuje objekt `entity` v těle požadavku.
 Náhradní zařízení musí být registrované v Netlia, dostupné pro instalaci a vhodného typu pro výměnu.
-Vyměňované zařízení musí patřit k uvedené místnosti.
+Vyměňované zařízení musí patřit k uvedené entitě.
 
 Hlavičky požadavku:
 
@@ -337,15 +336,25 @@ Idempotency-Key: b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc
 
 | Parametr | Typ | Povinný | Popis |
 |:---------|:----|:--------|:------|
-| entityType | string | ano | Typ entity. Použijte `room`; hodnoty `riser` a `building-side` nyní nejsou podporovány. |
+| entity | Entity | ano | Entita, ve které je zařízení nainstalováno. |
 | replacedDeviceId | string (UUID) | ano | ID vyměňovaného zařízení. |
 | replacementDeviceId | string (UUID) | ano | ID náhradního zařízení. |
+
+Objekt `Entity` má stejnou podobu jako `entity` v zasílaných událostech:
+
+| Parametr | Typ | Povinný | Popis |
+|:---------|:----|:--------|:------|
+| id | string (UUID) | ano | ID entity. Pro `type: "room"` jde o ID místnosti. |
+| type | string | ano | Typ entity: `room`, `riser` nebo `building-side`. |
 
 Ukázka requestu:
 
 ```json
 {
-  "entityType": "room",
+  "entity": {
+    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "type": "room"
+  },
   "replacedDeviceId": "6e748f20-846e-4e89-a831-000000000001",
   "replacementDeviceId": "6e748f20-846e-4e89-a831-000000000002"
 }
