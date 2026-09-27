@@ -31,13 +31,13 @@ Hlavičku `Content-Type` posílejte u požadavků s JSON tělem.
 ### Chyby 5xx
 
 Chyby 5xx znamenají problém na straně serveru. Mohou být dočasné. Pokud přetrvávají, kontaktujte zástupce Netlia.
-Před opakováním požadavku zohledněte pravidla v části [Request-Id a opakované volání endpointů](#request-id-a-opakované-volání-endpointů).
+Před opakováním požadavku zohledněte pravidla v části [Idempotency-Key a opakované volání endpointů](#idempotency-key-a-opakované-volání-endpointů).
 
 ### Chyby 4xx
 
 | HTTP kód | Význam |
 |:---------|:-------|
-| 400 Bad Request | Neplatné vstupy, chybějící nebo neplatná hlavička `Request-Id`, neexistující místnost nebo místnost bez nakonfigurované regulace. Podrobnosti jsou v těle odpovědi. |
+| 400 Bad Request | Neplatné vstupy, chybějící nebo neplatná hlavička `Idempotency-Key`, neexistující místnost nebo místnost bez nakonfigurované regulace. Podrobnosti jsou v těle odpovědi. |
 | 401 Unauthorized | Chybějící nebo neplatný bearer token. |
 | 403 Forbidden | Klient nemá oprávnění k operaci. |
 | 404 Not Found | URL neodpovídá žádnému endpointu. |
@@ -72,27 +72,30 @@ Příklad validační chyby (text zprávy je ilustrativní):
   "detail": "One or more validation errors occurred.",
   "errorCode": 400,
   "errors": {
-    "Request-Id": ["The Request-Id field is required."]
+    "Idempotency-Key": ["The Idempotency-Key field is required."]
   }
 }
 ```
 
-## Request-Id a opakované volání endpointů
+## Idempotency-Key a opakované volání endpointů
 
-Všechny endpointy v tomto dokumentu vyžadují hlavičku `Request-Id`,
-včetně požadavků `GET`. Hodnota musí být platné UUID. Chybějící, prázdná nebo neplatná hodnota způsobí odpověď `400 Bad Request`.
+Všechny endpointy v tomto dokumentu, které mění stav systému (`PUT`, `POST`), vyžadují hlavičku `Idempotency-Key`.
+Hodnota musí být platné UUID. Chybějící, prázdná nebo neplatná hodnota způsobí odpověď `400 Bad Request`.
 Identifikátor se posílá výhradně v hlavičce, nikoli v JSON těle požadavku.
+
+Požadavky `GET` hlavičku nevyžadují a nijak ji nezpracovávají. Čtení dat stav systému nemění, proto je opakované
+volání vždy bezpečné.
 
 | Header Key | Header Value |
 |:-----------|:-------------|
-| Request-Id | b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc |
+| Idempotency-Key | b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc |
 
 Příklad celého požadavku:
 
 ```http
 PUT /api/room/f47ac10b-58cc-4372-a567-0e02b2c3d479/temperature HTTP/1.1
 Authorization: Bearer <token>
-Request-Id: b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc
+Idempotency-Key: b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc
 Content-Type: application/json
 
 {"targetTemperature":21.5}
@@ -100,26 +103,28 @@ Content-Type: application/json
 
 ### Význam identifikátoru
 
-`Request-Id` slouží jako klíč idempotence: umožňuje zopakovat stejný požadavek, aniž by byla jeho změna provedena
+`Idempotency-Key` slouží jako klíč idempotence: umožňuje zopakovat stejný požadavek, aniž by byla jeho změna provedena
 vícekrát. Pro každý nový požadavek vytvořte nové UUID. Při opakování stejného požadavku zachovejte stejnou metodu,
-URL, tělo i `Request-Id`. Stejný identifikátor nepoužívejte pro jinou operaci ani pro změněné vstupy.
+URL, tělo i `Idempotency-Key`. Stejný identifikátor nepoužívejte pro jinou operaci ani pro změněné vstupy.
 
-Pokud server již požadavek úspěšně zpracoval, při opakování se stejným `Request-Id` neprovede změnu znovu a vrátí
-výsledek předchozího zpracování. To chrání například před opakovaným vytvořením plánovaných změn teploty nebo
-opakovanou výměnou zařízení po výpadku spojení.
+Pokud server požadavek s daným klíčem již úspěšně zpracoval, při opakování se stejným `Idempotency-Key` neprovede
+změnu znovu a přehraje původní odpověď: vrátí stejný stavový kód i stejné tělo jako při prvním zpracování.
+To chrání například před opakovaným vytvořením plánovaných změn teploty nebo opakovanou výměnou zařízení
+po výpadku spojení.
+
+Klíče jsou uchovávány 24 hodin od prvního zpracování požadavku. Po uplynutí této doby již server opakování
+nerozpozná a požadavek zpracuje jako nový. Opakované pokusy proto provádějte v rámci tohoto okna.
 
 U okamžitých změn teploty se identifikátor předává do související události `heating-state-changed` jako `sourceRequestId`.
 U ostatních operací nelze předpokládat jeho vrácení v události.
 
-Hlavička je povinná také u `GET`, které pouze čte data a nemění stav systému.
-
 ### Opakování na straně klienta
 
-Po síťové chybě nebo chybě 5xx zopakujte stejný požadavek se stejným `Request-Id`. Pokud nebyl úspěšně zpracován,
-server se jej pokusí zpracovat znovu. Pokud již dokončen byl, vrátí jeho výsledek bez opakovaného provedení změny.
-Pro opakované pokusy používejte rostoucí prodlevu a omezte jejich počet.
+Po síťové chybě nebo chybě 5xx zopakujte stejný požadavek se stejným `Idempotency-Key`. Pokud nebyl úspěšně zpracován,
+server se jej pokusí zpracovat znovu. Pokud již dokončen byl, přehraje jeho původní odpověď bez opakovaného provedení
+změny. Pro opakované pokusy používejte rostoucí prodlevu a omezte jejich počet.
 
-Po chybě 400 opravte vstupy a odešlete nový požadavek s novým `Request-Id`. Při odpovědi `429 Too Many Requests`
+Po chybě 400 opravte vstupy a odešlete nový požadavek s novým `Idempotency-Key`. Při odpovědi `429 Too Many Requests`
 respektujte hlavičku `Retry-After`, pokud je uvedena.
 
 ## Základní datové typy
@@ -130,8 +135,9 @@ respektujte hlavičku `Retry-After`, pokud je uvedena.
 |:--------------|:----|:-------|
 | roomId | string (UUID) | ID místnosti, například z události `room-created`. |
 | entityId | string (UUID) | ID entity. Pro `entityType: "room"` jde o ID místnosti. |
-| replacedDeviceId, replacementDeviceId | string | Sériová čísla fyzických zařízení. Odpovídají identifikátorům zařízení v událostech. |
-| physicalDeviceIds | string (UUID)[] | ID fyzických zařízení evidovaných v Netlia, používaná endpointy pro hlavice. Nejde o sériová čísla. |
+| deviceId | string (UUID) | ID zařízení nainstalovaného v budově, například z události `device-installed`. |
+| deviceIds | string (UUID)[] | Seznam ID zařízení, používaný endpointy pro hlavice. |
+| replacedDeviceId, replacementDeviceId | string (UUID) | ID vyměňovaného a náhradního zařízení. Odpovídají identifikátorům zařízení v událostech. |
 
 Místnost musí existovat a mít nakonfigurovanou regulaci teploty. Jinak její operace vrátí 400.
 Při hromadném nastavení se existence a konfigurace všech místností ověří před předáním změn ke zpracování.
@@ -169,9 +175,10 @@ když její hodnota může být `null`.
 
 ## Popis endpointů
 
-U všech následujících endpointů posílejte hlavičky `Authorization` a `Request-Id`.
+U všech následujících endpointů posílejte hlavičku `Authorization`. U endpointů, které mění stav systému,
+posílejte navíc hlavičku `Idempotency-Key`.
 Změny mohou být zpracovávány asynchronně. Úspěšná odpověď neznamená, že již byla v místnosti dosažena požadovaná
-teplota nebo že fyzické zařízení již provedlo příkaz.
+teplota nebo že zařízení již provedlo příkaz.
 
 ### PUT api/room/{roomId}/mode
 
@@ -267,7 +274,7 @@ Ukázka response:
   Skutečný výsledek závisí na podmínkách v místnosti a možnostech vytápění.
 * Pro plánované snížení teploty použijte `standard-without-pre-heating`.
 * Okamžitá změna cílové teploty může ukončit právě probíhající předehřívání.
-* Při opakování stejného plánování zachovejte `Request-Id`. Samotné `scheduleId` nenahrazuje klíč idempotence požadavku.
+* Při opakování stejného plánování zachovejte `Idempotency-Key`. Samotné `scheduleId` nenahrazuje klíč idempotence požadavku.
 
 **Příklad příchodu a odchodu hosta:**
 
@@ -361,7 +368,7 @@ Ukázka response:
 ```
 
 Pokud některá místnost neexistuje nebo nemá nakonfigurovanou regulaci, požadavek je odmítnut před předáním změn.
-To neznamená, že fyzická zařízení provedou všechny změny současně.
+To neznamená, že zařízení provedou všechny změny současně.
 
 ### PUT api/room/{roomId}/set-temperature-by-user
 
@@ -400,9 +407,9 @@ Ukázka response (`200 OK`):
 
 `targetTemperature` může být `null`, pokud cílová teplota není nastavena.
 
-### PUT api/entity/{entityId}/replace-physical-device
+### PUT api/entity/{entityId}/replace-device
 
-Vymění fyzické zařízení přiřazené k entitě. Aktuálně je podporována pouze entita typu `room`;
+Vymění zařízení přiřazené k entitě. Aktuálně je podporována pouze entita typu `room`;
 `entityId` v URL tedy musí být UUID místnosti.
 Náhradní zařízení musí být registrované v Netlia, dostupné pro instalaci a vhodného typu pro výměnu.
 Vyměňované zařízení musí patřit k uvedené místnosti.
@@ -410,16 +417,16 @@ Vyměňované zařízení musí patřit k uvedené místnosti.
 | Parametr | Typ | Povinný | Popis |
 |:---------|:----|:--------|:------|
 | entityType | string | ano | Typ entity. Použijte `room`; hodnoty `riser` a `building-side` nyní nejsou podporovány. |
-| replacedDeviceId | string | ano | Sériové číslo vyměňovaného zařízení. |
-| replacementDeviceId | string | ano | Sériové číslo náhradního zařízení. |
+| replacedDeviceId | string (UUID) | ano | ID vyměňovaného zařízení. |
+| replacementDeviceId | string (UUID) | ano | ID náhradního zařízení. |
 
 Ukázka requestu:
 
 ```json
 {
   "entityType": "room",
-  "replacedDeviceId": "sensor-001",
-  "replacementDeviceId": "sensor-002"
+  "replacedDeviceId": "6e748f20-846e-4e89-a831-000000000001",
+  "replacementDeviceId": "6e748f20-846e-4e89-a831-000000000002"
 }
 ```
 
@@ -455,11 +462,11 @@ Ukázka response:
 ### PUT api/thermo-heads/turn-off-regulation
 
 Vypne regulaci vybraných termostatických hlavic, případně do zadaného času. Před vypnutím lze nastavit jejich polohu.
-Vyžaduje hlavičky `Authorization` a `Request-Id`.
+Vyžaduje hlavičky `Authorization` a `Idempotency-Key`.
 
 | Parametr | Typ | Povinný | Popis |
 |:---------|:----|:--------|:------|
-| physicalDeviceIds | string (UUID)[] | ano | ID hlavic evidovaných v Netlia. Seznam musí obsahovat alespoň jednu hlavici. |
+| deviceIds | string (UUID)[] | ano | ID hlavic. Seznam musí obsahovat alespoň jednu hlavici. |
 | turnedOffUntil | string (UTC čas) nebo null | ne | Čas automatického obnovení regulace; musí být v budoucnosti. Bez hodnoty zůstane regulace vypnutá do opětovného zapnutí. |
 | positionBeforeTurnOff | integer nebo null | ne | Poloha hlavic před vypnutím, od 1 do 99. |
 
@@ -467,7 +474,7 @@ Ukázka requestu:
 
 ```json
 {
-  "physicalDeviceIds": ["6e748f20-846e-4e89-a831-000000000004"],
+  "deviceIds": ["6e748f20-846e-4e89-a831-000000000004"],
   "turnedOffUntil": "2027-10-21T16:00:00Z",
   "positionBeforeTurnOff": 50
 }
@@ -484,17 +491,17 @@ Všechna ID musí označovat existující hlavice. Duplicitní ID se zpracuje po
 
 ### PUT api/thermo-heads/turn-on-regulation
 
-Zapne regulaci vybraných termostatických hlavic. Vyžaduje hlavičky `Authorization` a `Request-Id`.
+Zapne regulaci vybraných termostatických hlavic. Vyžaduje hlavičky `Authorization` a `Idempotency-Key`.
 
 | Parametr | Typ | Povinný | Popis |
 |:---------|:----|:--------|:------|
-| physicalDeviceIds | string (UUID)[] | ano | ID hlavic evidovaných v Netlia. Seznam musí obsahovat alespoň jednu hlavici. |
+| deviceIds | string (UUID)[] | ano | ID hlavic. Seznam musí obsahovat alespoň jednu hlavici. |
 
 Ukázka requestu:
 
 ```json
 {
-  "physicalDeviceIds": ["6e748f20-846e-4e89-a831-000000000004"]
+  "deviceIds": ["6e748f20-846e-4e89-a831-000000000004"]
 }
 ```
 
