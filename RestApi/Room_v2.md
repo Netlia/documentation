@@ -1,6 +1,6 @@
 # API pro místnosti a zařízení
 
-Dokument popisuje partnerské REST API pro regulaci teploty v místnostech, plánování vytápění, diagnostiku a výměnu zařízení.
+Dokument popisuje partnerské REST API pro regulaci teploty v místnostech, plánování vytápění, ovládání termostatických hlavic a výměnu zařízení.
 Požadavky i odpovědi s daty používají JSON. Adresu serveru a přístupové údaje poskytne zástupce Netlia.
 Všechny uvedené cesty jsou relativní k adrese serveru.
 
@@ -167,46 +167,6 @@ posílejte navíc hlavičku `Idempotency-Key`.
 Změny mohou být zpracovávány asynchronně. Úspěšná odpověď neznamená, že již byla v místnosti dosažena požadovaná
 teplota nebo že zařízení již provedlo příkaz.
 
-### PUT api/room/{roomId}/mode
-
-Změní režim regulace v místnosti. `roomId` v URL je UUID místnosti.
-
-Předávané parametry v těle:
-
-| Parametr | Typ | Povinný | Popis |
-|:---------|:----|:--------|:------|
-| mode | string | ano | Cílový režim. |
-
-| Hodnota | Význam |
-|:--------|:-------|
-| winter | Základní regulace teploty. |
-| summer | Letní režim bez regulace a bez měření teploty. |
-| summer-with-temperature-measurement | Letní režim bez regulace, ve kterém se nadále měří teplota. |
-
-Ukázka requestu:
-
-```json
-{"mode":"winter"}
-```
-
-Ukázka response:
-
-```text
-200 OK, žádné informace v body.
-```
-
-### GET api/room/{roomId}/mode
-
-Vrátí aktuální režim místnosti. `roomId` v URL je UUID místnosti. Požadavek nemá tělo.
-
-Ukázka response (`200 OK`):
-
-```json
-{"mode":"winter"}
-```
-
-Hodnoty `mode` jsou uvedeny u operace pro změnu režimu.
-
 ### POST api/room/schedule-temperature
 
 Naplánuje cílové teploty pro jednu nebo více místností, případně s předehříváním.
@@ -299,29 +259,6 @@ Ukázka response (`200 OK`):
 
 `abortedCount` udává počet zrušených záznamů; může být `0`.
 
-### PUT api/room/{roomId}/temperature
-
-Předá okamžitou změnu cílové teploty pro jednu místnost. `roomId` v URL je UUID místnosti.
-
-| Parametr | Typ | Povinný | Popis |
-|:---------|:----|:--------|:------|
-| targetTemperature | float nebo null | ano | Cílová teplota v °C. |
-
-Ukázka requestu:
-
-```json
-{"targetTemperature":21.5}
-```
-
-Ukázka response:
-
-```text
-200 OK, žádné informace v body.
-```
-
-Nastavuje se cílová teplota, nikoli naměřená teplota v místnosti. Požadavek nepoužívá uživatelský limit maximální
-teploty; pro změny od uživatelů slouží `set-temperature-by-user`.
-
 ### PUT api/room/temperature
 
 Předá okamžité změny cílové teploty pro více místností. Každá místnost může mít jinou cílovou teplotu.
@@ -357,43 +294,6 @@ Ukázka response:
 Pokud některá místnost neexistuje nebo nemá nakonfigurovanou regulaci, požadavek je odmítnut před předáním změn.
 To neznamená, že zařízení provedou všechny změny současně.
 
-### PUT api/room/{roomId}/set-temperature-by-user
-
-Předá změnu požadovanou uživatelem a uplatní nastavený limit maximální uživatelské teploty.
-`roomId` v URL je UUID místnosti.
-
-| Parametr | Typ | Povinný | Popis |
-|:---------|:----|:--------|:------|
-| targetTemperature | float nebo null | ano | Uživatelem požadovaná teplota v °C. |
-
-Ukázka requestu:
-
-```json
-{"targetTemperature":30.0}
-```
-
-Při limitu 25 °C může být response (`200 OK`):
-
-```json
-25.0
-```
-
-Odpověď je samotné číslo. Pokud by uplatnění limitu snížilo cíl pod aktuální cílovou teplotu, systém může ponechat
-současný cíl a vrátit jeho hodnotu. Pokud výsledná hodnota není nastavena (`null`), odpověď může být `204 No Content`.
-
-### GET api/room/{roomId}/temperature
-
-Vrátí cílovou teplotu místnosti. `roomId` v URL je UUID místnosti. Požadavek nemá tělo.
-Naměřenou teplotu získává partner prostřednictvím události `measured-temperature`.
-
-Ukázka response (`200 OK`):
-
-```json
-{"targetTemperature":21.5}
-```
-
-`targetTemperature` může být `null`, pokud cílová teplota není nastavena.
-
 ### PUT api/entity/{entityId}/replace-device
 
 Vymění zařízení přiřazené k entitě. Aktuálně je podporována pouze entita typu `room`;
@@ -424,27 +324,6 @@ Ukázka response:
 ```
 
 O výměně je partner informován událostí `device-replaced`.
-
-### POST api/room/start-diagnostic
-
-Spustí diagnostiku zařízení v místnosti. O začátku a konci diagnostiky je partner informován událostí
-`heating-state-changed`.
-
-| Parametr | Typ | Povinný | Popis |
-|:---------|:----|:--------|:------|
-| roomId | string (UUID) | ano | ID místnosti, ve které se diagnostika spustí. |
-
-Ukázka requestu:
-
-```json
-{"roomId":"f47ac10b-58cc-4372-a567-0e02b2c3d479"}
-```
-
-Ukázka response:
-
-```text
-200 OK, žádné informace v body.
-```
 
 ### PUT api/thermo-heads/turn-off-regulation
 
