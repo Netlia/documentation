@@ -79,7 +79,7 @@ Příklad validační chyby (text zprávy je ilustrativní):
 
 ## Idempotency-Key a opakované volání endpointů
 
-Všechny endpointy v tomto dokumentu, které mění stav systému (`PUT`, `POST`), vyžadují hlavičku `Idempotency-Key`.
+Všechny endpointy v tomto dokumentu kromě `GET` vyžadují hlavičku `Idempotency-Key`.
 Hodnota musí být platné UUID. Chybějící, prázdná nebo neplatná hodnota způsobí odpověď `400 Bad Request`.
 Identifikátor se posílá výhradně v hlavičce, nikoli v JSON těle požadavku.
 
@@ -207,7 +207,7 @@ Ukázka response (`200 OK`):
 
 Hodnoty `mode` jsou uvedeny u operace pro změnu režimu.
 
-### PUT api/room/schedule-temperature
+### POST api/room/schedule-temperature
 
 Naplánuje cílové teploty pro jednu nebo více místností, případně s předehříváním.
 
@@ -425,7 +425,7 @@ Ukázka response:
 
 O výměně je partner informován událostí `device-replaced`.
 
-### PUT api/room/start-diagnostic
+### POST api/room/start-diagnostic
 
 Spustí diagnostiku zařízení v místnosti. O začátku a konci diagnostiky je partner informován událostí
 `heating-state-changed`.
