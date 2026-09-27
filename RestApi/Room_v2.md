@@ -79,9 +79,9 @@ Příklad validační chyby (text zprávy je ilustrativní):
 
 ## Request-Id a opakované volání endpointů
 
-Všechny endpointy `/api/room/...` a `/api/entity/...` v tomto dokumentu vyžadují hlavičku `Request-Id`,
+Všechny endpointy v tomto dokumentu vyžadují hlavičku `Request-Id`,
 včetně požadavků `GET`. Hodnota musí být platné UUID. Chybějící, prázdná nebo neplatná hodnota způsobí odpověď `400 Bad Request`.
-Identifikátor se neposílá v JSON těle těchto požadavků.
+Identifikátor se posílá výhradně v hlavičce, nikoli v JSON těle požadavku.
 
 | Header Key | Header Value |
 |:-----------|:-------------|
@@ -100,21 +100,27 @@ Content-Type: application/json
 
 ### Význam identifikátoru
 
-Pro nový požadavek vytvořte nové UUID. Při opakování stejného požadavku použijte stejný identifikátor.
+`Request-Id` slouží jako klíč idempotence: umožňuje zopakovat stejný požadavek, aniž by byla jeho změna provedena
+vícekrát. Pro každý nový požadavek vytvořte nové UUID. Při opakování stejného požadavku zachovejte stejnou metodu,
+URL, tělo i `Request-Id`. Stejný identifikátor nepoužívejte pro jinou operaci ani pro změněné vstupy.
+
+Pokud server již požadavek úspěšně zpracoval, při opakování se stejným `Request-Id` neprovede změnu znovu a vrátí
+výsledek předchozího zpracování. To chrání například před opakovaným vytvořením plánovaných změn teploty nebo
+opakovanou výměnou zařízení po výpadku spojení.
+
 U okamžitých změn teploty se identifikátor předává do související události `heating-state-changed` jako `sourceRequestId`.
+U ostatních operací nelze předpokládat jeho vrácení v události.
 
-**Server aktuálně nepotlačuje opakované požadavky.** Stejné `Request-Id` nezaručuje provedení pouze jednou
-ani vrácení uloženého výsledku předchozího volání. U ostatních operací se hlavička validuje, ale nelze předpokládat
-její vrácení v události.
-
-Endpointy `/api/thermo-heads/...` vyžadují identifikátor `requestId` v JSON těle, jak je uvedeno v jejich tabulkách.
-Hlavička `Request-Id` u nich není vyžadována a nenahrazuje položku v těle.
+Hlavička je povinná také u `GET`, které pouze čte data a nemění stav systému.
 
 ### Opakování na straně klienta
 
-Po síťové chybě nebo chybě 5xx nemusí být jasné, zda již byla operace přijata. Před opakováním změny ověřte stav,
-pokud je to možné, například čtením cílové teploty nebo přijatými událostmi. Zejména opakované plánování může vytvořit
-další záznamy. Pro opakované pokusy používejte rostoucí prodlevu a omezte jejich počet.
+Po síťové chybě nebo chybě 5xx zopakujte stejný požadavek se stejným `Request-Id`. Pokud nebyl úspěšně zpracován,
+server se jej pokusí zpracovat znovu. Pokud již dokončen byl, vrátí jeho výsledek bez opakovaného provedení změny.
+Pro opakované pokusy používejte rostoucí prodlevu a omezte jejich počet.
+
+Po chybě 400 opravte vstupy a odešlete nový požadavek s novým `Request-Id`. Při odpovědi `429 Too Many Requests`
+respektujte hlavičku `Retry-After`, pokud je uvedena.
 
 ## Základní datové typy
 
@@ -163,7 +169,7 @@ když její hodnota může být `null`.
 
 ## Popis endpointů
 
-U všech následujících operací s místnostmi a entitami posílejte hlavičky `Authorization` a `Request-Id`.
+U všech následujících endpointů posílejte hlavičky `Authorization` a `Request-Id`.
 Změny mohou být zpracovávány asynchronně. Úspěšná odpověď neznamená, že již byla v místnosti dosažena požadovaná
 teplota nebo že fyzické zařízení již provedlo příkaz.
 
@@ -225,7 +231,7 @@ Objekt `ScheduleTargetTemperature`:
 | targetTemperature | float | ano | Cílová teplota v °C; nesmí být `null`. |
 | reachTargetTemperatureByThisTime | ZonedDateTime | ano | Čas dosažení cílové teploty při předehřívání, jinak čas změny cíle. |
 | regulationType | string | ano | `standard-with-pre-heating` nebo `standard-without-pre-heating`. |
-| scheduleId | string (UUID) | ano | Identifikátor předávaný s položkou plánu. Aktuálně se nepoužívá k rozlišení ani potlačení duplicit. |
+| scheduleId | string (UUID) | ano | Identifikátor předávaný s položkou plánu. Neslouží jako klíč idempotence požadavku. |
 
 Ukázka requestu:
 
@@ -261,7 +267,7 @@ Ukázka response:
   Skutečný výsledek závisí na podmínkách v místnosti a možnostech vytápění.
 * Pro plánované snížení teploty použijte `standard-without-pre-heating`.
 * Okamžitá změna cílové teploty může ukončit právě probíhající předehřívání.
-* Stejné `scheduleId` ani `Request-Id` nezabraňuje opakovanému vytvoření plánu.
+* Při opakování stejného plánování zachovejte `Request-Id`. Samotné `scheduleId` nenahrazuje klíč idempotence požadavku.
 
 **Příklad příchodu a odchodu hosta:**
 
@@ -449,11 +455,10 @@ Ukázka response:
 ### PUT api/thermo-heads/turn-off-regulation
 
 Vypne regulaci vybraných termostatických hlavic, případně do zadaného času. Před vypnutím lze nastavit jejich polohu.
-Používá hlavičku `Authorization` a identifikátor `requestId` v těle požadavku.
+Vyžaduje hlavičky `Authorization` a `Request-Id`.
 
 | Parametr | Typ | Povinný | Popis |
 |:---------|:----|:--------|:------|
-| requestId | string (UUID) | ano | Identifikátor požadavku. |
 | physicalDeviceIds | string (UUID)[] | ano | ID hlavic evidovaných v Netlia. Seznam musí obsahovat alespoň jednu hlavici. |
 | turnedOffUntil | string (UTC čas) nebo null | ne | Čas automatického obnovení regulace; musí být v budoucnosti. Bez hodnoty zůstane regulace vypnutá do opětovného zapnutí. |
 | positionBeforeTurnOff | integer nebo null | ne | Poloha hlavic před vypnutím, od 1 do 99. |
@@ -462,7 +467,6 @@ Ukázka requestu:
 
 ```json
 {
-  "requestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc",
   "physicalDeviceIds": ["6e748f20-846e-4e89-a831-000000000004"],
   "turnedOffUntil": "2027-10-21T16:00:00Z",
   "positionBeforeTurnOff": 50
@@ -480,18 +484,16 @@ Všechna ID musí označovat existující hlavice. Duplicitní ID se zpracuje po
 
 ### PUT api/thermo-heads/turn-on-regulation
 
-Zapne regulaci vybraných termostatických hlavic. Používá hlavičku `Authorization` a `requestId` v těle požadavku.
+Zapne regulaci vybraných termostatických hlavic. Vyžaduje hlavičky `Authorization` a `Request-Id`.
 
 | Parametr | Typ | Povinný | Popis |
 |:---------|:----|:--------|:------|
-| requestId | string (UUID) | ano | Identifikátor požadavku. |
 | physicalDeviceIds | string (UUID)[] | ano | ID hlavic evidovaných v Netlia. Seznam musí obsahovat alespoň jednu hlavici. |
 
 Ukázka requestu:
 
 ```json
 {
-  "requestId": "b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc",
   "physicalDeviceIds": ["6e748f20-846e-4e89-a831-000000000004"]
 }
 ```
