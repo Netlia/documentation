@@ -160,6 +160,19 @@ Teploty jsou desetinná čísla ve stupních Celsia. V JSON používejte desetin
 Možnost předat `null` je uvedena u konkrétního parametru. Povinná položka musí být v těle přítomna i tehdy,
 když její hodnota může být `null`.
 
+### Režim vytápění
+
+Parametr `heatingIntent` sděluje, proč je cílová teplota nastavována. Uvádí se u každé změny teploty.
+
+| heatingIntent | Popis |
+|:--------------|:------|
+| `comfort` | Standardní vytápění, například pracovní doba nebo obsazená místnost. |
+| `setback` | Útlum, například noc nebo doba mimo pracovní dobu. |
+| `unknown` | Aplikace důvod změny nezná, například při ruční změně teploty obsluhou. |
+
+Režim vytápění je jedním ze vstupů regulace, proto vždy posílejte nejpřesnější hodnotu, kterou máte
+k dispozici. Hodnotu `unknown` použijte pouze tehdy, když důvod změny opravdu neznáte.
+
 ## Popis endpointů
 
 Každý endpoint uvádí hlavičky, které je nutné poslat. Všechny je vyžadují ve stejné podobě:
@@ -196,6 +209,7 @@ Objekt `ScheduleTargetTemperature`:
 | reachTargetTemperatureByThisTime | ZonedDateTime | ano | Čas dosažení cílové teploty při předehřívání, jinak čas změny cíle. |
 | regulationType | string | ano | `standard-with-pre-heating` nebo `standard-without-pre-heating`. |
 | scheduleId | string (UUID) | ano | Identifikátor předávaný s položkou plánu. Neslouží jako klíč idempotence požadavku. |
+| heatingIntent | string | ano | Důvod nastavení cílové teploty: `comfort`, `setback` nebo `unknown`. Viz [Režim vytápění](#režim-vytápění). |
 
 Ukázka requestu:
 
@@ -210,7 +224,8 @@ Ukázka requestu:
         "localDateTime": "2027-10-21T15:00:00"
       },
       "regulationType": "standard-with-pre-heating",
-      "scheduleId": "c0a80121-5ef8-492f-b3a1-56c65f0dcf19"
+      "scheduleId": "c0a80121-5ef8-492f-b3a1-56c65f0dcf19",
+      "heatingIntent": "comfort"
     }
   ]
 }
@@ -232,12 +247,19 @@ Ukázka response:
 * Pro plánované snížení teploty použijte `standard-without-pre-heating`.
 * Okamžitá změna cílové teploty může ukončit právě probíhající předehřívání.
 * Při opakování stejného plánování zachovejte `Idempotency-Key`. Samotné `scheduleId` nenahrazuje klíč idempotence požadavku.
+* `heatingIntent` je povinný u každé plánované změny. Viz [Režim vytápění](#režim-vytápění).
 
 **Příklad příchodu a odchodu hosta:**
 
-Pro příchod v 11:00 naplánujte 22 °C s `standard-with-pre-heating`.
-Pro odchod v 17:00 naplánujte 18 °C s `standard-without-pre-heating`.
+Pro příchod v 11:00 naplánujte 22 °C s `standard-with-pre-heating` a `comfort`.
+Pro odchod v 17:00 naplánujte 18 °C s `standard-without-pre-heating` a `setback`.
 Systém se pokusí místnost vyhřát před příchodem a při odchodu sníží cílovou teplotu.
+
+**Příklad pracovní doby v kanceláři:**
+
+Pro pracovní dobu od 8:00 do 15:00 naplánujte dvě položky: na 8:00 teplotu 23 °C
+s `standard-with-pre-heating` a `comfort`, na 15:00 teplotu 18 °C
+s `standard-without-pre-heating` a `setback`.
 
 ### POST api/room/{roomId}/abort-scheduled-temperatures
 
@@ -299,14 +321,15 @@ Objekt `TargetTemperature`:
 |:---------|:----|:--------|:------|
 | roomId | string (UUID) | ano | ID místnosti. |
 | targetTemperature | float nebo null | ano | Cílová teplota v °C. |
+| heatingIntent | string | ano | Důvod nastavení cílové teploty: `comfort`, `setback` nebo `unknown`. Viz [Režim vytápění](#režim-vytápění). |
 
 Ukázka requestu:
 
 ```json
 {
   "targetTemperatures": [
-    {"roomId":"f47ac10b-58cc-4372-a567-0e02b2c3d479","targetTemperature":21.5},
-    {"roomId":"d65f1ffb-aa60-4eff-9666-78a93a048b17","targetTemperature":19.0}
+    {"roomId":"f47ac10b-58cc-4372-a567-0e02b2c3d479","targetTemperature":21.5,"heatingIntent":"comfort"},
+    {"roomId":"d65f1ffb-aa60-4eff-9666-78a93a048b17","targetTemperature":19.0,"heatingIntent":"setback"}
   ]
 }
 ```
@@ -319,6 +342,9 @@ Ukázka response:
 
 Pokud některá místnost neexistuje nebo nemá nakonfigurovanou regulaci, požadavek je odmítnut před předáním změn.
 To neznamená, že zařízení provedou všechny změny současně.
+
+U ruční změny teploty obsluhou, u které aplikace důvod nezná, posílejte `heatingIntent` s hodnotou `unknown`.
+Viz [Režim vytápění](#režim-vytápění).
 
 ### POST api/entity/replace-device
 
