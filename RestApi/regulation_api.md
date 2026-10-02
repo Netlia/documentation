@@ -462,3 +462,39 @@ Ukázka response:
 ```
 
 Všechna ID musí označovat existující hlavice. Duplicitní ID se zpracuje pouze jednou.
+
+### PUT api/entity/resolve-failure
+
+Označí selhání konkrétního zařízení za vyřešené. Selhání určuje stejná kombinace
+`entity`, `deviceId` a `type` jako v události `failure`. Aktuálně je podporována pouze entita `room`.
+Zařízení musí být přiřazeno k uvedené místnosti. Selhání musí mít `isResolvableByPartner: true`.
+Pokud již není aktivní, operace vrátí úspěch. Událost `failure-resolved` se po této operaci neodesílá.
+
+Hlavičky požadavku:
+
+```http
+Authorization: Bearer <token>
+Content-Type: application/json
+Idempotency-Key: b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc
+```
+
+
+| Parametr | Typ | Povinný | Popis |
+|:---------|:----|:--------|:------|
+| entity | Entity | ano | Objekt `{ "id": "<roomId>", "type": "room" }`. |
+| deviceId | string (UUID) | ano | ID zařízení přiřazeného k místnosti. |
+| type | string | ano | `generic-device-error`, `inserted-discharged-battery` nebo `inserted-partially-discharged-battery`. |
+
+```json
+{
+  "entity": {
+    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "type": "room"
+  },
+  "deviceId": "6e748f20-846e-4e89-a831-000000000001",
+  "type": "inserted-discharged-battery"
+}
+```
+
+Odpověď: `200 OK`, bez těla. Nepodporovaný typ entity nebo selhání, zařízení v jiné místnosti
+nebo selhání, které partner nemůže vyřešit, způsobí `400 Bad Request`.
