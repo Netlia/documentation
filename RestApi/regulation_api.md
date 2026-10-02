@@ -465,16 +465,19 @@ Všechna ID musí označovat existující hlavice. Duplicitní ID se zpracuje po
 
 ### PUT api/entity/resolve-failure
 
-Označí podporované selhání konkrétního zařízení za vyřešené. Selhání určuje stejná kombinace
+Označí selhání konkrétního zařízení za vyřešené. Selhání určuje stejná kombinace
 `entity`, `deviceId` a `type` jako v události `failure`. Aktuálně je podporována pouze entita `room`.
 Zařízení musí být přiřazeno k uvedené místnosti. Selhání musí mít `isResolvableByPartner: true`.
 Pokud již není aktivní, operace vrátí úspěch. Událost `failure-resolved` se po této operaci neodesílá.
 
-Hlavičky požadavku: `Authorization: Bearer <token>`, `Content-Type: application/json`
-a `Idempotency-Key: <UUID>`. Endpoint přijímá partnerský token i oprávněného administrátora.
+Hlavičky požadavku:
 
-Implementační poznámka: tento endpoint zatím ověřuje formát `Idempotency-Key`, ale neukládá
-klíče ani nepřehrává původní odpovědi. Opakované vyřešení již neaktivního selhání je úspěšné.
+```http
+Authorization: Bearer <token>
+Content-Type: application/json
+Idempotency-Key: b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc
+```
+
 
 | Parametr | Typ | Povinný | Popis |
 |:---------|:----|:--------|:------|
@@ -495,18 +498,3 @@ klíče ani nepřehrává původní odpovědi. Opakované vyřešení již neakt
 
 Odpověď: `200 OK`, bez těla. Nepodporovaný typ entity nebo selhání, zařízení v jiné místnosti
 nebo selhání, které partner nemůže vyřešit, způsobí `400 Bad Request`.
-
-### Administrátorské operace přiřazení zařízení k entitě
-
-Tyto operace vyžadují administrátorské oprávnění; běžný partnerský token nestačí.
-Obě vyžadují `Idempotency-Key: <UUID>` a JSON tělo s objektem `entity` ve stejném formátu jako události.
-Aktuálně je podporován pouze typ `room`; jiné typy jsou odmítnuty odpovědí `400 Bad Request`.
-Místnost musí mít nakonfigurovanou regulaci. Typy `riser` a `building-side` jsou vyhrazeny pro budoucí rozšíření.
-Klíč se zatím pouze validuje; ukládání klíčů a přehrávání odpovědí není implementováno.
-
-- `PUT api/entity/attach-devices`: tělo `{ "entity": { "id": "<roomId>", "type": "room" }, "deviceSerials": ["<serial>"] }`.
-  Připojí registrovaná zařízení k místnosti a odešle události instalace. Seznam nesmí být prázdný.
-- `PUT api/entity/detach-device`: tělo `{ "entity": { "id": "<roomId>", "type": "room" }, "deviceSerial": "<serial>" }`.
-  Ověří příslušnost zařízení k místnosti, odpojí je a odešle událost odinstalace. Místnost zůstává zachována.
-
-Odpověď obou operací: `200 OK`, bez těla. Původní endpoint odpojení zůstává dostupný pro instalační aplikaci.
