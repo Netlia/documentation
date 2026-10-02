@@ -622,7 +622,7 @@ Definované hodnoty `type` pro problémy konkrétního zařízení (vyžadují v
 
 Konkrétní hodnoty `type` pro problémy celé entity zatím nejsou definovány.
 
-Pro označení podporovaného selhání za vyřešené slouží endpoint `PUT api/device-failure/resolve`.
+Pro označení podporovaného selhání za vyřešené slouží endpoint `PUT api/entity/resolve-failure`.
 
 Ukázka selhání konkrétního zařízení:
 
@@ -658,7 +658,7 @@ hodnotám v události `failure`.
 Parametr `eventId` je jedinečný identifikátor události vyřešení.
 
 Událost se odesílá, když systém zjistí, že byl problém vyřešen. Pokud problém vyřeší partner pomocí endpointu
-`PUT api/device-failure/resolve`, tato událost se neodesílá.
+`PUT api/entity/resolve-failure`, tato událost se neodesílá.
 
 Data obsahují:
 

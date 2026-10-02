@@ -462,3 +462,51 @@ Ukázka response:
 ```
 
 Všechna ID musí označovat existující hlavice. Duplicitní ID se zpracuje pouze jednou.
+
+### PUT api/entity/resolve-failure
+
+Označí podporované selhání konkrétního zařízení za vyřešené. Selhání určuje stejná kombinace
+`entity`, `deviceId` a `type` jako v události `failure`. Aktuálně je podporována pouze entita `room`.
+Zařízení musí být přiřazeno k uvedené místnosti. Selhání musí mít `isResolvableByPartner: true`.
+Pokud již není aktivní, operace vrátí úspěch. Událost `failure-resolved` se po této operaci neodesílá.
+
+Hlavičky požadavku: `Authorization: Bearer <token>`, `Content-Type: application/json`
+a `Idempotency-Key: <UUID>`. Endpoint přijímá partnerský token i oprávněného administrátora.
+
+Implementační poznámka: tento endpoint zatím ověřuje formát `Idempotency-Key`, ale neukládá
+klíče ani nepřehrává původní odpovědi. Opakované vyřešení již neaktivního selhání je úspěšné.
+
+| Parametr | Typ | Povinný | Popis |
+|:---------|:----|:--------|:------|
+| entity | Entity | ano | Objekt `{ "id": "<roomId>", "type": "room" }`. |
+| deviceId | string (UUID) | ano | ID zařízení přiřazeného k místnosti. |
+| type | string | ano | `generic-device-error`, `inserted-discharged-battery` nebo `inserted-partially-discharged-battery`. |
+
+```json
+{
+  "entity": {
+    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "type": "room"
+  },
+  "deviceId": "6e748f20-846e-4e89-a831-000000000001",
+  "type": "inserted-discharged-battery"
+}
+```
+
+Odpověď: `200 OK`, bez těla. Nepodporovaný typ entity nebo selhání, zařízení v jiné místnosti
+nebo selhání, které partner nemůže vyřešit, způsobí `400 Bad Request`.
+
+### Administrátorské operace přiřazení zařízení k entitě
+
+Tyto operace vyžadují administrátorské oprávnění; běžný partnerský token nestačí.
+Obě vyžadují `Idempotency-Key: <UUID>` a JSON tělo s objektem `entity` ve stejném formátu jako události.
+Aktuálně je podporován pouze typ `room`; jiné typy jsou odmítnuty odpovědí `400 Bad Request`.
+Místnost musí mít nakonfigurovanou regulaci. Typy `riser` a `building-side` jsou vyhrazeny pro budoucí rozšíření.
+Klíč se zatím pouze validuje; ukládání klíčů a přehrávání odpovědí není implementováno.
+
+- `PUT api/entity/attach-devices`: tělo `{ "entity": { "id": "<roomId>", "type": "room" }, "deviceSerials": ["<serial>"] }`.
+  Připojí registrovaná zařízení k místnosti a odešle události instalace. Seznam nesmí být prázdný.
+- `PUT api/entity/detach-device`: tělo `{ "entity": { "id": "<roomId>", "type": "room" }, "deviceSerial": "<serial>" }`.
+  Ověří příslušnost zařízení k místnosti, odpojí je a odešle událost odinstalace. Místnost zůstává zachována.
+
+Odpověď obou operací: `200 OK`, bez těla. Původní endpoint odpojení zůstává dostupný pro instalační aplikaci.
