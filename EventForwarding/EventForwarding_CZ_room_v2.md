@@ -304,8 +304,8 @@ Data obsahují objekt [`Radiator`](#objekt-radiator):
 | note | string nebo null | ano | Poznámka k radiátoru. |
 
 Události nemusí dorazit ve stejném pořadí, v jakém vznikly. Událost `device-installed` pro radiátor proto
-obsahuje také jeho úplný popis a může přijít dříve než `radiator-created`. Příjemce by měl `radiator-created`
-i radiátor obsažený v `device-installed` zpracovat jako „vytvoř, nebo aktualizuj“ podle `radiatorId`.
+obsahuje také jeho popis v `entity.additionalData` a může přijít dříve než `radiator-created`. Příjemce by měl
+`radiator-created` i radiátor z `device-installed` zpracovat jako „vytvoř, nebo aktualizuj“ podle ID radiátoru.
 
 Ukázka zaslané události:
 
@@ -360,17 +360,33 @@ Informuje o instalaci jednoho nebo více zařízení u entity určené objektem 
 Každá událost se týká právě jedné entity. Pokud se při jedné instalaci připojí zařízení k více entitám,
 odešle se pro každou entitu samostatná událost s vlastním `eventId`:
 
-- termostatické hlavice jsou nainstalovány na radiátor – `entity` má typ `radiator` a parametr `radiator`
-  obsahuje úplný popis radiátoru,
-- teploměry a termostaty jsou nainstalovány do místnosti – `entity` má typ `room` a parametr `radiator` je `null`.
+- termostatické hlavice jsou nainstalovány na radiátor – `entity` má typ `radiator` a `entity.additionalData`
+  obsahuje popis radiátoru,
+- teploměry a termostaty jsou nainstalovány do místnosti – `entity` má typ `room` a `entity.additionalData` je `null`.
 
 Data obsahují:
 
 | Parametr | Typ | Povinný | Popis |
 |:---------|:----|:--------|:------|
-| entity | Entity | ano | Entita, které se událost týká. |
-| radiator | Radiator nebo null | ne | Úplný popis radiátoru, pokud je `entity` typu `radiator`. Umožňuje radiátor vytvořit, i když událost dorazí dříve než `radiator-created`. Jinak `null`. |
+| entity | InstalledEntity | ano | Entita, do které byla zařízení nainstalována, včetně jejího popisu. |
 | devices | device[] | ano | Pole nainstalovaných zařízení. |
+
+Objekt `InstalledEntity` rozšiřuje objekt [Entity](#objekt-entity) o parametr `additionalData`. Ten se posílá
+pouze v této události a umožňuje entitu vytvořit, i když událost dorazí dříve než událost, která entitu ohlašuje:
+
+| Parametr | Typ | Povinný | Popis |
+|:---------|:----|:--------|:------|
+| id | string (UUID) | ano | ID entity. |
+| type | string | ano | Typ entity. |
+| additionalData | object nebo null | ano | Popis entity, jehož podoba závisí na `type`. Pro `room` je `null`. |
+
+Pro `type: "radiator"` obsahuje `additionalData`:
+
+| Parametr | Typ | Povinný | Popis |
+|:---------|:----|:--------|:------|
+| roomId | string (UUID) | ano | ID místnosti, do které radiátor patří. |
+| positionFromLeft | int nebo null | ano | Pořadí radiátoru v místnosti zleva od dveří. |
+| note | string nebo null | ano | Poznámka k radiátoru. |
 
 Objekt `device` má následující formát:
 
@@ -392,13 +408,12 @@ Ukázka zaslané události pro termostatickou hlavici na radiátoru:
     "data": {
         "entity": {
             "id": "3f2b8c1e-6a4d-4f0e-9b7a-000000000021",
-            "type": "radiator"
-        },
-        "radiator": {
-            "radiatorId": "3f2b8c1e-6a4d-4f0e-9b7a-000000000021",
-            "roomId": "d65f1ffb-aa60-4eff-9666-78a93a048b17",
-            "positionFromLeft": 1,
-            "note": null
+            "type": "radiator",
+            "additionalData": {
+                "roomId": "d65f1ffb-aa60-4eff-9666-78a93a048b17",
+                "positionFromLeft": 1,
+                "note": null
+            }
         },
         "devices": [
             {
@@ -421,9 +436,9 @@ Ukázka zaslané události pro teploměr v místnosti:
     "data": {
         "entity": {
             "id": "d65f1ffb-aa60-4eff-9666-78a93a048b17",
-            "type": "room"
+            "type": "room",
+            "additionalData": null
         },
-        "radiator": null,
         "devices": [
             {
                 "deviceId": "6e748f20-846e-4e89-a831-000000000004",
