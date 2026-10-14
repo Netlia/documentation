@@ -1,6 +1,7 @@
 # Netlia Regulation API
 
 Dokument popisuje partnerské REST API pro regulaci teploty v místnostech, plánování vytápění, ovládání termostatických hlavic a výměnu zařízení.
+Operace adresují místnost nebo radiátor objektem `entity`, viz [Objekt Entity](#objekt-entity).
 Požadavky i odpovědi s daty používají JSON. Adresu serveru a přístupové údaje poskytne zástupce Netlia.
 Všechny uvedené cesty jsou relativní k adrese serveru.
 
@@ -37,7 +38,7 @@ Před opakováním požadavku zohledněte pravidla v části [Idempotency-Key a 
 
 | HTTP kód | Význam |
 |:---------|:-------|
-| 400 Bad Request | Neplatné vstupy, chybějící nebo neplatná hlavička `Idempotency-Key`, neexistující místnost nebo místnost bez nakonfigurované regulace. Podrobnosti jsou v těle odpovědi. |
+| 400 Bad Request | Neplatné vstupy, chybějící nebo neplatná hlavička `Idempotency-Key`, neexistující místnost nebo radiátor, nepodporovaný typ entity nebo místnost bez nakonfigurované regulace. Podrobnosti jsou v těle odpovědi. |
 | 401 Unauthorized | Chybějící nebo neplatný bearer token. |
 | 403 Forbidden | Klient nemá oprávnění k operaci. |
 | 404 Not Found | URL neodpovídá žádnému endpointu. |
@@ -93,12 +94,12 @@ volání vždy bezpečné.
 Příklad celého požadavku:
 
 ```http
-PUT /api/room/f47ac10b-58cc-4372-a567-0e02b2c3d479/temperature HTTP/1.1
+PUT /api/entity/temperature HTTP/1.1
 Authorization: Bearer <token>
 Idempotency-Key: b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc
 Content-Type: application/json
 
-{"targetTemperature":21.5}
+{"targetTemperatures":[{"entity":{"id":"f47ac10b-58cc-4372-a567-0e02b2c3d479","type":"room"},"targetTemperature":21.5,"heatingIntent":"comfort"}]}
 ```
 
 ### Význam identifikátoru
@@ -154,6 +155,28 @@ Obě položky jsou povinné. Neznámé časové pásmo je odmítnuto.
 
 Formát: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`, například `f47ac10b-58cc-4372-a567-0e02b2c3d479`.
 
+### Objekt Entity
+
+Objekt `entity` určuje místnost nebo jiný prvek budovy, kterého se operace týká. Má stejnou podobu jako `entity`
+v zasílaných událostech:
+
+| Parametr | Typ | Povinný | Popis |
+|:---------|:----|:--------|:------|
+| id | string (UUID) | ano | ID entity. Pro `type: "room"` jde o ID místnosti, pro `type: "radiator"` o ID radiátoru. |
+| type | string | ano | Typ entity: `room`, `radiator`, `riser` nebo `building-side`. |
+
+Radiátor vždy patří do jedné místnosti a jsou na něm namontovány termostatické hlavice. Radiátory partner zná
+z událostí `radiator-created` a `device-installed`. Typy `riser` a `building-side` jsou vyhrazeny pro budoucí
+rozšíření. Které typy entit endpoint přijímá, je uvedeno u každého endpointu; nepodporovaný typ způsobí
+`400 Bad Request`.
+
+```json
+{
+  "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "type": "room"
+}
+```
+
 ### Teplota
 
 Teploty jsou desetinná čísla ve stupních Celsia. V JSON používejte desetinnou tečku.
@@ -182,9 +205,10 @@ nový požadavek. Význam `Idempotency-Key` popisuje
 Změny mohou být zpracovávány asynchronně. Úspěšná odpověď neznamená, že již byla v místnosti dosažena požadovaná
 teplota nebo že zařízení již provedlo příkaz.
 
-### POST api/room/schedule-temperature
+### POST api/entity/schedule-temperature
 
-Naplánuje cílové teploty pro jednu nebo více místností, případně s předehříváním.
+Naplánuje cílové teploty pro jednu nebo více entit, případně s předehříváním.
+Aktuálně je podporována pouze entita typu `room`; jiné typy jsou odmítnuty odpovědí `400 Bad Request`.
 
 Hlavičky požadavku:
 
@@ -204,7 +228,7 @@ Objekt `ScheduleTargetTemperature`:
 
 | Parametr | Typ | Povinný | Popis |
 |:---------|:----|:--------|:------|
-| roomId | string (UUID) | ano | ID místnosti. |
+| entity | Entity | ano | Místnost, jejíž teplota se plánuje: `{ "id": "<roomId>", "type": "room" }`. |
 | targetTemperature | float | ano | Cílová teplota v °C; nesmí být `null`. |
 | reachTargetTemperatureByThisTime | ZonedDateTime | ano | Čas dosažení cílové teploty při předehřívání, jinak čas změny cíle. |
 | regulationType | string | ano | `standard-with-pre-heating` nebo `standard-without-pre-heating`. |
@@ -217,7 +241,10 @@ Ukázka requestu:
 {
   "targetTemperatures": [
     {
-      "roomId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+      "entity": {
+        "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+        "type": "room"
+      },
       "targetTemperature": 22.5,
       "reachTargetTemperatureByThisTime": {
         "ianaTimeZone": "Europe/Prague",
@@ -240,7 +267,7 @@ Ukázka response:
 #### Poznámky
 
 * Čas musí ležet v budoucnosti v uvedeném časovém pásmu.
-* Místnosti a časy všech položek se ověří před předáním plánu ke zpracování.
+* Entity a časy všech položek se ověří před předáním plánu ke zpracování.
 * `standard-without-pre-heating` změní cílovou teplotu až v naplánovaný čas. Dosažení teploty může trvat déle.
 * `standard-with-pre-heating` umožňuje začít topit předem, aby bylo cílové teploty dosaženo v naplánovaný čas.
   Skutečný výsledek závisí na podmínkách v místnosti a možnostech vytápění.
@@ -261,12 +288,13 @@ Pro pracovní dobu od 8:00 do 15:00 naplánujte dvě položky: na 8:00 teplotu 2
 s `standard-with-pre-heating` a `comfort`, na 15:00 teplotu 18 °C
 s `standard-without-pre-heating` a `setback`.
 
-### POST api/room/{roomId}/abort-scheduled-temperatures
+### POST api/entity/abort-scheduled-temperatures
 
-Zruší dosud nezpracované změny cílové teploty dané místnosti, jejichž plánovaný čas je **po** zadaném čase.
+Zruší dosud nezpracované změny cílové teploty dané entity, jejichž plánovaný čas je **po** zadaném čase.
 Záznamy přesně v tomto čase se neruší. Operace vybírá pouze záznamy se stejným časovým pásmem jako v požadavku;
 použijte proto stejné `ianaTimeZone` jako při plánování. Již zpracovávané nebo dokončené záznamy se nemění.
-`roomId` v URL je UUID místnosti.
+Entitu určuje objekt `entity` v těle požadavku. Aktuálně je podporována pouze entita typu `room`; jiné typy jsou
+odmítnuty odpovědí `400 Bad Request`.
 
 Hlavičky požadavku:
 
@@ -278,12 +306,17 @@ Idempotency-Key: b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc
 
 | Parametr | Typ | Povinný | Popis |
 |:---------|:----|:--------|:------|
+| entity | Entity | ano | Místnost, jejíž plánované změny se ruší: `{ "id": "<roomId>", "type": "room" }`. |
 | abortAfterTime | ZonedDateTime | ano | Dolní časová hranice pro zrušení nezpracovaných změn. |
 
 Ukázka requestu:
 
 ```json
 {
+  "entity": {
+    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "type": "room"
+  },
   "abortAfterTime": {
     "ianaTimeZone": "Europe/Prague",
     "localDateTime": "2027-10-21T12:00:00"
@@ -299,9 +332,10 @@ Ukázka response (`200 OK`):
 
 `abortedCount` udává počet zrušených záznamů; může být `0`.
 
-### PUT api/room/temperature
+### PUT api/entity/temperature
 
-Předá okamžité změny cílové teploty pro více místností. Každá místnost může mít jinou cílovou teplotu.
+Předá okamžité změny cílové teploty pro více entit. Každá entita může mít jinou cílovou teplotu.
+Aktuálně je podporována pouze entita typu `room`; jiné typy jsou odmítnuty odpovědí `400 Bad Request`.
 
 Hlavičky požadavku:
 
@@ -319,7 +353,7 @@ Objekt `TargetTemperature`:
 
 | Parametr | Typ | Povinný | Popis |
 |:---------|:----|:--------|:------|
-| roomId | string (UUID) | ano | ID místnosti. |
+| entity | Entity | ano | Místnost, jejíž teplota se mění: `{ "id": "<roomId>", "type": "room" }`. |
 | targetTemperature | float nebo null | ano | Cílová teplota v °C. |
 | heatingIntent | string | ano | Důvod nastavení cílové teploty: `comfort`, `setback` nebo `unknown`. Viz [Režim vytápění](#režim-vytápění). |
 
@@ -328,8 +362,8 @@ Ukázka requestu:
 ```json
 {
   "targetTemperatures": [
-    {"roomId":"f47ac10b-58cc-4372-a567-0e02b2c3d479","targetTemperature":21.5,"heatingIntent":"comfort"},
-    {"roomId":"d65f1ffb-aa60-4eff-9666-78a93a048b17","targetTemperature":19.0,"heatingIntent":"setback"}
+    {"entity":{"id":"f47ac10b-58cc-4372-a567-0e02b2c3d479","type":"room"},"targetTemperature":21.5,"heatingIntent":"comfort"},
+    {"entity":{"id":"d65f1ffb-aa60-4eff-9666-78a93a048b17","type":"room"},"targetTemperature":19.0,"heatingIntent":"setback"}
   ]
 }
 ```
@@ -348,9 +382,11 @@ Viz [Režim vytápění](#režim-vytápění).
 
 ### POST api/entity/replace-device
 
-Vymění zařízení přiřazené k entitě. Entitu určuje objekt `entity` v těle požadavku.
+Vymění zařízení přiřazené k entitě. Entitu určuje objekt `entity` v těle požadavku. Termostatická hlavice se
+určuje radiátorem, na kterém je namontována (`type: "radiator"`), ostatní zařízení místností (`type: "room"`).
+Jiná kombinace skončí chybou `400`.
 Náhradní zařízení musí být registrované v Netlia, dostupné pro instalaci a vhodného typu pro výměnu.
-Vyměňované zařízení musí patřit k uvedené entitě.
+Náhradní hlavice je namontována na stejný radiátor jako hlavice původní.
 
 Hlavičky požadavku:
 
@@ -366,20 +402,15 @@ Idempotency-Key: b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc
 | replacedDeviceId | string (UUID) | ano | ID vyměňovaného zařízení. |
 | replacementDeviceId | string (UUID) | ano | ID náhradního zařízení. |
 
-Objekt `Entity` má stejnou podobu jako `entity` v zasílaných událostech:
-
-| Parametr | Typ | Povinný | Popis |
-|:---------|:----|:--------|:------|
-| id | string (UUID) | ano | ID entity. Pro `type: "room"` jde o ID místnosti. |
-| type | string | ano | Typ entity: `room`, `riser` nebo `building-side`. |
+Objekt `entity` je popsán v části [Objekt Entity](#objekt-entity).
 
 Ukázka requestu:
 
 ```json
 {
   "entity": {
-    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-    "type": "room"
+    "id": "3f2b8c1e-6a4d-4f0e-9b7a-000000000021",
+    "type": "radiator"
   },
   "replacedDeviceId": "6e748f20-846e-4e89-a831-000000000001",
   "replacementDeviceId": "6e748f20-846e-4e89-a831-000000000002"
@@ -466,8 +497,9 @@ Všechna ID musí označovat existující hlavice. Duplicitní ID se zpracuje po
 ### PUT api/entity/resolve-failure
 
 Označí selhání konkrétního zařízení za vyřešené. Selhání určuje stejná kombinace
-`entity`, `deviceId` a `type` jako v události `failure`. Aktuálně je podporována pouze entita `room`.
-Zařízení musí být přiřazeno k uvedené místnosti. Selhání musí mít `isResolvableByPartner: true`.
+`entity`, `deviceId` a `type` jako v události `failure`. Selhání termostatické hlavice se určuje radiátorem, na
+kterém je namontována (`type: "radiator"`), selhání ostatních zařízení místností (`type: "room"`). Jiná kombinace
+skončí chybou `400`. Selhání musí mít `isResolvableByPartner: true`.
 Pokud již není aktivní, operace vrátí úspěch. Událost `failure-resolved` se po této operaci neodesílá.
 
 Hlavičky požadavku:
@@ -481,8 +513,8 @@ Idempotency-Key: b5e5a8e4-d09d-4d0f-8878-5ab24c2647fc
 
 | Parametr | Typ | Povinný | Popis |
 |:---------|:----|:--------|:------|
-| entity | Entity | ano | Objekt `{ "id": "<roomId>", "type": "room" }`. |
-| deviceId | string (UUID) | ano | ID zařízení přiřazeného k místnosti. |
+| entity | Entity | ano | Entita z události `failure`: `{ "id": "<roomId>", "type": "room" }` nebo `{ "id": "<radiatorId>", "type": "radiator" }`. |
+| deviceId | string (UUID) | ano | ID zařízení přiřazeného k místnosti uvedené entity. |
 | type | string | ano | `generic-device-error`, `inserted-discharged-battery` nebo `inserted-partially-discharged-battery`. |
 
 ```json
