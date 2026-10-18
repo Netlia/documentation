@@ -68,8 +68,8 @@ Typy událostí:
 
 | eventType | Význam                                               |
 |:----------|:-----------------------------------------------------|
-| [`room-upserted`](#eventtype-room-upserted) | Aktuální stav místnosti včetně radiátorů, zařízení a poznámky. |
-| [`room-deleted`](#eventtype-room-deleted) | Smazání místnosti.                                   |
+| [`building-upserted`](#eventtype-building-upserted) | Aktuální stav budovy: podlaží a místnosti na nich. |
+| [`room-upserted`](#eventtype-room-upserted) | Aktuální obsah místnosti: poznámka, zařízení a radiátory. |
 | [`measured-temperature`](#eventtype-measured-temperature) | Naměřená teplota.                                    |
 | [`thermo-head-changed-position`](#eventtype-thermo-head-changed-position) | Změna polohy termostatických hlavic.                 |
 | [`heating-state-changed`](#eventtype-heating-state-changed) | Změna cílové teploty nebo stavu topení.              |
@@ -145,35 +145,104 @@ Termostat je pro účely tohoto kontraktu uváděn jako `thermometer`.
 > Nové typy událostí, zařízení a entit i další hodnoty mohou kdykoli přibývat. Kód příjemce by měl s těmito
 > situacemi počítat a umět zpracovat i neznámé hodnoty – typicky vrátit odpověď OK a zaznamenat chybu do logu.
 
-## Room events
+## Building and room events
+
+Stav budov a místností se předává dvěma typy událostí, z nichž každá vždy obsahuje úplný aktuální stav:
+
+- `building-upserted` určuje, které budovy, podlaží a místnosti existují, jak se jmenují a na kterém podlaží
+  která místnost je,
+- `room-upserted` určuje obsah jedné místnosti – poznámku, zařízení a radiátory.
+
+Každá budova a každá místnost má vlastní `version`, která se s každou změnou zvyšuje. Události nemusí dorazit ve stejném
+pořadí, v jakém vznikly, a mohou být doručeny opakovaně. Příjemce proto událost zpracuje pouze tehdy, je-li její
+`version` vyšší než verze budovy nebo místnosti, kterou už zpracoval; jinak ji ignoruje.
+
+### EventType building-upserted
+
+Obsahuje úplný aktuální stav budovy: její název, podlaží a místnosti na nich. Odesílá se po každé změně budovy, jejích
+podlaží nebo jejích místností – po vytvoření, přejmenování, přesunu nebo smazání místnosti a po importu půdorysu.
+
+Příjemce budovu vytvoří, pokud ji ještě nezná, a jinak ji nahradí přijatým stavem. Podlaží a místnosti, které
+v události nejsou, odebere; místnost odebere včetně jejích zařízení a radiátorů. Místnost přesunutá na jiné podlaží
+se v události objeví u nového podlaží. Nově uvedená místnost nemá žádná zařízení ani radiátory, dokud pro ni
+nepřijde událost `room-upserted`.
+
+Data obsahují:
+
+| Parametr | Typ | Povinný | Popis |
+|:---------|:----|:--------|:------|
+| buildingId | string (UUID) | ano | ID budovy. |
+| version | int | ano | Verze stavu budovy. Vyšší číslo znamená novější stav. |
+| partnerId | string (UUID) | ano | ID partnera, kterému budova patří. |
+| name | string | ano | Název budovy. |
+| floors | floor[] | ano | Podlaží budovy. Prázdné pole, pokud budova žádné nemá. |
+
+Objekt `floor` má následující formát:
+
+| Parametr | Typ | Povinný | Popis |
+|:---------|:----|:--------|:------|
+| floorId | string (UUID) | ano | ID podlaží. |
+| name | string | ano | Název podlaží. |
+| rooms | room[] | ano | Místnosti na podlaží. Prázdné pole, pokud na podlaží žádná není. |
+
+Objekt `room` má následující formát:
+
+| Parametr | Typ | Povinný | Popis |
+|:---------|:----|:--------|:------|
+| roomId | string (UUID) | ano | ID místnosti. |
+| name | string | ano | Název místnosti. |
+
+Ukázka zaslané události:
+
+```json
+{
+    "protocolVersion": 2,
+    "eventId": "c4056fc4-d433-4d2c-bb7f-000000000009",
+    "eventTime": "2026-09-23T14:12:38Z",
+    "eventType": "building-upserted",
+    "data": {
+        "buildingId": "fdc2ea0d-d0f9-4d2f-aeca-5116f514093f",
+        "version": 4,
+        "partnerId": "9381f1af-4187-4478-8c80-391c8882f421",
+        "name": "Administrativní budova",
+        "floors": [
+            {
+                "floorId": "d77c48f1-f7f3-4a02-b075-69b989914463",
+                "name": "1. patro",
+                "rooms": [
+                    {
+                        "roomId": "d65f1ffb-aa60-4eff-9666-78a93a048b17",
+                        "name": "Kancelář 101"
+                    }
+                ]
+            },
+            {
+                "floorId": "0b6d6f2e-2f7a-4c55-9a1e-3c1c2b5f0a10",
+                "name": "2. patro",
+                "rooms": []
+            }
+        ]
+    }
+}
+```
 
 ### EventType room-upserted
 
-Obsahuje úplný aktuální stav místnosti: údaje o budově a podlaží, název, poznámku, zařízení umístěná přímo
-v místnosti a radiátory s jejich termostatickými hlavicemi. Odesílá se po každé změně místnosti – po jejím vytvoření,
-přejmenování, přesunu do jiného podlaží, změně poznámky, instalaci, odinstalaci nebo výměně zařízení a po změně
-radiátorů.
+Obsahuje úplný aktuální obsah místnosti: poznámku, zařízení umístěná přímo v místnosti a radiátory s jejich
+termostatickými hlavicemi. Odesílá se po každé změně obsahu místnosti – po změně poznámky, instalaci, odinstalaci
+nebo výměně zařízení a po změně radiátorů. Název místnosti a podlaží, na kterém je, určuje událost
+`building-upserted`.
 
-Příjemce místnost vytvoří, pokud ji ještě nezná, a jinak ji nahradí přijatým stavem: radiátory a zařízení, které
-v události nejsou, z místnosti odebere. Pokud v cílovém systému ještě neexistují podlaží nebo budova, příjemce je
-vytvoří z předaných údajů.
-
-`version` se s každou změnou místnosti zvyšuje. Události nemusí dorazit ve stejném pořadí, v jakém vznikly, a mohou být
-doručeny opakovaně. Příjemce proto událost zpracuje pouze tehdy, je-li její `version` vyšší než verze místnosti,
-kterou už zpracoval; jinak ji ignoruje.
+Příjemce obsah místnosti nahradí přijatým stavem: radiátory a zařízení, které v události nejsou, z místnosti odebere.
+Pokud místnost ještě nezná, protože událost `building-upserted`, která ji uvádí, zatím nedorazila, může zpracování
+odložit a zopakovat později.
 
 Data obsahují:
 
 | Parametr | Typ | Povinný | Popis |
 |:---------|:----|:--------|:------|
 | roomId | string (UUID) | ano | ID místnosti. |
-| version | int | ano | Verze stavu místnosti. Vyšší číslo znamená novější stav. |
-| partnerId | string (UUID) | ano | ID partnera, kterému budova patří. |
-| buildingId | string (UUID) | ano | ID budovy. |
-| buildingName | string | ano | Název budovy. |
-| floorId | string (UUID) | ano | ID podlaží. |
-| floorName | string | ano | Název podlaží. |
-| name | string | ano | Název místnosti. |
+| version | int | ano | Verze obsahu místnosti. Vyšší číslo znamená novější stav. |
 | note | string | ano | Poznámka k místnosti, případně prázdný řetězec. |
 | devices | device[] | ano | Zařízení umístěná přímo v místnosti – teploměr nebo termostat. Prázdné pole, pokud místnost žádné nemá. |
 | radiators | radiator[] | ano | Radiátory místnosti. Prázdné pole, pokud místnost žádné nemá. |
@@ -195,6 +264,8 @@ Objekt `radiator` má následující formát:
 | devices | device[] | ano | Termostatické hlavice namontované na radiátoru. Prázdné pole, pokud na radiátoru žádná není. |
 
 Místnost má nejvýše jeden teploměr nebo termostat a na každém radiátoru je namontována nejvýše jedna hlavice.
+Zařízení se mezi místnostmi nepřesouvá přímo: nejprve je odinstalováno z jedné místnosti a teprve potom
+nainstalováno do jiné.
 
 Ukázka zaslané události:
 
@@ -207,12 +278,6 @@ Ukázka zaslané události:
     "data": {
         "roomId": "d65f1ffb-aa60-4eff-9666-78a93a048b17",
         "version": 7,
-        "partnerId": "9381f1af-4187-4478-8c80-391c8882f421",
-        "buildingId": "fdc2ea0d-d0f9-4d2f-aeca-5116f514093f",
-        "buildingName": "Administrativní budova",
-        "floorId": "d77c48f1-f7f3-4a02-b075-69b989914463",
-        "floorName": "1. patro",
-        "name": "Kancelář 101",
         "note": "Teploměr je umístěn za rohem",
         "devices": [
             {
@@ -239,28 +304,6 @@ Ukázka zaslané události:
                 "devices": []
             }
         ]
-    }
-}
-```
-
-### EventType room-deleted
-
-Smazání místnosti. Místnost lze smazat pouze tehdy, pokud k ní není přiřazen žádný device.
-
-Data obsahují:
-
-| Parametr | Typ | Povinný | Popis |
-|:---------|:----|:--------|:------|
-| roomId | string (UUID) | ano | ID smazané místnosti. |
-
-```json
-{
-    "protocolVersion": 2,
-    "eventId": "c4056fc4-d433-4d2c-bb7f-000000000012",
-    "eventTime": "2026-09-25T14:12:38Z",
-    "eventType": "room-deleted",
-    "data": {
-        "roomId": "d65f1ffb-aa60-4eff-9666-78a93a048b17"
     }
 }
 ```
