@@ -68,15 +68,8 @@ Typy událostí:
 
 | eventType | Význam                                               |
 |:----------|:-----------------------------------------------------|
-| [`room-created`](#eventtype-room-created) | Vytvoření místnosti včetně údajů o budově a podlaží. |
-| [`room-renamed`](#eventtype-room-renamed) | Změna názvu místnosti.                               |
+| [`room-upserted`](#eventtype-room-upserted) | Aktuální stav místnosti včetně radiátorů, zařízení a poznámky. |
 | [`room-deleted`](#eventtype-room-deleted) | Smazání místnosti.                                   |
-| [`room-floor-changed`](#eventtype-room-floor-changed) | Přesun místnosti do jiného podlaží stejné budovy.    |
-| [`radiator-created`](#eventtype-radiator-created) | Vytvoření radiátoru v místnosti.                     |
-| [`entity-note-changed`](#eventtype-entity-note-changed) | Změna poznámky entity                                |
-| [`device-installed`](#eventtype-device-installed) | Instalace zařízení.                                  |
-| [`device-uninstalled`](#eventtype-device-uninstalled) | Odinstalace zařízení.                                |
-| [`device-replaced`](#eventtype-device-replaced) | Výměna zařízení.                                     |
 | [`measured-temperature`](#eventtype-measured-temperature) | Naměřená teplota.                                    |
 | [`thermo-head-changed-position`](#eventtype-thermo-head-changed-position) | Změna polohy termostatických hlavic.                 |
 | [`heating-state-changed`](#eventtype-heating-state-changed) | Změna cílové teploty nebo stavu topení.              |
@@ -136,28 +129,6 @@ Ukázka objektu `Entity`:
 }
 ```
 
-### Objekt Radiator
-
-Objekt `Radiator` popisuje radiátor a místnost, do které patří:
-
-| Parametr | Typ | Povinný | Popis |
-|:---------|:----|:--------|:------|
-| radiatorId | string (UUID) | ano | ID radiátoru. Odpovídá `entity.id` u entity typu `radiator`. |
-| roomId | string (UUID) | ano | ID místnosti, do které radiátor patří. |
-| positionFromLeft | int | ano | Pořadí radiátoru v místnosti počítané zleva od dveří, začíná od `1`. |
-| note | string nebo null | ano | Poznámka k radiátoru. |
-
-Ukázka objektu `Radiator`:
-
-```json
-{
-    "radiatorId": "3f2b8c1e-6a4d-4f0e-9b7a-000000000021",
-    "roomId": "d65f1ffb-aa60-4eff-9666-78a93a048b17",
-    "positionFromLeft": 1,
-    "note": null
-}
-```
-
 ### Device
 
 Device označuje zařízení, které se instaluje u zákazníka.
@@ -174,25 +145,56 @@ Termostat je pro účely tohoto kontraktu uváděn jako `thermometer`.
 > Nové typy událostí, zařízení a entit i další hodnoty mohou kdykoli přibývat. Kód příjemce by měl s těmito
 > situacemi počítat a umět zpracovat i neznámé hodnoty – typicky vrátit odpověď OK a zaznamenat chybu do logu.
 
-## Entity events
+## Room events
 
-### EventType room-created
+### EventType room-upserted
 
-Informuje o vytvoření místnosti a obsahuje údaje o jejím podlaží a budově. Pokud podlaží nebo budova
-v cílovém systému ještě neexistují, příjemce je vytvoří z předaných údajů.
+Obsahuje úplný aktuální stav místnosti: údaje o budově a podlaží, název, poznámku, zařízení umístěná přímo
+v místnosti a radiátory s jejich termostatickými hlavicemi. Odesílá se po každé změně místnosti – po jejím vytvoření,
+přejmenování, přesunu do jiného podlaží, změně poznámky, instalaci, odinstalaci nebo výměně zařízení a po změně
+radiátorů.
+
+Příjemce místnost vytvoří, pokud ji ještě nezná, a jinak ji nahradí přijatým stavem: radiátory a zařízení, které
+v události nejsou, z místnosti odebere. Pokud v cílovém systému ještě neexistují podlaží nebo budova, příjemce je
+vytvoří z předaných údajů.
+
+`version` se s každou změnou místnosti zvyšuje. Události nemusí dorazit ve stejném pořadí, v jakém vznikly, a mohou být
+doručeny opakovaně. Příjemce proto událost zpracuje pouze tehdy, je-li její `version` vyšší než verze místnosti,
+kterou už zpracoval; jinak ji ignoruje.
 
 Data obsahují:
 
-| Parametr | Typ | Povinný | Popis                                |
-|:---------|:----|:--------|:-------------------------------------|
-| roomId | string (UUID) | ano | ID místnosti, které se událost týká. |
-| name | string | ano | Název místnosti.                     |
-| note | string | ano | Poznámka místnosti.                  |
-| partnerId | string (UUID) | ano | ID partnera, kterému budova patří.   |
-| buildingId | string (UUID) | ano | ID budovy.                           |
-| buildingName | string | ano | Název budovy.                        |
-| floorId | string (UUID) | ano | ID podlaží.                          |
-| floorName | string | ano | Název podlaží.                       |
+| Parametr | Typ | Povinný | Popis |
+|:---------|:----|:--------|:------|
+| roomId | string (UUID) | ano | ID místnosti. |
+| version | int | ano | Verze stavu místnosti. Vyšší číslo znamená novější stav. |
+| partnerId | string (UUID) | ano | ID partnera, kterému budova patří. |
+| buildingId | string (UUID) | ano | ID budovy. |
+| buildingName | string | ano | Název budovy. |
+| floorId | string (UUID) | ano | ID podlaží. |
+| floorName | string | ano | Název podlaží. |
+| name | string | ano | Název místnosti. |
+| note | string | ano | Poznámka k místnosti, případně prázdný řetězec. |
+| devices | device[] | ano | Zařízení umístěná přímo v místnosti – teploměr nebo termostat. Prázdné pole, pokud místnost žádné nemá. |
+| radiators | radiator[] | ano | Radiátory místnosti. Prázdné pole, pokud místnost žádné nemá. |
+
+Objekt `device` má následující formát:
+
+| Parametr | Typ | Povinný | Popis |
+|:---------|:----|:--------|:------|
+| deviceId | string (UUID) | ano | ID zařízení. |
+| deviceType | string | ano | Typ zařízení, viz [Device](#device). |
+
+Objekt `radiator` má následující formát:
+
+| Parametr | Typ | Povinný | Popis |
+|:---------|:----|:--------|:------|
+| radiatorId | string (UUID) | ano | ID radiátoru. Odpovídá `entity.id` u entity typu `radiator` v ostatních událostech. |
+| positionFromLeft | int nebo null | ano | Pořadí radiátoru v místnosti počítané zleva od dveří, začíná od `1`. `null` u radiátorů, jejichž pořadí zatím nebylo zadáno. |
+| note | string nebo null | ano | Poznámka k radiátoru. |
+| devices | device[] | ano | Termostatické hlavice namontované na radiátoru. Prázdné pole, pokud na radiátoru žádná není. |
+
+Místnost má nejvýše jeden teploměr nebo termostat a na každém radiátoru je namontována nejvýše jedna hlavice.
 
 Ukázka zaslané události:
 
@@ -201,42 +203,42 @@ Ukázka zaslané události:
     "protocolVersion": 2,
     "eventId": "c4056fc4-d433-4d2c-bb7f-000000000010",
     "eventTime": "2026-09-23T14:12:38Z",
-    "eventType": "room-created",
+    "eventType": "room-upserted",
     "data": {
         "roomId": "d65f1ffb-aa60-4eff-9666-78a93a048b17",
+        "version": 7,
         "partnerId": "9381f1af-4187-4478-8c80-391c8882f421",
         "buildingId": "fdc2ea0d-d0f9-4d2f-aeca-5116f514093f",
         "buildingName": "Administrativní budova",
         "floorId": "d77c48f1-f7f3-4a02-b075-69b989914463",
         "floorName": "1. patro",
         "name": "Kancelář 101",
-        "note": "Teploměr je umístěn za rohem"
-    }
-}
-```
-
-### EventType room-renamed
-
-Informuje o změně názvu místnosti. Identifikátor `roomId` se přejmenováním nemění.
-
-Data obsahují:
-
-| Parametr | Typ | Povinný | Popis |
-|:---------|:----|:--------|:------|
-| roomId | string (UUID) | ano | ID místnosti, které se událost týká. |
-| name | string | ano | Nový název místnosti. |
-
-Ukázka zaslané události:
-
-```json
-{
-    "protocolVersion": 2,
-    "eventId": "c4056fc4-d433-4d2c-bb7f-000000000011",
-    "eventTime": "2026-09-23T14:12:38Z",
-    "eventType": "room-renamed",
-    "data": {
-        "roomId": "d65f1ffb-aa60-4eff-9666-78a93a048b17",
-        "name": "Zasedací místnost"
+        "note": "Teploměr je umístěn za rohem",
+        "devices": [
+            {
+                "deviceId": "6e748f20-846e-4e89-a831-000000000004",
+                "deviceType": "thermometer"
+            }
+        ],
+        "radiators": [
+            {
+                "radiatorId": "3f2b8c1e-6a4d-4f0e-9b7a-000000000021",
+                "positionFromLeft": 1,
+                "note": null,
+                "devices": [
+                    {
+                        "deviceId": "6e748f20-846e-4e89-a831-000000000001",
+                        "deviceType": "thermo-head"
+                    }
+                ]
+            },
+            {
+                "radiatorId": "3f2b8c1e-6a4d-4f0e-9b7a-000000000022",
+                "positionFromLeft": 2,
+                "note": "Pod oknem",
+                "devices": []
+            }
+        ]
     }
 }
 ```
@@ -259,263 +261,6 @@ Data obsahují:
     "eventType": "room-deleted",
     "data": {
         "roomId": "d65f1ffb-aa60-4eff-9666-78a93a048b17"
-    }
-}
-```
-
-### EventType room-floor-changed
-
-Informuje o přesunu místnosti do jiného podlaží **ve stejné budově**. K přesunu může dojít během instalace,
-pokud byl původní plán podlaží chybný a místnost byla nejprve zařazena do nesprávného podlaží.
-
-Cílové podlaží musí existovat a patřit do stejné budovy.
-
-Data obsahují:
-
-| Parametr | Typ | Povinný | Popis |
-|:---------|:----|:--------|:------|
-| roomId | string (UUID) | ano | ID přesunuté místnosti. |
-| floorId | string (UUID) | ano | ID cílového podlaží. |
-
-```json
-{
-    "protocolVersion": 2,
-    "eventId": "c4056fc4-d433-4d2c-bb7f-000000000013",
-    "eventTime": "2026-09-25T14:12:38Z",
-    "eventType": "room-floor-changed",
-    "data": {
-        "roomId": "d65f1ffb-aa60-4eff-9666-78a93a048b17",
-        "floorId": "c4056fc4-d433-4d2c-bb7f-000000000014"
-    }
-}
-```
-
-### EventType radiator-created
-
-Informuje o vytvoření radiátoru v místnosti. Radiátor obvykle vzniká při instalaci termostatických hlavic.
-
-Data obsahují objekt [`Radiator`](#objekt-radiator):
-
-| Parametr | Typ | Povinný | Popis |
-|:---------|:----|:--------|:------|
-| radiatorId | string (UUID) | ano | ID vytvořeného radiátoru. |
-| roomId | string (UUID) | ano | ID místnosti, do které radiátor patří. |
-| positionFromLeft | int | ano | Pořadí radiátoru v místnosti zleva od dveří, začíná od `1`. |
-| note | string nebo null | ano | Poznámka k radiátoru. |
-
-Události nemusí dorazit ve stejném pořadí, v jakém vznikly. Událost `device-installed` pro radiátor proto
-obsahuje také jeho popis v `entity.additionalData` a může přijít dříve než `radiator-created`. Příjemce by měl
-`radiator-created` i radiátor z `device-installed` zpracovat jako „vytvoř, nebo aktualizuj“ podle ID radiátoru.
-
-Ukázka zaslané události:
-
-```json
-{
-    "protocolVersion": 2,
-    "eventId": "c4056fc4-d433-4d2c-bb7f-000000000016",
-    "eventTime": "2026-09-23T14:12:38Z",
-    "eventType": "radiator-created",
-    "data": {
-        "radiatorId": "3f2b8c1e-6a4d-4f0e-9b7a-000000000021",
-        "roomId": "d65f1ffb-aa60-4eff-9666-78a93a048b17",
-        "positionFromLeft": 1,
-        "note": null
-    }
-}
-```
-
-### EventType entity-note-changed
-
-Informovat o změně poznámky na entitě.
-
-Data obsahují:
-
-| Parametr | Typ    | Povinný | Popis                                            |
-|:---------|:-------|:--------|:-------------------------------------------------|
-| entity   | Entity | ano     | ID a typ entity, jejíž poznámka se změnila.      |
-| note     | string | ano     | Nová hodnota poznámky, případně prázdný řetězec. |
-
-```json
-{
-    "protocolVersion": 2,
-    "eventId": "c4056fc4-d433-4d2c-bb7f-000000000015",
-    "eventTime": "2026-09-25T14:12:38Z",
-    "eventType": "entity-note-changed",
-    "data": {
-        "entity": {
-            "id": "d65f1ffb-aa60-4eff-9666-78a93a048b17",
-            "type": "room"
-        },
-        "note": "Neobsazená místnost"
-    }
-}
-```
-
-## Device installation events
-
-### EventType device-installed
-
-Informuje o instalaci jednoho nebo více zařízení u entity určené objektem `entity`.
-
-Každá událost se týká právě jedné entity. Pokud se při jedné instalaci připojí zařízení k více entitám,
-odešle se pro každou entitu samostatná událost s vlastním `eventId`:
-
-- termostatické hlavice jsou nainstalovány na radiátor – `entity` má typ `radiator` a `entity.additionalData`
-  obsahuje popis radiátoru,
-- teploměry a termostaty jsou nainstalovány do místnosti – `entity` má typ `room` a `entity.additionalData` je `null`.
-
-Data obsahují:
-
-| Parametr | Typ | Povinný | Popis |
-|:---------|:----|:--------|:------|
-| entity | InstalledEntity | ano | Entita, do které byla zařízení nainstalována, včetně jejího popisu. |
-| devices | device[] | ano | Pole nainstalovaných zařízení. |
-
-Objekt `InstalledEntity` rozšiřuje objekt [Entity](#objekt-entity) o parametr `additionalData`. Ten se posílá
-pouze v této události a umožňuje entitu vytvořit, i když událost dorazí dříve než událost, která entitu ohlašuje:
-
-| Parametr | Typ | Povinný | Popis |
-|:---------|:----|:--------|:------|
-| id | string (UUID) | ano | ID entity. |
-| type | string | ano | Typ entity. |
-| additionalData | object nebo null | ano | Popis entity, jehož podoba závisí na `type`. Pro `room` je `null`. |
-
-Pro `type: "radiator"` obsahuje `additionalData`:
-
-| Parametr | Typ | Povinný | Popis |
-|:---------|:----|:--------|:------|
-| roomId | string (UUID) | ano | ID místnosti, do které radiátor patří. |
-| positionFromLeft | int | ano | Pořadí radiátoru v místnosti zleva od dveří, začíná od `1`. |
-| note | string nebo null | ano | Poznámka k radiátoru. |
-
-Objekt `device` má následující formát:
-
-| Parametr | Typ | Povinný | Popis |
-|:---------|:----|:--------|:------|
-| deviceId | string (UUID) | ano | ID nainstalovaného zařízení. |
-| deviceType | string | ano | Typ zařízení: `thermo-head` nebo `thermometer` pro instalaci topení v místnosti. |
-
-Termostat je pro účely tohoto kontraktu uváděn jako `thermometer`.
-
-Ukázka zaslané události pro termostatickou hlavici na radiátoru:
-
-```json
-{
-    "protocolVersion": 2,
-    "eventId": "c4056fc4-d433-4d2c-bb7f-000000000007",
-    "eventTime": "2026-09-23T14:12:38Z",
-    "eventType": "device-installed",
-    "data": {
-        "entity": {
-            "id": "3f2b8c1e-6a4d-4f0e-9b7a-000000000021",
-            "type": "radiator",
-            "additionalData": {
-                "roomId": "d65f1ffb-aa60-4eff-9666-78a93a048b17",
-                "positionFromLeft": 1,
-                "note": null
-            }
-        },
-        "devices": [
-            {
-                "deviceId": "6e748f20-846e-4e89-a831-000000000001",
-                "deviceType": "thermo-head"
-            }
-        ]
-    }
-}
-```
-
-Ukázka zaslané události pro teploměr v místnosti:
-
-```json
-{
-    "protocolVersion": 2,
-    "eventId": "c4056fc4-d433-4d2c-bb7f-000000000017",
-    "eventTime": "2026-09-23T14:12:38Z",
-    "eventType": "device-installed",
-    "data": {
-        "entity": {
-            "id": "d65f1ffb-aa60-4eff-9666-78a93a048b17",
-            "type": "room",
-            "additionalData": null
-        },
-        "devices": [
-            {
-                "deviceId": "6e748f20-846e-4e89-a831-000000000004",
-                "deviceType": "thermometer"
-            }
-        ]
-    }
-}
-```
-
-### EventType device-uninstalled
-
-Informuje o odinstalaci zařízení, například při odebrání porouchané hlavice z místnosti.
-Místnost i radiátor zůstávají zachovány. Při odinstalaci jednoho zařízení obsahuje pole jedno ID.
-U termostatické hlavice je entitou radiátor, na kterém byla hlavice namontována; u ostatních zařízení místnost.
-
-Data obsahují:
-
-| Parametr | Typ | Povinný | Popis |
-|:---------|:----|:--------|:------|
-| entity | Entity | ano | Entita, které se událost týká. |
-| deviceIds | string (UUID)[] | ano | ID odinstalovaných zařízení. |
-
-Ukázka zaslané události:
-
-```json
-{
-    "protocolVersion": 2,
-    "eventId": "c4056fc4-d433-4d2c-bb7f-000000000009",
-    "eventTime": "2026-09-23T14:12:38Z",
-    "eventType": "device-uninstalled",
-    "data": {
-        "entity": {
-            "id": "3f2b8c1e-6a4d-4f0e-9b7a-000000000021",
-            "type": "radiator"
-        },
-        "deviceIds": [
-            "6e748f20-846e-4e89-a831-000000000001"
-        ]
-    }
-}
-```
-
-### EventType device-replaced
-
-Informuje o výměně zařízení přiřazeného k entitě. Zařízení `replacedDeviceId` bylo
-nahrazeno zařízením `replacementDeviceId`, například při výměně porouchané hlavice.
-Entitu určuje objekt `entity`: u termostatické hlavice jde o radiátor, na kterém byla hlavice namontována,
-u ostatních zařízení o místnost. Náhradní hlavice je namontována na stejný radiátor jako hlavice původní.
-
-Náhradní zařízení má vždy stejný typ jako nahrazované zařízení.
-Při výměně se odesílá událost `device-replaced`; události `device-installed` ani `device-uninstalled`
-se pro tuto výměnu neodesílají.
-
-Data obsahují:
-
-| Parametr | Typ | Povinný | Popis |
-|:---------|:----|:--------|:------|
-| entity | Entity | ano | Entita, které se událost týká. |
-| replacedDeviceId | string (UUID) | ano | ID původního zařízení. |
-| replacementDeviceId | string (UUID) | ano | ID nového zařízení. |
-
-Ukázka zaslané události:
-
-```json
-{
-    "protocolVersion": 2,
-    "eventId": "c4056fc4-d433-4d2c-bb7f-000000000006",
-    "eventTime": "2026-09-23T14:12:38Z",
-    "eventType": "device-replaced",
-    "data": {
-        "entity": {
-            "id": "3f2b8c1e-6a4d-4f0e-9b7a-000000000021",
-            "type": "radiator"
-        },
-        "replacedDeviceId": "6e748f20-846e-4e89-a831-000000000001",
-        "replacementDeviceId": "6e748f20-846e-4e89-a831-000000000002"
     }
 }
 ```

@@ -166,7 +166,7 @@ v zasílaných událostech:
 | type | string | ano | Typ entity: `room`, `radiator`, `riser` nebo `building-side`. |
 
 Radiátor vždy patří do jedné místnosti a jsou na něm namontovány termostatické hlavice. Radiátory partner zná
-z událostí `radiator-created` a `device-installed`. Typy `riser` a `building-side` jsou vyhrazeny pro budoucí
+z události `room-upserted`. Typy `riser` a `building-side` jsou vyhrazeny pro budoucí
 rozšíření. Které typy entit endpoint přijímá, je uvedeno u každého endpointu; nepodporovaný typ způsobí
 `400 Bad Request`.
 
@@ -423,7 +423,7 @@ Ukázka response:
 200 OK, žádné informace v body.
 ```
 
-O výměně je partner informován událostí `device-replaced`.
+O výměně je partner informován událostí `room-upserted` s novým stavem místnosti.
 
 ### PUT api/thermo-heads/turn-off-regulation
 
