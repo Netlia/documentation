@@ -26,7 +26,7 @@ Pokud to partner vyžaduje, lze v cílové URL použít následující zástupn�
 Příklad cílové adresy:
 
 ```text
-https://partner.example/events/v{ProtocolVersion}/{EntityType}/{EventType}/{EventId}
+https://partner.example/events/v{ProtocolVersion}/{EventType}/{EventId}
 ```
 
 ## Sdílené parametry
@@ -144,7 +144,7 @@ Objekt `Radiator` popisuje radiátor a místnost, do které patří:
 |:---------|:----|:--------|:------|
 | radiatorId | string (UUID) | ano | ID radiátoru. Odpovídá `entity.id` u entity typu `radiator`. |
 | roomId | string (UUID) | ano | ID místnosti, do které radiátor patří. |
-| positionFromLeft | int nebo null | ano | Pořadí radiátoru v místnosti počítané zleva od dveří. `null`, pokud pořadí není známo, typicky u radiátorů evidovaných před zavedením tohoto údaje. |
+| positionFromLeft | int | ano | Pořadí radiátoru v místnosti počítané zleva od dveří, začíná od `1`. |
 | note | string nebo null | ano | Poznámka k radiátoru. |
 
 Ukázka objektu `Radiator`:
@@ -300,7 +300,7 @@ Data obsahují objekt [`Radiator`](#objekt-radiator):
 |:---------|:----|:--------|:------|
 | radiatorId | string (UUID) | ano | ID vytvořeného radiátoru. |
 | roomId | string (UUID) | ano | ID místnosti, do které radiátor patří. |
-| positionFromLeft | int nebo null | ano | Pořadí radiátoru v místnosti zleva od dveří. |
+| positionFromLeft | int | ano | Pořadí radiátoru v místnosti zleva od dveří, začíná od `1`. |
 | note | string nebo null | ano | Poznámka k radiátoru. |
 
 Události nemusí dorazit ve stejném pořadí, v jakém vznikly. Událost `device-installed` pro radiátor proto
@@ -385,7 +385,7 @@ Pro `type: "radiator"` obsahuje `additionalData`:
 | Parametr | Typ | Povinný | Popis |
 |:---------|:----|:--------|:------|
 | roomId | string (UUID) | ano | ID místnosti, do které radiátor patří. |
-| positionFromLeft | int nebo null | ano | Pořadí radiátoru v místnosti zleva od dveří. |
+| positionFromLeft | int | ano | Pořadí radiátoru v místnosti zleva od dveří, začíná od `1`. |
 | note | string nebo null | ano | Poznámka k radiátoru. |
 
 Objekt `device` má následující formát:
