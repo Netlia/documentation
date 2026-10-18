@@ -100,10 +100,6 @@ U nepovinných parametrů v tabulkách může být hodnota `null`. Příjemce by
 Entita označuje místo nebo prvek budovy, ke kterému je zařízení přiřazeno, například místnost, radiátor, stoupačku
 nebo stranu budovy.
 
-Radiátor vždy patří do jedné místnosti. Termostatické hlavice jsou namontovány na radiátorech, proto události
-týkající se hlavice uvádějí jako entitu radiátor. Ostatní zařízení, například teploměr nebo termostat,
-patří přímo k místnosti.
-
 Objekt `Entity` obsahuje identifikátor a typ entity:
 
 | Parametr | Typ | Povinný | Popis |
@@ -139,8 +135,6 @@ Definované hodnoty `deviceType`:
 |:--------------|:---------------------------------------------------|
 | `thermo-head` | Termostatická hlavice ovládající ventil radiátoru. |
 | `thermometer` | Teploměr měřící teplotu.                           |
-
-Termostat je pro účely tohoto kontraktu uváděn jako `thermometer`.
 
 > Nové typy událostí, zařízení a entit i další hodnoty mohou kdykoli přibývat. Kód příjemce by měl s těmito
 > situacemi počítat a umět zpracovat i neznámé hodnoty – typicky vrátit odpověď OK a zaznamenat chybu do logu.
