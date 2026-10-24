@@ -1,6 +1,7 @@
 # Netlia events documentation
 
-Tato dokumentace popisuje události týkající se měření a regulace teploty, stavu zařízení a správy místností a radiátorů.
+Tato dokumentace popisuje události týkající se měření a regulace teploty, stavu zařízení, správy místností a radiátorů
+a otopné soustavy – kotelen a jejich topných okruhů.
 
 Související operace jsou popsány v [dokumentaci REST API](../RestApi/regulation_api.md).
 
@@ -70,7 +71,10 @@ Typy událostí:
 |:----------|:-----------------------------------------------------|
 | [`building-upserted`](#eventtype-building-upserted) | Aktuální stav budovy: podlaží a místnosti na nich. |
 | [`room-upserted`](#eventtype-room-upserted) | Aktuální obsah místnosti: poznámka, zařízení a radiátory. |
+| [`mechanical-room-upserted`](#eventtype-mechanical-room-upserted) | Aktuální stav kotelny: vytápěné budovy a topné okruhy. |
+| [`heating-circuit-upserted`](#eventtype-heating-circuit-upserted) | Aktuální měřicí body topného okruhu: zařízení měřící přívod a zpátečku. |
 | [`measured-temperature`](#eventtype-measured-temperature) | Naměřená teplota.                                    |
+| [`heating-circuit-temperature-measured`](#eventtype-heating-circuit-temperature-measured) | Naměřená teplota přívodu nebo zpátečky topného okruhu. |
 | [`thermo-head-changed-position`](#eventtype-thermo-head-changed-position) | Změna polohy termostatických hlavic.                 |
 | [`heating-state-changed`](#eventtype-heating-state-changed) | Změna cílové teploty nebo stavu topení.              |
 | [`battery-alert`](#eventtype-battery-alert) | Změna stavu baterie zařízení.                        |
@@ -87,7 +91,7 @@ Přípona `Z` označuje časové pásmo UTC (+00:00).
 
 ### UUID
 
-Identifikátory místností, radiátorů, entit, zařízení a událostí mají formát UUID:
+Identifikátory místností, radiátorů, kotelen, topných okruhů, entit, zařízení a událostí mají formát UUID:
 
 `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
 
@@ -97,14 +101,14 @@ U nepovinných parametrů v tabulkách může být hodnota `null`. Příjemce by
 
 ### Objekt Entity
 
-Entita označuje místo nebo prvek budovy, ke kterému je zařízení přiřazeno, například místnost, radiátor, stoupačku
-nebo stranu budovy.
+Entita označuje místo nebo prvek budovy, ke kterému je zařízení přiřazeno, například místnost, radiátor nebo topný
+okruh.
 
 Objekt `Entity` obsahuje identifikátor a typ entity:
 
 | Parametr | Typ | Povinný | Popis |
 |:---------|:----|:--------|:------|
-| id | string (UUID) | ano | ID entity. Pro `type: "room"` jde o ID místnosti, pro `type: "radiator"` o ID radiátoru. |
+| id | string (UUID) | ano | ID entity. Pro `type: "room"` jde o ID místnosti, pro `type: "radiator"` o ID radiátoru, pro `type: "heating-circuit"` o ID topného okruhu. |
 | type | string (výčet níže) | ano | Typ entity, které se událost týká. |
 
 Definované typy entit:
@@ -113,8 +117,7 @@ Definované typy entit:
 |:-----------|:-------|:-----------------|
 | `room` | Místnost. | Události se odesílají. |
 | `radiator` | Radiátor v místnosti, na kterém jsou namontovány termostatické hlavice. | Události se odesílají. |
-| `riser` | Stoupačka. | Vyhrazeno pro budoucí rozšíření. |
-| `building-side` | Strana budovy, například severní nebo východní, pro venkovní teploměry. | Vyhrazeno pro budoucí rozšíření. |
+| `heating-circuit` | Topný okruh kotelny, například hlavní okruh budovy nebo stoupačka. Viz [Heating network events](#heating-network-events). | Události se odesílají. |
 
 Ukázka objektu `Entity`:
 
@@ -302,6 +305,159 @@ Ukázka zaslané události:
 }
 ```
 
+## Heating network events
+
+Otopnou soustavu popisují kotelny a jejich topné okruhy:
+
+- **Kotelna** (`mechanicalRoom`) je zdroj tepla jedné nebo více budov partnera.
+- **Topný okruh** (`circuit`) rozvádí teplo z kotelny. Okruhy tvoří strom: okruh bez nadřazeného okruhu vychází přímo
+  z kotelny, ostatní okruhy odbočují ze svého nadřazeného okruhu (`parentCircuitId`). Každý okruh patří do jedné budovy,
+  s výjimkou hlavního okruhu kotelny, který zásobuje více budov. Nejvyšší okruh budovy je její hlavní okruh, okruhy
+  pod ním jsou stoupačky. Kotelna vytápějící jedinou budovu má zpravidla jediný hlavní okruh s touto budovou.
+- Každý okruh má dvě strany (`side`): `supply` – přívod, teplá voda z kotelny, a `return` – zpátečka, ochlazená voda
+  vracející se do kotelny. Každou stranu může měřit sonda jednoho teploměru se sondami; jeden teploměr může měřit
+  více okruhů.
+
+Stav se předává dvěma typy událostí, z nichž každá vždy obsahuje úplný aktuální stav:
+
+- `mechanical-room-upserted` určuje, které budovy kotelna vytápí a jaké má topné okruhy,
+- `heating-circuit-upserted` určuje, která zařízení měří přívod a zpátečku jednoho okruhu.
+
+Budovy samotné popisuje událost `building-upserted`. Stejně jako u budov a místností má každá kotelna a každý okruh
+vlastní `version` a příjemce zpracuje pouze událost s vyšší verzí, než jakou už zpracoval.
+
+### EventType mechanical-room-upserted
+
+Obsahuje úplný aktuální stav kotelny: poznámku, budovy, které vytápí, a všechny její topné okruhy. Odesílá se po každé
+změně kotelny, jejích budov nebo jejích okruhů.
+
+Příjemce kotelnu vytvoří, pokud ji ještě nezná, a jinak ji nahradí přijatým stavem. Okruhy, které v události nejsou,
+odebere včetně jejich měřicích bodů. Každou budovu vytápí nejvýše jedna kotelna; budova, která v události už není,
+touto kotelnou vytápěna není.
+
+Data obsahují:
+
+| Parametr | Typ | Povinný | Popis |
+|:---------|:----|:--------|:------|
+| mechanicalRoomId | string (UUID) | ano | ID kotelny. |
+| version | int | ano | Verze stavu kotelny. Vyšší číslo znamená novější stav. |
+| partnerId | string (UUID) | ano | ID partnera, kterému kotelna patří. |
+| note | string | ano | Poznámka ke kotelně, případně prázdný řetězec. |
+| buildingIds | string (UUID)[] | ano | ID budov, které kotelna vytápí, seřazená podle ID. Prázdné pole, pokud žádnou nevytápí. |
+| circuits | circuit[] | ano | Všechny topné okruhy kotelny, seřazené podle ID. Prázdné pole, pokud kotelna žádné nemá. |
+
+Objekt `circuit` má následující formát:
+
+| Parametr | Typ | Povinný | Popis |
+|:---------|:----|:--------|:------|
+| circuitId | string (UUID) | ano | ID okruhu. Odpovídá `entity.id` u entity typu `heating-circuit` v ostatních událostech. |
+| parentCircuitId | string (UUID) nebo null | ano | ID okruhu, ze kterého okruh odbočuje. `null` u hlavního okruhu vycházejícího z kotelny. |
+| buildingId | string (UUID) nebo null | ano | ID budovy, ve které okruh je. `null` pouze u hlavního okruhu kotelny, který zásobuje více budov. |
+| note | string | ano | Poznámka k okruhu, případně prázdný řetězec. |
+
+Ukázka zaslané události – kotelna vytápí dvě budovy, z hlavního okruhu kotelny vede okruh do každé budovy a v první
+budově z něj odbočuje stoupačka:
+
+```json
+{
+    "protocolVersion": 2,
+    "eventId": "c4056fc4-d433-4d2c-bb7f-000000000011",
+    "eventTime": "2026-09-23T14:12:38Z",
+    "eventType": "mechanical-room-upserted",
+    "data": {
+        "mechanicalRoomId": "5a1c7e0b-2f43-4d8e-9c61-000000000031",
+        "version": 2,
+        "partnerId": "9381f1af-4187-4478-8c80-391c8882f421",
+        "note": "Suterén budovy A",
+        "buildingIds": [
+            "fdc2ea0d-d0f9-4d2f-aeca-5116f514093f",
+            "fdc2ea0d-d0f9-4d2f-aeca-5116f5140940"
+        ],
+        "circuits": [
+            {
+                "circuitId": "7b3e9d52-1c08-4a6f-8e24-000000000041",
+                "parentCircuitId": null,
+                "buildingId": null,
+                "note": "Hlavní okruh kotelny"
+            },
+            {
+                "circuitId": "7b3e9d52-1c08-4a6f-8e24-000000000042",
+                "parentCircuitId": "7b3e9d52-1c08-4a6f-8e24-000000000041",
+                "buildingId": "fdc2ea0d-d0f9-4d2f-aeca-5116f514093f",
+                "note": ""
+            },
+            {
+                "circuitId": "7b3e9d52-1c08-4a6f-8e24-000000000043",
+                "parentCircuitId": "7b3e9d52-1c08-4a6f-8e24-000000000041",
+                "buildingId": "fdc2ea0d-d0f9-4d2f-aeca-5116f5140940",
+                "note": ""
+            },
+            {
+                "circuitId": "7b3e9d52-1c08-4a6f-8e24-000000000044",
+                "parentCircuitId": "7b3e9d52-1c08-4a6f-8e24-000000000042",
+                "buildingId": "fdc2ea0d-d0f9-4d2f-aeca-5116f514093f",
+                "note": "Stoupačka u schodiště"
+            }
+        ]
+    }
+}
+```
+
+### EventType heating-circuit-upserted
+
+Obsahuje úplné aktuální měřicí body topného okruhu: která zařízení měří jeho přívod a zpátečku. Odesílá se po každé
+změně měřicích bodů – po instalaci, odinstalaci nebo výměně zařízení. Samotný okruh určuje událost
+`mechanical-room-upserted`.
+
+Příjemce měřicí body okruhu nahradí přijatým stavem: strany, které v události nejsou, nejsou měřeny. Pokud okruh ještě
+nezná, protože událost `mechanical-room-upserted`, která ho uvádí, zatím nedorazila, může zpracování odložit
+a zopakovat později.
+
+Data obsahují:
+
+| Parametr | Typ | Povinný | Popis |
+|:---------|:----|:--------|:------|
+| heatingCircuitId | string (UUID) | ano | ID okruhu. |
+| version | int | ano | Verze měřicích bodů okruhu. Vyšší číslo znamená novější stav. |
+| measurementPoints | measurementPoint[] | ano | Měřicí body, nejvýše jeden pro každou stranu, přívod první. Prázdné pole, pokud okruh nikdo neměří. |
+
+Objekt `measurementPoint` má následující formát:
+
+| Parametr | Typ | Povinný | Popis |
+|:---------|:----|:--------|:------|
+| side | string | ano | Měřená strana okruhu: `supply` (přívod) nebo `return` (zpátečka). |
+| deviceId | string (UUID) | ano | ID zařízení – teploměru se sondami. |
+| deviceType | string | ano | Typ zařízení, viz [Device](#device); vždy `thermometer`. |
+
+Jedno zařízení může měřit obě strany okruhu i strany více okruhů.
+
+Ukázka zaslané události:
+
+```json
+{
+    "protocolVersion": 2,
+    "eventId": "c4056fc4-d433-4d2c-bb7f-000000000012",
+    "eventTime": "2026-09-23T14:12:38Z",
+    "eventType": "heating-circuit-upserted",
+    "data": {
+        "heatingCircuitId": "7b3e9d52-1c08-4a6f-8e24-000000000042",
+        "version": 3,
+        "measurementPoints": [
+            {
+                "side": "supply",
+                "deviceId": "6e748f20-846e-4e89-a831-000000000005",
+                "deviceType": "thermometer"
+            },
+            {
+                "side": "return",
+                "deviceId": "6e748f20-846e-4e89-a831-000000000005",
+                "deviceType": "thermometer"
+            }
+        ]
+    }
+}
+```
+
 ## Measurement and state events
 
 ### EventType measured-temperature
@@ -332,6 +488,37 @@ Ukázka zaslané události:
         },
         "deviceId": "6e748f20-846e-4e89-a831-000000000004",
         "temperature": 25.5
+    }
+}
+```
+
+### EventType heating-circuit-temperature-measured
+
+Informuje o změření teploty přívodu nebo zpátečky topného okruhu. Strana a zařízení odpovídají měřicímu bodu
+z události `heating-circuit-upserted`.
+
+Data obsahují:
+
+| Parametr | Typ | Povinný | Popis |
+|:---------|:----|:--------|:------|
+| heatingCircuitId | string (UUID) | ano | ID okruhu. |
+| side | string | ano | Měřená strana okruhu: `supply` (přívod) nebo `return` (zpátečka). |
+| deviceId | string (UUID) | ano | ID zařízení, které provedlo měření. |
+| temperature | float | ano | Naměřená teplota [°C], zaokrouhlená na dvě desetinná místa. |
+
+Ukázka zaslané události:
+
+```json
+{
+    "protocolVersion": 2,
+    "eventId": "c4056fc4-d433-4d2c-bb7f-000000000013",
+    "eventTime": "2026-09-23T14:12:38Z",
+    "eventType": "heating-circuit-temperature-measured",
+    "data": {
+        "heatingCircuitId": "7b3e9d52-1c08-4a6f-8e24-000000000042",
+        "side": "supply",
+        "deviceId": "6e748f20-846e-4e89-a831-000000000005",
+        "temperature": 65.42
     }
 }
 ```
@@ -483,7 +670,9 @@ Ukázka zaslané události:
 
 Upozorňuje na problém týkající se celé entity nebo jednoho jejího zařízení. Povinný objekt `entity`
 určuje entitu, které se problém týká. Událost se může týkat libovolného typu entity. U problému termostatické
-hlavice je entitou radiátor, na kterém je hlavice namontována; u ostatních zařízení místnost.
+hlavice je entitou radiátor, na kterém je hlavice namontována; u teploměru se sondami topný okruh, který měří;
+u ostatních zařízení místnost. Problém teploměru se sondami, který měří více okruhů, je oznámen samostatnou událostí
+pro každý z nich.
 
 - `deviceId: null` označuje problém celé entity. Parametr může být také vynechán.
 - Vyplněné `deviceId` označuje problém konkrétního zařízení v dané entitě, například vložení vybité baterie
